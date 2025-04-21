@@ -3,6 +3,7 @@ com\sms\util\DBConnection.class
 com\sms\model\User.class
 com\sms\util\FileUpload.class
 com\sms\dao\StudentDAO.class
+com\sms\controller\parent\ParentServlet.class
 com\sms\model\Teacher.class
 com\sms\controller\LogoutServlet.class
 com\sms\model\Parent.class
@@ -13,4 +14,5 @@ com\sms\controller\LoginServlet.class
 com\sms\dao\TeacherDAO.class
 com\sms\controller\admin\UserServlet.class
 com\sms\model\Student.class
+com\sms\dao\ParentDAO.class
 com\sms\model\Mark.class
