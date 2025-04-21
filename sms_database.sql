@@ -1,8 +1,8 @@
 -- MySQL database schema for School Management System
 
 -- Create the database
-CREATE DATABASE IF NOT EXISTS sms_database;
-USE sms_database;
+CREATE DATABASE IF NOT EXISTS SMS;
+USE SMS;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS Users (

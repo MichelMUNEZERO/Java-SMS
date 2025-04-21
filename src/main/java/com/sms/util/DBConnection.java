@@ -8,9 +8,9 @@ import java.sql.SQLException;
  * Database connection utility class for the School Management System
  */
 public class DBConnection {
-    private static final String URL = "jdbc:mysql://localhost:3306/sms_database";
+    private static final String URL = "jdbc:mysql://localhost:3306/SMS";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = ""; // Set your MySQL password here
+    private static final String PASSWORD = "Dedecedric@1"; // Set your MySQL password here
     
     private static Connection connection = null;
     
