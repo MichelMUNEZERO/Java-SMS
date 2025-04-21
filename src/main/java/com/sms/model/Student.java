@@ -11,6 +11,7 @@ public class Student {
     private String telephone;
     private String email;
     private String address;
+    private int parentId;
     
     /**
      * Default constructor
@@ -26,14 +27,16 @@ public class Student {
      * @param telephone the telephone
      * @param email the email
      * @param address the address
+     * @param parentId the parent id
      */
-    public Student(String firstName, String lastName, String regNumber, String telephone, String email, String address) {
+    public Student(String firstName, String lastName, String regNumber, String telephone, String email, String address, int parentId) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.regNumber = regNumber;
         this.telephone = telephone;
         this.email = email;
         this.address = address;
+        this.parentId = parentId;
     }
     
     /**
@@ -45,8 +48,9 @@ public class Student {
      * @param telephone the telephone
      * @param email the email
      * @param address the address
+     * @param parentId the parent id
      */
-    public Student(int studentId, String firstName, String lastName, String regNumber, String telephone, String email, String address) {
+    public Student(int studentId, String firstName, String lastName, String regNumber, String telephone, String email, String address, int parentId) {
         this.studentId = studentId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -54,6 +58,7 @@ public class Student {
         this.telephone = telephone;
         this.email = email;
         this.address = address;
+        this.parentId = parentId;
     }
     
     // Getters and setters
@@ -114,6 +119,14 @@ public class Student {
         this.address = address;
     }
     
+    public int getParentId() {
+        return parentId;
+    }
+    
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
+    }
+    
     /**
      * Get full name
      * @return the full name of the student
@@ -125,6 +138,6 @@ public class Student {
     @Override
     public String toString() {
         return "Student [studentId=" + studentId + ", firstName=" + firstName + ", lastName=" + lastName + 
-                ", regNumber=" + regNumber + "]";
+                ", regNumber=" + regNumber + ", parentId=" + parentId + "]";
     }
 } 
