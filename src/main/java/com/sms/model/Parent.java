@@ -1,7 +1,7 @@
 package com.sms.model;
 
 /**
- * Model class for Parent entity
+ * Parent model class
  */
 public class Parent {
     private int parentId;
@@ -11,7 +11,7 @@ public class Parent {
     private String email;
     private String phone;
     private String address;
-    private String emergencyContact;
+    private String occupation;
     
     /**
      * Default constructor
@@ -20,18 +20,31 @@ public class Parent {
     }
     
     /**
-     * Parameterized constructor
-     * 
-     * @param parentId Parent ID
-     * @param userId User ID
-     * @param firstName First name
-     * @param lastName Last name
-     * @param email Email address
-     * @param phone Phone number
-     * @param address Address
-     * @param emergencyContact Emergency contact
+     * Constructor with essential fields
+     * @param firstName the first name
+     * @param lastName the last name
+     * @param email the email
+     * @param phone the phone number
      */
-    public Parent(int parentId, int userId, String firstName, String lastName, String email, String phone, String address, String emergencyContact) {
+    public Parent(String firstName, String lastName, String email, String phone) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+    }
+    
+    /**
+     * Full constructor
+     * @param parentId the parent id
+     * @param userId the user id
+     * @param firstName the first name
+     * @param lastName the last name
+     * @param email the email
+     * @param phone the phone number
+     * @param address the address
+     * @param occupation the occupation
+     */
+    public Parent(int parentId, int userId, String firstName, String lastName, String email, String phone, String address, String occupation) {
         this.parentId = parentId;
         this.userId = userId;
         this.firstName = firstName;
@@ -39,7 +52,7 @@ public class Parent {
         this.email = email;
         this.phone = phone;
         this.address = address;
-        this.emergencyContact = emergencyContact;
+        this.occupation = occupation;
     }
     
     /**
@@ -169,27 +182,34 @@ public class Parent {
     }
     
     /**
-     * Get the emergency contact
+     * Get the occupation
      * 
-     * @return The emergency contact
+     * @return The occupation
      */
-    public String getEmergencyContact() {
-        return emergencyContact;
+    public String getOccupation() {
+        return occupation;
     }
     
     /**
-     * Set the emergency contact
+     * Set the occupation
      * 
-     * @param emergencyContact The emergency contact
+     * @param occupation The occupation
      */
-    public void setEmergencyContact(String emergencyContact) {
-        this.emergencyContact = emergencyContact;
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
+    
+    /**
+     * Get full name
+     * @return the full name of the parent
+     */
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
     
     @Override
     public String toString() {
-        return "Parent [parentId=" + parentId + ", userId=" + userId + ", firstName=" + firstName + ", lastName="
-                + lastName + ", email=" + email + ", phone=" + phone + ", address=" + address + ", emergencyContact="
-                + emergencyContact + "]";
+        return "Parent [parentId=" + parentId + ", firstName=" + firstName + ", lastName=" + lastName + 
+                ", email=" + email + "]";
     }
 } 

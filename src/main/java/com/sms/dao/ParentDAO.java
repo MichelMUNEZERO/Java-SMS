@@ -16,91 +16,90 @@ import com.sms.util.DBConnection;
  */
 public class ParentDAO {
     
+    private Connection connection;
+    
+    public ParentDAO() {
+        connection = DBConnection.getConnection();
+    }
+    
     /**
      * Get a parent by ID
-     * @param parentId The parent ID
-     * @return Parent object if found, null otherwise
+     * @param parentId the parent ID to search for
+     * @return the Parent object if found, null otherwise
      */
     public Parent getParentById(int parentId) {
+        Parent parent = null;
         String sql = "SELECT * FROM parents WHERE parent_id = ?";
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, parentId);
+            ResultSet rs = stmt.executeQuery();
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return extractParentFromResultSet(rs);
-                }
+            if (rs.next()) {
+                parent = extractParentFromResultSet(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         
-        return null;
+        return parent;
     }
     
     /**
      * Get a parent by user ID
-     * @param userId The user ID
-     * @return Parent object if found, null otherwise
+     * @param userId the user ID to search for
+     * @return the Parent object if found, null otherwise
      */
     public Parent getParentByUserId(int userId) {
+        Parent parent = null;
         String sql = "SELECT * FROM parents WHERE user_id = ?";
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return extractParentFromResultSet(rs);
-                }
+            if (rs.next()) {
+                parent = extractParentFromResultSet(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         
-        return null;
+        return parent;
     }
     
     /**
      * Get a parent by email
-     * @param email The email address
-     * @return Parent object if found, null otherwise
+     * @param email the email to search for
+     * @return the Parent object if found, null otherwise
      */
     public Parent getParentByEmail(String email) {
+        Parent parent = null;
         String sql = "SELECT * FROM parents WHERE email = ?";
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
             
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return extractParentFromResultSet(rs);
-                }
+            if (rs.next()) {
+                parent = extractParentFromResultSet(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         
-        return null;
+        return parent;
     }
     
     /**
-     * Get all parents
-     * @return List of all parents
+     * Get all parents from the database
+     * @return a list of all parents
      */
     public List<Parent> getAllParents() {
         List<Parent> parents = new ArrayList<>();
         String sql = "SELECT * FROM parents";
         
-        try (Connection conn = DBConnection.getConnection();
-             Statement stmt = conn.createStatement();
+        try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
@@ -114,100 +113,80 @@ public class ParentDAO {
     }
     
     /**
-     * Add a new parent
-     * @param parent The parent to add
-     * @return The ID of the added parent, or -1 if failed
+     * Add a new parent to the database
+     * @param parent the parent to add
+     * @return true if the addition was successful, false otherwise
      */
-    public int addParent(Parent parent) {
-        String sql = "INSERT INTO parents (user_id, first_name, last_name, email, phone, address, emergency_contact) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public boolean addParent(Parent parent) {
+        String sql = "INSERT INTO parents (user_id, first_name, last_name, email, phone, address, occupation) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, parent.getUserId());
             stmt.setString(2, parent.getFirstName());
             stmt.setString(3, parent.getLastName());
             stmt.setString(4, parent.getEmail());
             stmt.setString(5, parent.getPhone());
             stmt.setString(6, parent.getAddress());
-            stmt.setString(7, parent.getEmergencyContact());
+            stmt.setString(7, parent.getOccupation());
             
-            int affectedRows = stmt.executeUpdate();
-            
-            if (affectedRows > 0) {
-                try (ResultSet rs = stmt.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        return rs.getInt(1);
-                    }
-                }
-            }
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        
-        return -1;
     }
     
     /**
-     * Update a parent
-     * @param parent The parent to update
-     * @return true if successful, false otherwise
+     * Update an existing parent in the database
+     * @param parent the parent to update
+     * @return true if the update was successful, false otherwise
      */
     public boolean updateParent(Parent parent) {
-        String sql = "UPDATE parents SET user_id = ?, first_name = ?, last_name = ?, email = ?, " +
-                     "phone = ?, address = ?, emergency_contact = ? WHERE parent_id = ?";
+        String sql = "UPDATE parents SET user_id = ?, first_name = ?, last_name = ?, email = ?, phone = ?, address = ?, occupation = ? WHERE parent_id = ?";
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, parent.getUserId());
             stmt.setString(2, parent.getFirstName());
             stmt.setString(3, parent.getLastName());
             stmt.setString(4, parent.getEmail());
             stmt.setString(5, parent.getPhone());
             stmt.setString(6, parent.getAddress());
-            stmt.setString(7, parent.getEmergencyContact());
+            stmt.setString(7, parent.getOccupation());
             stmt.setInt(8, parent.getParentId());
             
-            int affectedRows = stmt.executeUpdate();
-            
-            return affectedRows > 0;
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        
-        return false;
     }
     
     /**
-     * Delete a parent
-     * @param parentId The ID of the parent to delete
-     * @return true if successful, false otherwise
+     * Delete a parent from the database
+     * @param parentId the ID of the parent to delete
+     * @return true if deletion was successful, false otherwise
      */
     public boolean deleteParent(int parentId) {
         String sql = "DELETE FROM parents WHERE parent_id = ?";
         
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, parentId);
             
-            int affectedRows = stmt.executeUpdate();
-            
-            return affectedRows > 0;
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        
-        return false;
     }
     
     /**
-     * Helper method to extract a Parent from a ResultSet
-     * @param rs The ResultSet to extract from
-     * @return A Parent object
-     * @throws SQLException If a database access error occurs
+     * Map a Parent object from a ResultSet
+     * @param rs the ResultSet containing parent data
+     * @return a populated Parent object
+     * @throws SQLException if a database access error occurs
      */
     private Parent extractParentFromResultSet(ResultSet rs) throws SQLException {
         Parent parent = new Parent();
@@ -218,7 +197,33 @@ public class ParentDAO {
         parent.setEmail(rs.getString("email"));
         parent.setPhone(rs.getString("phone"));
         parent.setAddress(rs.getString("address"));
-        parent.setEmergencyContact(rs.getString("emergency_contact"));
+        parent.setOccupation(rs.getString("occupation"));
         return parent;
+    }
+    
+    /**
+     * Search for parents based on a search term
+     * @param searchTerm the term to search for
+     * @return a list of parents matching the search term
+     */
+    public List<Parent> searchParents(String searchTerm) {
+        List<Parent> parents = new ArrayList<>();
+        String sql = "SELECT * FROM parents WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            String searchPattern = "%" + searchTerm + "%";
+            stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
+            stmt.setString(3, searchPattern);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                parents.add(extractParentFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return parents;
     }
 } 

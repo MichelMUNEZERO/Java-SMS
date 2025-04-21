@@ -10,6 +10,7 @@ com\sms\model\Parent.class
 com\sms\filter\AuthenticationFilter.class
 com\sms\model\Course.class
 com\sms\dao\UserDAO.class
+com\sms\controller\admin\StudentServlet.class
 com\sms\controller\LoginServlet.class
 com\sms\dao\TeacherDAO.class
 com\sms\controller\admin\UserServlet.class

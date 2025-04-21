@@ -16,39 +16,65 @@ import com.sms.util.DBConnection;
  */
 public class UserDAO {
     
+    private Connection connection;
+    
+    public UserDAO() {
+        connection = DBConnection.getConnection();
+    }
+    
     /**
-     * Get a user by username
+     * Get a user by ID
+     * @param userId the user ID to search for
+     * @return the User object if found, null otherwise
+     */
+    public User getUserById(int userId) {
+        User user = null;
+        String sql = "SELECT * FROM Users WHERE UserID = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                user = extractUserFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return user;
+    }
+    
+    /**
+     * Get a user by email
+     * @param email the email to search for
+     * @return the User object if found, null otherwise
+     */
+    public User getUserByEmail(String email) {
+        User user = null;
+        String sql = "SELECT * FROM Users WHERE Username = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                user = extractUserFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return user;
+    }
+    
+    /**
+     * For backwards compatibility - Get a user by username (which is now email)
      * @param username the username to search for
      * @return the User object if found, null otherwise
      */
     public User getUserByUsername(String username) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        User user = null;
-        
-        try {
-            conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Users WHERE Username = ?";
-            stmt = conn.prepareStatement(sql);
-            stmt.setString(1, username);
-            rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                user = new User();
-                user.setUserId(rs.getInt("UserID"));
-                user.setUsername(rs.getString("Username"));
-                user.setPassword(rs.getString("Password"));
-                user.setUserType(rs.getString("UserType"));
-                user.setImageLink(rs.getString("ImageLink"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            closeResources(null, stmt, rs);
-        }
-        
-        return user;
+        return getUserByEmail(username);
     }
     
     /**
@@ -56,30 +82,17 @@ public class UserDAO {
      * @return a list of all users
      */
     public List<User> getAllUsers() {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
         List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM Users";
         
-        try {
-            conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Users";
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(sql);
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                User user = new User();
-                user.setUserId(rs.getInt("UserID"));
-                user.setUsername(rs.getString("Username"));
-                user.setPassword(rs.getString("Password"));
-                user.setUserType(rs.getString("UserType"));
-                user.setImageLink(rs.getString("ImageLink"));
-                users.add(user);
+                users.add(extractUserFromResultSet(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            closeResources(null, stmt, rs);
         }
         
         return users;
@@ -88,38 +101,30 @@ public class UserDAO {
     /**
      * Add a new user to the database
      * @param user the user to add
-     * @return the ID of the newly added user, or -1 if addition failed
+     * @return the generated user ID if successful, -1 otherwise
      */
     public int addUser(User user) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        int userId = -1;
+        String sql = "INSERT INTO Users (Username, Password, UserType, ImageLink) VALUES (?, ?, ?, ?)";
         
-        try {
-            conn = DBConnection.getConnection();
-            String sql = "INSERT INTO Users (Username, Password, UserType, ImageLink) VALUES (?, ?, ?, ?)";
-            stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            stmt.setString(1, user.getUsername());
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getUserType());
+            stmt.setString(3, user.getRole());
             stmt.setString(4, user.getImageLink());
             
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows > 0) {
-                rs = stmt.getGeneratedKeys();
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
-                    userId = rs.getInt(1);
-                    user.setUserId(userId);
+                    return rs.getInt(1);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            closeResources(null, stmt, rs);
         }
         
-        return userId;
+        return -1;
     }
     
     /**
@@ -128,29 +133,21 @@ public class UserDAO {
      * @return true if the update was successful, false otherwise
      */
     public boolean updateUser(User user) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        boolean success = false;
+        String sql = "UPDATE Users SET Username = ?, Password = ?, UserType = ?, ImageLink = ? WHERE UserID = ?";
         
-        try {
-            conn = DBConnection.getConnection();
-            String sql = "UPDATE Users SET Username = ?, Password = ?, UserType = ?, ImageLink = ? WHERE UserID = ?";
-            stmt = conn.prepareStatement(sql);
-            stmt.setString(1, user.getUsername());
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getUserType());
+            stmt.setString(3, user.getRole());
             stmt.setString(4, user.getImageLink());
             stmt.setInt(5, user.getUserId());
             
-            int affectedRows = stmt.executeUpdate();
-            success = (affectedRows > 0);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            closeResources(null, stmt, null);
+            return false;
         }
-        
-        return success;
     }
     
     /**
@@ -159,44 +156,105 @@ public class UserDAO {
      * @return true if deletion was successful, false otherwise
      */
     public boolean deleteUser(int userId) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        boolean success = false;
+        String sql = "DELETE FROM Users WHERE UserID = ?";
         
-        try {
-            conn = DBConnection.getConnection();
-            String sql = "DELETE FROM Users WHERE UserID = ?";
-            stmt = conn.prepareStatement(sql);
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
             
-            int affectedRows = stmt.executeUpdate();
-            success = (affectedRows > 0);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            closeResources(null, stmt, null);
+            return false;
         }
-        
-        return success;
     }
     
     /**
-     * Close database resources
-     * @param conn the Connection object
-     * @param stmt the Statement object
-     * @param rs the ResultSet object
+     * Map a User object from a ResultSet
+     * @param rs the ResultSet containing user data
+     * @return a populated User object
+     * @throws SQLException if a database access error occurs
      */
-    private void closeResources(Connection conn, Statement stmt, ResultSet rs) {
-        try {
-            if (rs != null) {
-                rs.close();
+    private User extractUserFromResultSet(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setUserId(rs.getInt("UserID"));
+        user.setEmail(rs.getString("Username"));
+        user.setPassword(rs.getString("Password"));
+        user.setRole(rs.getString("UserType"));
+        user.setStatus("active");
+        user.setImageLink(rs.getString("ImageLink"));
+        return user;
+    }
+    
+    /**
+     * Authenticate a user with email and password
+     * @param email the email
+     * @param password the password (already hashed)
+     * @return the User object if authentication successful, null otherwise
+     */
+    public User authenticateUser(String email, String password) {
+        User user = null;
+        String sql = "SELECT * FROM Users WHERE Username = ? AND Password = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                user = extractUserFromResultSet(rs);
             }
-            if (stmt != null) {
-                stmt.close();
-            }
-            // We don't close the connection here because we're using a connection pool
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        
+        return user;
+    }
+    
+    /**
+     * Get users by role
+     * @param role the role to search for
+     * @return a list of users with the specified role
+     */
+    public List<User> getUsersByRole(String role) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM Users WHERE UserType = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, role);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return users;
+    }
+    
+    /**
+     * Search for users based on a search term
+     * @param searchTerm the term to search for
+     * @return a list of users matching the search term
+     */
+    public List<User> searchUsers(String searchTerm) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM Users WHERE Username LIKE ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            String searchPattern = "%" + searchTerm + "%";
+            stmt.setString(1, searchPattern);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return users;
     }
 } 
