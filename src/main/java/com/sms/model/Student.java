@@ -1,17 +1,25 @@
 package com.sms.model;
 
+import java.sql.Date;
+
 /**
  * Student model class
  */
 public class Student {
     private int studentId;
+    private int userId;
     private String firstName;
     private String lastName;
     private String regNumber;
-    private String telephone;
     private String email;
-    private String address;
+    private String gender;
+    private Date dateOfBirth;
+    private String gradeClass;
     private int parentId;
+    private String phone;
+    private String address;
+    private String medicalInfo;
+    private String status;
     
     /**
      * Default constructor
@@ -20,45 +28,57 @@ public class Student {
     }
     
     /**
-     * Constructor with all fields except studentId
+     * Constructor with essential fields
      * @param firstName the first name
      * @param lastName the last name
      * @param regNumber the registration number
-     * @param telephone the telephone
      * @param email the email
-     * @param address the address
-     * @param parentId the parent id
+     * @param gender the gender
+     * @param gradeClass the grade/class
      */
-    public Student(String firstName, String lastName, String regNumber, String telephone, String email, String address, int parentId) {
+    public Student(String firstName, String lastName, String regNumber, String email, String gender, String gradeClass) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.regNumber = regNumber;
-        this.telephone = telephone;
         this.email = email;
-        this.address = address;
-        this.parentId = parentId;
+        this.gender = gender;
+        this.gradeClass = gradeClass;
     }
     
     /**
-     * Constructor with all fields
+     * Full constructor
      * @param studentId the student id
+     * @param userId the user id
      * @param firstName the first name
      * @param lastName the last name
      * @param regNumber the registration number
-     * @param telephone the telephone
      * @param email the email
-     * @param address the address
+     * @param gender the gender
+     * @param dateOfBirth the date of birth
+     * @param gradeClass the grade/class
      * @param parentId the parent id
+     * @param phone the phone number
+     * @param address the address
+     * @param medicalInfo the medical information
+     * @param status the status
      */
-    public Student(int studentId, String firstName, String lastName, String regNumber, String telephone, String email, String address, int parentId) {
+    public Student(int studentId, int userId, String firstName, String lastName, String regNumber, String email, 
+                  String gender, Date dateOfBirth, String gradeClass, int parentId, String phone, 
+                  String address, String medicalInfo, String status) {
         this.studentId = studentId;
+        this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.regNumber = regNumber;
-        this.telephone = telephone;
         this.email = email;
-        this.address = address;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+        this.gradeClass = gradeClass;
         this.parentId = parentId;
+        this.phone = phone;
+        this.address = address;
+        this.medicalInfo = medicalInfo;
+        this.status = status;
     }
     
     // Getters and setters
@@ -69,6 +89,14 @@ public class Student {
     
     public void setStudentId(int studentId) {
         this.studentId = studentId;
+    }
+    
+    public int getUserId() {
+        return userId;
+    }
+    
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
     
     public String getFirstName() {
@@ -95,20 +123,52 @@ public class Student {
         this.regNumber = regNumber;
     }
     
-    public String getTelephone() {
-        return telephone;
-    }
-    
-    public void setTelephone(String telephone) {
-        this.telephone = telephone;
-    }
-    
     public String getEmail() {
         return email;
     }
     
     public void setEmail(String email) {
         this.email = email;
+    }
+    
+    public String getGender() {
+        return gender;
+    }
+    
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+    
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+    
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+    
+    public String getGradeClass() {
+        return gradeClass;
+    }
+    
+    public void setGradeClass(String gradeClass) {
+        this.gradeClass = gradeClass;
+    }
+    
+    public int getParentId() {
+        return parentId;
+    }
+    
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
+    }
+    
+    public String getPhone() {
+        return phone;
+    }
+    
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
     
     public String getAddress() {
@@ -119,12 +179,20 @@ public class Student {
         this.address = address;
     }
     
-    public int getParentId() {
-        return parentId;
+    public String getMedicalInfo() {
+        return medicalInfo;
     }
     
-    public void setParentId(int parentId) {
-        this.parentId = parentId;
+    public void setMedicalInfo(String medicalInfo) {
+        this.medicalInfo = medicalInfo;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
     
     /**
@@ -138,6 +206,6 @@ public class Student {
     @Override
     public String toString() {
         return "Student [studentId=" + studentId + ", firstName=" + firstName + ", lastName=" + lastName + 
-                ", regNumber=" + regNumber + ", parentId=" + parentId + "]";
+                ", regNumber=" + regNumber + ", gradeClass=" + gradeClass + "]";
     }
 } 
