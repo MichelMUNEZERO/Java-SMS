@@ -39,6 +39,13 @@ REM Check if Tomcat webapps directory exists
 if exist "%CATALINA_HOME%\webapps" (
     echo Copying WAR file to Tomcat webapps directory...
     copy /Y target\sms.war "%CATALINA_HOME%\webapps\"
+    
+    REM Remove old extracted directory if it exists to ensure clean deployment
+    if exist "%CATALINA_HOME%\webapps\sms" (
+        echo Removing old deployment directory...
+        rmdir /S /Q "%CATALINA_HOME%\webapps\sms"
+    )
+    
     echo Deployment complete!
     
     echo Stopping Tomcat if running...

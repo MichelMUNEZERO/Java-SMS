@@ -29,7 +29,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Students WHERE StudentID = ?";
+            String sql = "SELECT s.*, sp.ParentId FROM Students s LEFT JOIN StudentParent sp ON s.StudentID = sp.StudentID WHERE s.StudentID = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, studentId);
             rs = stmt.executeQuery();
@@ -59,7 +59,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Students WHERE RegNumber = ?";
+            String sql = "SELECT s.*, sp.ParentId FROM Students s LEFT JOIN StudentParent sp ON s.StudentID = sp.StudentID WHERE s.RegNumber = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, regNumber);
             rs = stmt.executeQuery();
@@ -89,7 +89,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Students WHERE Email = ?";
+            String sql = "SELECT s.*, sp.ParentId FROM Students s LEFT JOIN StudentParent sp ON s.StudentID = sp.StudentID WHERE s.Email = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, email);
             rs = stmt.executeQuery();
@@ -118,7 +118,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Students";
+            String sql = "SELECT s.*, sp.ParentId FROM Students s LEFT JOIN StudentParent sp ON s.StudentID = sp.StudentID";
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             
@@ -148,7 +148,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT s.* FROM Students s JOIN StudentParent sp ON s.StudentID = sp.StudentID " +
+            String sql = "SELECT s.*, sp.ParentId FROM Students s JOIN StudentParent sp ON s.StudentID = sp.StudentID " +
                          "WHERE sp.ParentId = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, parentId);
@@ -175,11 +175,15 @@ public class StudentDAO {
     public int addStudent(Student student) {
         Connection conn = null;
         PreparedStatement stmt = null;
+        PreparedStatement parentStmt = null;
         ResultSet rs = null;
         int studentId = -1;
         
         try {
             conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+            
+            // Insert into Students table
             String sql = "INSERT INTO Students (FirstName, LastName, RegNumber, Telephone, Email, Address) " +
                          "VALUES (?, ?, ?, ?, ?, ?)";
             stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -196,12 +200,44 @@ public class StudentDAO {
                 if (rs.next()) {
                     studentId = rs.getInt(1);
                     student.setStudentId(studentId);
+                    
+                    // If parent ID is provided, insert into StudentParent table
+                    if (student.getParentId() > 0) {
+                        String parentSql = "INSERT INTO StudentParent (StudentID, ParentId) VALUES (?, ?)";
+                        parentStmt = conn.prepareStatement(parentSql);
+                        parentStmt.setInt(1, studentId);
+                        parentStmt.setInt(2, student.getParentId());
+                        parentStmt.executeUpdate();
+                    }
                 }
             }
+            
+            conn.commit();
         } catch (SQLException e) {
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
         } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             closeResources(null, stmt, rs);
+            if (parentStmt != null) {
+                try {
+                    parentStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         
         return studentId;
@@ -215,10 +251,14 @@ public class StudentDAO {
     public boolean updateStudent(Student student) {
         Connection conn = null;
         PreparedStatement stmt = null;
+        PreparedStatement parentStmt = null;
         boolean success = false;
         
         try {
             conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+            
+            // Update Students table
             String sql = "UPDATE Students SET FirstName = ?, LastName = ?, RegNumber = ?, " +
                          "Telephone = ?, Email = ?, Address = ? WHERE StudentID = ?";
             stmt = conn.prepareStatement(sql);
@@ -231,11 +271,61 @@ public class StudentDAO {
             stmt.setInt(7, student.getStudentId());
             
             int affectedRows = stmt.executeUpdate();
+            
+            // Update StudentParent relationship if parent ID is provided
+            if (student.getParentId() > 0) {
+                // Check if relationship exists
+                String checkSql = "SELECT * FROM StudentParent WHERE StudentID = ?";
+                PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+                checkStmt.setInt(1, student.getStudentId());
+                ResultSet rs = checkStmt.executeQuery();
+                
+                if (rs.next()) {
+                    // Update existing relationship
+                    String updateSql = "UPDATE StudentParent SET ParentId = ? WHERE StudentID = ?";
+                    parentStmt = conn.prepareStatement(updateSql);
+                    parentStmt.setInt(1, student.getParentId());
+                    parentStmt.setInt(2, student.getStudentId());
+                } else {
+                    // Create new relationship
+                    String insertSql = "INSERT INTO StudentParent (StudentID, ParentId) VALUES (?, ?)";
+                    parentStmt = conn.prepareStatement(insertSql);
+                    parentStmt.setInt(1, student.getStudentId());
+                    parentStmt.setInt(2, student.getParentId());
+                }
+                
+                parentStmt.executeUpdate();
+                rs.close();
+                checkStmt.close();
+            }
+            
+            conn.commit();
             success = (affectedRows > 0);
         } catch (SQLException e) {
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
             e.printStackTrace();
         } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             closeResources(null, stmt, null);
+            if (parentStmt != null) {
+                try {
+                    parentStmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         
         return success;
@@ -253,6 +343,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
+            // StudentParent relationship will be automatically deleted due to ON DELETE CASCADE
             String sql = "DELETE FROM Students WHERE StudentID = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, studentId);
@@ -283,6 +374,17 @@ public class StudentDAO {
         student.setTelephone(rs.getString("Telephone"));
         student.setEmail(rs.getString("Email"));
         student.setAddress(rs.getString("Address"));
+        
+        // Get ParentId if available
+        try {
+            int parentId = rs.getInt("ParentId");
+            if (!rs.wasNull()) {
+                student.setParentId(parentId);
+            }
+        } catch (SQLException e) {
+            // ParentId column might not be available in all queries
+        }
+        
         return student;
     }
     
