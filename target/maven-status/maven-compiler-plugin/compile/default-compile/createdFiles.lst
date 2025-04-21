@@ -11,5 +11,6 @@ com\sms\model\Course.class
 com\sms\dao\UserDAO.class
 com\sms\controller\LoginServlet.class
 com\sms\dao\TeacherDAO.class
+com\sms\controller\admin\UserServlet.class
 com\sms\model\Student.class
 com\sms\model\Mark.class
