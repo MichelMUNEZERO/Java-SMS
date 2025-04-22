@@ -1,367 +1,734 @@
 package com.sms.controller.admin;
 
-import com.sms.dao.StudentDAO;
-import com.sms.dao.ParentDAO;
-import com.sms.dao.UserDAO;
-import com.sms.model.Student;
-import com.sms.model.User;
-import com.sms.util.PasswordHash;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.sql.Date;
-import java.util.List;
 
-@WebServlet("/admin/student")
+import com.sms.model.User;
+import com.sms.util.DBConnection;
+
+/**
+ * Servlet for managing students
+ */
+@WebServlet(urlPatterns = { 
+    "/admin/students", 
+    "/admin/students/new", 
+    "/admin/students/edit/*", 
+    "/admin/students/delete/*",
+    "/admin/students/view/*"
+})
 public class StudentServlet extends HttpServlet {
-    private StudentDAO studentDAO;
-    private ParentDAO parentDAO;
-    private UserDAO userDAO;
-    private PasswordHash passwordHash;
-
-    public void init() {
-        studentDAO = new StudentDAO();
-        parentDAO = new ParentDAO();
-        userDAO = new UserDAO();
-        passwordHash = new PasswordHash();
-    }
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
+    private static final long serialVersionUID = 1L;
+    
+    /**
+     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
         
-        if (action == null) {
-            action = "list";
-        }
-
-        switch (action) {
-            case "list":
-                listStudents(request, response);
-                break;
-            case "new":
-                showNewForm(request, response);
-                break;
-            case "edit":
-                showEditForm(request, response);
-                break;
-            case "view":
-                viewStudent(request, response);
-                break;
-            case "delete":
-                deleteStudent(request, response);
-                break;
-            default:
-                listStudents(request, response);
-                break;
-        }
-    }
-
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action");
-
-        if (action == null) {
-            action = "list";
-        }
-
-        switch (action) {
-            case "add":
-                addStudent(request, response);
-                break;
-            case "update":
-                updateStudent(request, response);
-                break;
-            default:
-                listStudents(request, response);
-                break;
-        }
-    }
-
-    private void listStudents(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Get search parameters
-        String searchName = request.getParameter("searchName");
-        String grade = request.getParameter("grade");
-        String status = request.getParameter("status");
-        
-        List<Student> students;
-        
-        // Apply filters if provided
-        if (searchName != null && !searchName.isEmpty()) {
-            students = studentDAO.searchStudents(searchName);
-        } else if (grade != null && !grade.isEmpty()) {
-            students = studentDAO.getStudentsByGrade(grade);
-        } else if (status != null && !status.isEmpty()) {
-            students = studentDAO.getStudentsByStatus(status);
-        } else {
-            students = studentDAO.getAllStudents();
-        }
-        
-        request.setAttribute("students", students);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/students.jsp");
-        dispatcher.forward(request, response);
-    }
-
-    private void showNewForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Load parents for dropdown
-        request.setAttribute("parents", parentDAO.getAllParents());
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-        dispatcher.forward(request, response);
-    }
-
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            int studentId = Integer.parseInt(request.getParameter("id"));
-            Student student = studentDAO.getStudentById(studentId);
-            
-            if (student == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/student?error=studentNotFound");
-                return;
-            }
-            
-            request.setAttribute("student", student);
-            request.setAttribute("parents", parentDAO.getAllParents());
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-            dispatcher.forward(request, response);
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=invalidId");
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=databaseError");
-        }
-    }
-
-    private void viewStudent(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            int studentId = Integer.parseInt(request.getParameter("id"));
-            Student student = studentDAO.getStudentById(studentId);
-            
-            if (student == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/student?error=studentNotFound");
-                return;
-            }
-            
-            request.setAttribute("student", student);
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-view.jsp");
-            dispatcher.forward(request, response);
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=invalidId");
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=databaseError");
-        }
-    }
-
-    private void addStudent(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Extract form data
-        String firstName = request.getParameter("firstName");
-        String lastName = request.getParameter("lastName");
-        String email = request.getParameter("email");
-        String regNumber = request.getParameter("regNumber");
-        String gender = request.getParameter("gender");
-        String dobStr = request.getParameter("dob");
-        String gradeClass = request.getParameter("gradeClass");
-        int parentId = Integer.parseInt(request.getParameter("parentId"));
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        String medicalInfo = request.getParameter("medicalInfo");
-        String status = request.getParameter("status");
-        
-        // Basic validation
-        if (firstName == null || lastName == null || email == null || regNumber == null || 
-            firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || regNumber.isEmpty()) {
-            request.setAttribute("error", "All required fields must be filled out");
-            request.setAttribute("parents", parentDAO.getAllParents());
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-            dispatcher.forward(request, response);
+        // Check if user is logged in and is an admin
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         
-        try {
-            // Check if email already exists
-            if (userDAO.getUserByEmail(email) != null) {
-                request.setAttribute("error", "Email already exists");
-                request.setAttribute("parents", parentDAO.getAllParents());
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-                dispatcher.forward(request, response);
-                return;
-            }
-            
-            // Create User account first
-            User user = new User();
-            user.setEmail(email);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            // Generate a default password (could be student ID or registration number)
-            String defaultPassword = regNumber;
-            user.setPassword(passwordHash.hashPassword(defaultPassword));
-            user.setRole("student");
-            user.setStatus(status);
-            
-            int userId = userDAO.addUser(user);
-            
-            if (userId > 0) {
-                // Create Student record
-                Student student = new Student();
-                student.setUserId(userId);
-                student.setFirstName(firstName);
-                student.setLastName(lastName);
-                student.setEmail(email);
-                student.setRegNumber(regNumber);
-                student.setGender(gender);
-                if (dobStr != null && !dobStr.isEmpty()) {
-                    student.setDateOfBirth(Date.valueOf(dobStr));
-                }
-                student.setGradeClass(gradeClass);
-                student.setParentId(parentId);
-                student.setPhone(phone);
-                student.setAddress(address);
-                student.setMedicalInfo(medicalInfo);
-                student.setStatus(status);
+        User user = (User) session.getAttribute("user");
+        if (!"admin".equalsIgnoreCase(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
+        String pathInfo = request.getServletPath();
+        
+        if (pathInfo.equals("/admin/students")) {
+            // List all students
+            List<Map<String, Object>> students = getAllStudents();
+            request.setAttribute("students", students);
+            request.getRequestDispatcher("/admin/students.jsp").forward(request, response);
+        } else if (pathInfo.equals("/admin/students/new")) {
+            // Show form to create a new student
+            // Get available courses for enrollment
+            List<Map<String, Object>> courses = getAllCourses();
+            request.setAttribute("courses", courses);
+            request.getRequestDispatcher("/admin/student-form.jsp").forward(request, response);
+        } else if (pathInfo.startsWith("/admin/students/edit/")) {
+            // Show form to edit an existing student
+            String idStr = pathInfo.substring("/admin/students/edit/".length());
+            try {
+                int id = Integer.parseInt(idStr);
+                Map<String, Object> student = getStudentById(id);
                 
-                boolean success = studentDAO.addStudent(student);
-                
-                if (success) {
-                    response.sendRedirect(request.getContextPath() + "/admin/student?success=added");
+                if (student != null) {
+                    request.setAttribute("student", student);
+                    
+                    // Get student's courses
+                    List<Map<String, Object>> studentCourses = getStudentCourses(id);
+                    request.setAttribute("studentCourses", studentCourses);
+                    
+                    // Get all courses for enrollment
+                    List<Map<String, Object>> courses = getAllCourses();
+                    request.setAttribute("courses", courses);
+                    
+                    request.getRequestDispatcher("/admin/student-form.jsp").forward(request, response);
                 } else {
-                    // If student creation fails, delete the user
-                    userDAO.deleteUser(userId);
-                    request.setAttribute("error", "Failed to add student");
-                    request.setAttribute("parents", parentDAO.getAllParents());
-                    RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-                    dispatcher.forward(request, response);
+                    response.sendRedirect(request.getContextPath() + "/admin/students");
                 }
-            } else {
-                request.setAttribute("error", "Failed to create user account");
-                request.setAttribute("parents", parentDAO.getAllParents());
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-                dispatcher.forward(request, response);
+            } catch (NumberFormatException e) {
+                response.sendRedirect(request.getContextPath() + "/admin/students");
             }
-        } catch (Exception e) {
-            request.setAttribute("error", "Error: " + e.getMessage());
-            request.setAttribute("parents", parentDAO.getAllParents());
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-            dispatcher.forward(request, response);
+        } else if (pathInfo.startsWith("/admin/students/view/")) {
+            // View student details
+            String idStr = pathInfo.substring("/admin/students/view/".length());
+            try {
+                int id = Integer.parseInt(idStr);
+                Map<String, Object> student = getStudentById(id);
+                
+                if (student != null) {
+                    request.setAttribute("student", student);
+                    
+                    // Get student's courses
+                    List<Map<String, Object>> studentCourses = getStudentCourses(id);
+                    request.setAttribute("studentCourses", studentCourses);
+                    
+                    request.getRequestDispatcher("/admin/student-view.jsp").forward(request, response);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/admin/students");
+                }
+            } catch (NumberFormatException e) {
+                response.sendRedirect(request.getContextPath() + "/admin/students");
+            }
+        } else if (pathInfo.startsWith("/admin/students/delete/")) {
+            // Delete a student
+            String idStr = pathInfo.substring("/admin/students/delete/".length());
+            try {
+                int id = Integer.parseInt(idStr);
+                deleteStudent(id);
+                
+                response.sendRedirect(request.getContextPath() + "/admin/students");
+            } catch (NumberFormatException e) {
+                response.sendRedirect(request.getContextPath() + "/admin/students");
+            }
         }
     }
-
-    private void updateStudent(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            int studentId = Integer.parseInt(request.getParameter("studentId"));
-            int userId = Integer.parseInt(request.getParameter("userId"));
-            
-            Student existingStudent = studentDAO.getStudentById(studentId);
-            if (existingStudent == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/student?error=studentNotFound");
-                return;
-            }
-            
-            // Extract form data
+    
+    /**
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        // Check if user is logged in and is an admin
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
+        User user = (User) session.getAttribute("user");
+        if (!"admin".equalsIgnoreCase(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
+        String action = request.getParameter("action");
+        
+        if ("create".equals(action)) {
+            // Create a new student
             String firstName = request.getParameter("firstName");
             String lastName = request.getParameter("lastName");
             String email = request.getParameter("email");
-            String regNumber = request.getParameter("regNumber");
-            String gender = request.getParameter("gender");
-            String dobStr = request.getParameter("dob");
-            String gradeClass = request.getParameter("gradeClass");
-            int parentId = Integer.parseInt(request.getParameter("parentId"));
             String phone = request.getParameter("phone");
             String address = request.getParameter("address");
-            String medicalInfo = request.getParameter("medicalInfo");
-            String status = request.getParameter("status");
+            String rollNumber = request.getParameter("rollNumber");
+            String password = request.getParameter("password");
             
-            // Basic validation
-            if (firstName == null || lastName == null || email == null || regNumber == null || 
-                firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || regNumber.isEmpty()) {
-                request.setAttribute("error", "All required fields must be filled out");
-                request.setAttribute("student", existingStudent);
-                request.setAttribute("parents", parentDAO.getAllParents());
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-                dispatcher.forward(request, response);
-                return;
+            if (firstName != null && !firstName.trim().isEmpty() && 
+                lastName != null && !lastName.trim().isEmpty() && 
+                email != null && !email.trim().isEmpty() &&
+                rollNumber != null && !rollNumber.trim().isEmpty()) {
+                
+                // Create student
+                int studentId = createStudent(firstName, lastName, email, phone, address, rollNumber);
+                
+                if (studentId > 0) {
+                    // Create user account for student
+                    createUserAccount(email, password, "student", studentId);
+                    
+                    // Handle course enrollments
+                    String[] courseIds = request.getParameterValues("courses");
+                    if (courseIds != null) {
+                        for (String courseId : courseIds) {
+                            try {
+                                int cId = Integer.parseInt(courseId);
+                                enrollStudentInCourse(studentId, cId);
+                            } catch (NumberFormatException e) {
+                                // Skip invalid course ID
+                            }
+                        }
+                    }
+                }
             }
             
-            // Check if email already exists and belongs to a different user
-            User userWithEmail = userDAO.getUserByEmail(email);
-            if (userWithEmail != null && userWithEmail.getUserId() != userId) {
-                request.setAttribute("error", "Email already in use by another user");
-                request.setAttribute("student", existingStudent);
-                request.setAttribute("parents", parentDAO.getAllParents());
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-                dispatcher.forward(request, response);
-                return;
+            response.sendRedirect(request.getContextPath() + "/admin/students");
+        } else if ("update".equals(action)) {
+            // Update an existing student
+            String idStr = request.getParameter("id");
+            String firstName = request.getParameter("firstName");
+            String lastName = request.getParameter("lastName");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            String rollNumber = request.getParameter("rollNumber");
+            
+            if (idStr != null && !idStr.trim().isEmpty() && 
+                firstName != null && !firstName.trim().isEmpty() && 
+                lastName != null && !lastName.trim().isEmpty() && 
+                email != null && !email.trim().isEmpty()) {
+                
+                try {
+                    int id = Integer.parseInt(idStr);
+                    
+                    // Update student
+                    updateStudent(id, firstName, lastName, email, phone, address, rollNumber);
+                    
+                    // Update user account email
+                    updateUserEmail(id, email);
+                    
+                    // Handle course enrollments
+                    // First, remove all existing enrollments
+                    removeStudentCourses(id);
+                    
+                    // Then add new enrollments
+                    String[] courseIds = request.getParameterValues("courses");
+                    if (courseIds != null) {
+                        for (String courseId : courseIds) {
+                            try {
+                                int cId = Integer.parseInt(courseId);
+                                enrollStudentInCourse(id, cId);
+                            } catch (NumberFormatException e) {
+                                // Skip invalid course ID
+                            }
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    // Ignore invalid ID
+                }
             }
             
-            // Update user record
-            User user = userDAO.getUserById(userId);
-            user.setEmail(email);
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setStatus(status);
-            userDAO.updateUser(user);
-            
-            // Update student record
-            Student student = new Student();
-            student.setStudentId(studentId);
-            student.setUserId(userId);
-            student.setFirstName(firstName);
-            student.setLastName(lastName);
-            student.setEmail(email);
-            student.setRegNumber(regNumber);
-            student.setGender(gender);
-            if (dobStr != null && !dobStr.isEmpty()) {
-                student.setDateOfBirth(Date.valueOf(dobStr));
-            }
-            student.setGradeClass(gradeClass);
-            student.setParentId(parentId);
-            student.setPhone(phone);
-            student.setAddress(address);
-            student.setMedicalInfo(medicalInfo);
-            student.setStatus(status);
-            
-            boolean success = studentDAO.updateStudent(student);
-            
-            if (success) {
-                response.sendRedirect(request.getContextPath() + "/admin/student?success=updated");
-            } else {
-                request.setAttribute("error", "Failed to update student");
-                request.setAttribute("student", existingStudent);
-                request.setAttribute("parents", parentDAO.getAllParents());
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/admin/student-form.jsp");
-                dispatcher.forward(request, response);
-            }
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=invalidId");
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=databaseError&message=" + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/admin/students");
         }
     }
-
-    private void deleteStudent(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    
+    /**
+     * Get all students
+     * @return list of student data
+     */
+    private List<Map<String, Object>> getAllStudents() {
+        List<Map<String, Object>> students = new ArrayList<>();
+        Connection conn = null;
+        
         try {
-            int studentId = Integer.parseInt(request.getParameter("id"));
-            Student student = studentDAO.getStudentById(studentId);
+            conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM Students ORDER BY LastName, FirstName";
             
-            if (student == null) {
-                response.sendRedirect(request.getContextPath() + "/admin/student?error=studentNotFound");
-                return;
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                
+                while (rs.next()) {
+                    Map<String, Object> student = new HashMap<>();
+                    student.put("id", rs.getInt("StudentId"));
+                    student.put("firstName", rs.getString("FirstName"));
+                    student.put("lastName", rs.getString("LastName"));
+                    student.put("email", rs.getString("Email"));
+                    student.put("phone", rs.getString("Phone"));
+                    student.put("rollNumber", rs.getString("RollNumber"));
+                    
+                    // Get course count for each student
+                    String courseSql = "SELECT COUNT(*) AS courseCount FROM Student_Courses WHERE StudentId = ?";
+                    try (PreparedStatement courseStmt = conn.prepareStatement(courseSql)) {
+                        courseStmt.setInt(1, rs.getInt("StudentId"));
+                        try (ResultSet courseRs = courseStmt.executeQuery()) {
+                            if (courseRs.next()) {
+                                student.put("courseCount", courseRs.getInt("courseCount"));
+                            } else {
+                                student.put("courseCount", 0);
+                            }
+                        }
+                    }
+                    
+                    students.add(student);
+                }
             }
             
-            // Delete student record
-            boolean success = studentDAO.deleteStudent(studentId);
-            
-            if (success) {
-                // Also delete the associated user
-                userDAO.deleteUser(student.getUserId());
-                response.sendRedirect(request.getContextPath() + "/admin/student?success=deleted");
-            } else {
-                response.sendRedirect(request.getContextPath() + "/admin/student?error=deleteFailed");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=invalidId");
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/admin/student?error=databaseError");
         }
+        
+        return students;
+    }
+    
+    /**
+     * Get student by ID
+     * @param id the student ID
+     * @return map containing student details
+     */
+    private Map<String, Object> getStudentById(int id) {
+        Map<String, Object> student = null;
+        Connection conn = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM Students WHERE StudentId = ?";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, id);
+                
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        student = new HashMap<>();
+                        student.put("id", rs.getInt("StudentId"));
+                        student.put("firstName", rs.getString("FirstName"));
+                        student.put("lastName", rs.getString("LastName"));
+                        student.put("email", rs.getString("Email"));
+                        student.put("phone", rs.getString("Phone"));
+                        student.put("address", rs.getString("Address"));
+                        student.put("rollNumber", rs.getString("RollNumber"));
+                    }
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return student;
+    }
+    
+    /**
+     * Get courses enrolled by a student
+     * @param studentId the student ID
+     * @return list of course details
+     */
+    private List<Map<String, Object>> getStudentCourses(int studentId) {
+        List<Map<String, Object>> courses = new ArrayList<>();
+        Connection conn = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT c.* FROM Courses c " +
+                         "JOIN Student_Courses sc ON c.CourseId = sc.CourseId " +
+                         "WHERE sc.StudentId = ?";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, studentId);
+                
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> course = new HashMap<>();
+                        course.put("id", rs.getInt("CourseId"));
+                        course.put("name", rs.getString("CourseName"));
+                        course.put("code", rs.getString("CourseCode"));
+                        course.put("description", rs.getString("Description"));
+                        
+                        courses.add(course);
+                    }
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return courses;
+    }
+    
+    /**
+     * Get all available courses
+     * @return list of all courses
+     */
+    private List<Map<String, Object>> getAllCourses() {
+        List<Map<String, Object>> courses = new ArrayList<>();
+        Connection conn = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM Courses ORDER BY CourseName";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+                
+                while (rs.next()) {
+                    Map<String, Object> course = new HashMap<>();
+                    course.put("id", rs.getInt("CourseId"));
+                    course.put("name", rs.getString("CourseName"));
+                    course.put("code", rs.getString("CourseCode"));
+                    course.put("description", rs.getString("Description"));
+                    
+                    courses.add(course);
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return courses;
+    }
+    
+    /**
+     * Create a new student
+     * @param firstName the student's first name
+     * @param lastName the student's last name
+     * @param email the student's email
+     * @param phone the student's phone number
+     * @param address the student's address
+     * @param rollNumber the student's roll number
+     * @return the new student ID, or -1 if creation failed
+     */
+    private int createStudent(String firstName, String lastName, String email, String phone, String address, String rollNumber) {
+        Connection conn = null;
+        int studentId = -1;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "INSERT INTO Students (FirstName, LastName, Email, Phone, Address, RollNumber) " +
+                         "VALUES (?, ?, ?, ?, ?, ?)";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                stmt.setString(1, firstName);
+                stmt.setString(2, lastName);
+                stmt.setString(3, email);
+                stmt.setString(4, phone);
+                stmt.setString(5, address);
+                stmt.setString(6, rollNumber);
+                
+                int rowsAffected = stmt.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            studentId = generatedKeys.getInt(1);
+                        }
+                    }
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return studentId;
+    }
+    
+    /**
+     * Update an existing student
+     * @param id the student ID
+     * @param firstName the student's first name
+     * @param lastName the student's last name
+     * @param email the student's email
+     * @param phone the student's phone number
+     * @param address the student's address
+     * @param rollNumber the student's roll number
+     * @return true if update successful, false otherwise
+     */
+    private boolean updateStudent(int id, String firstName, String lastName, String email, String phone, String address, String rollNumber) {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "UPDATE Students SET FirstName = ?, LastName = ?, Email = ?, " +
+                         "Phone = ?, Address = ?, RollNumber = ? WHERE StudentId = ?";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, firstName);
+                stmt.setString(2, lastName);
+                stmt.setString(3, email);
+                stmt.setString(4, phone);
+                stmt.setString(5, address);
+                stmt.setString(6, rollNumber);
+                stmt.setInt(7, id);
+                
+                int rowsAffected = stmt.executeUpdate();
+                success = rowsAffected > 0;
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Delete a student
+     * @param id the ID of the student to delete
+     * @return true if deletion successful, false otherwise
+     */
+    private boolean deleteStudent(int id) {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+            
+            try {
+                // First delete student's course enrollments
+                String sqlCourses = "DELETE FROM Student_Courses WHERE StudentId = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sqlCourses)) {
+                    stmt.setInt(1, id);
+                    stmt.executeUpdate();
+                }
+                
+                // Delete associated user account
+                String sqlUser = "DELETE FROM users WHERE userType = 'student' AND associatedId = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sqlUser)) {
+                    stmt.setInt(1, id);
+                    stmt.executeUpdate();
+                }
+                
+                // Finally delete the student
+                String sqlStudent = "DELETE FROM Students WHERE StudentId = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sqlStudent)) {
+                    stmt.setInt(1, id);
+                    int rowsAffected = stmt.executeUpdate();
+                    success = rowsAffected > 0;
+                }
+                
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Create a user account for a student
+     * @param username the username (email)
+     * @param password the password
+     * @param userType the user type (student)
+     * @param associatedId the student ID
+     * @return true if creation successful, false otherwise
+     */
+    private boolean createUserAccount(String username, String password, String userType, int associatedId) {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "INSERT INTO users (username, password, role, userType, associatedId) VALUES (?, ?, ?, ?, ?)";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, username);
+                stmt.setString(2, password); // In a real app, password should be hashed
+                stmt.setString(3, userType);
+                stmt.setString(4, userType);
+                stmt.setInt(5, associatedId);
+                
+                int rowsAffected = stmt.executeUpdate();
+                success = rowsAffected > 0;
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Update user account email for a student
+     * @param studentId the student ID
+     * @param email the new email
+     * @return true if update successful, false otherwise
+     */
+    private boolean updateUserEmail(int studentId, String email) {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "UPDATE users SET username = ? WHERE userType = 'student' AND associatedId = ?";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, email);
+                stmt.setInt(2, studentId);
+                
+                int rowsAffected = stmt.executeUpdate();
+                success = rowsAffected > 0;
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Enroll a student in a course
+     * @param studentId the student ID
+     * @param courseId the course ID
+     * @return true if enrollment successful, false otherwise
+     */
+    private boolean enrollStudentInCourse(int studentId, int courseId) {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "INSERT INTO Student_Courses (StudentId, CourseId) VALUES (?, ?)";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, studentId);
+                stmt.setInt(2, courseId);
+                
+                int rowsAffected = stmt.executeUpdate();
+                success = rowsAffected > 0;
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Remove all course enrollments for a student
+     * @param studentId the student ID
+     * @return true if removal successful, false otherwise
+     */
+    private boolean removeStudentCourses(int studentId) {
+        Connection conn = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "DELETE FROM Student_Courses WHERE StudentId = ?";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, studentId);
+                
+                stmt.executeUpdate();
+                success = true; // Consider successful even if no rows were deleted
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
     }
 } 
