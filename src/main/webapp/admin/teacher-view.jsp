@@ -231,7 +231,9 @@
                         <a href="${pageContext.request.contextPath}/admin/teachers" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Teachers List
                         </a>
-                        <!-- Edit button removed as per requirements -->
+                        <a href="${pageContext.request.contextPath}/admin/teachers/edit/${teacher.id}" class="btn btn-primary ml-2">
+                            <i class="fas fa-edit"></i> Edit Teacher
+                        </a>
                     </div>
                 </div>
             </div>

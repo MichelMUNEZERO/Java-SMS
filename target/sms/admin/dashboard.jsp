@@ -264,6 +264,11 @@
                                         </a>
                                     </div>
                                     <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/teachers/new" class="btn btn-warning btn-block">
+                                            <i class="fas fa-chalkboard-teacher"></i> Add Teacher
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
                                         <a href="${pageContext.request.contextPath}/admin/courses/new" class="btn btn-success btn-block">
                                             <i class="fas fa-plus-circle"></i> Add Course
                                         </a>
@@ -271,11 +276,6 @@
                                     <div class="col-md-3 mb-3">
                                         <a href="${pageContext.request.contextPath}/admin/doctors/new" class="btn btn-danger btn-block">
                                             <i class="fas fa-user-md"></i> Add Doctor
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <a href="${pageContext.request.contextPath}/admin/nurses/new" class="btn btn-info btn-block">
-                                            <i class="fas fa-user-nurse"></i> Add Nurse
                                         </a>
                                     </div>
                                 </div>

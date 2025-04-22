@@ -124,10 +124,12 @@
                 <div class="row mb-4">
                     <div class="col-md-8">
                         <h2>Manage Teachers</h2>
-                        <p>View and manage teacher accounts. You can view teacher details but add/edit functionality has been restricted.</p>
+                        <p>View, add, edit, and manage teacher accounts. You can also assign courses to teachers.</p>
                     </div>
                     <div class="col-md-4 text-right">
-                        <!-- Removed the 'Add Teacher' button as per requirements -->
+                        <a href="${pageContext.request.contextPath}/admin/teachers/new" class="btn btn-success">
+                            <i class="fas fa-user-plus"></i> Add New Teacher
+                        </a>
                     </div>
                 </div>
                 
@@ -181,7 +183,12 @@
                                                         <a href="${pageContext.request.contextPath}/admin/teachers/view/${teacher.id}" class="btn btn-sm btn-info">
                                                             <i class="fas fa-eye"></i> View
                                                         </a>
-                                                        <!-- Removed edit and delete buttons as per requirements -->
+                                                        <a href="${pageContext.request.contextPath}/admin/teachers/edit/${teacher.id}" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </a>
+                                                        <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="${teacher.id}">
+                                                            <i class="fas fa-trash"></i> Delete
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -212,6 +219,14 @@
                 $("#teachersTable tbody tr").filter(function() {
                     $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
+            });
+            
+            // Delete confirmation using event delegation
+            $(document).on('click', '.delete-btn', function() {
+                var id = $(this).data('id');
+                if (confirm('Are you sure you want to delete this teacher? All associated course assignments will be removed.')) {
+                    window.location.href = '${pageContext.request.contextPath}/admin/teachers/delete/' + id;
+                }
             });
         });
     </script>
