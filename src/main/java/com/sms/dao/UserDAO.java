@@ -18,12 +18,18 @@ public class UserDAO {
     
     private Connection connection;
     
+    /**
+     * Default constructor
+     */
     public UserDAO() {
-        try {
-            connection = DBConnection.getConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        connection = DBConnection.getConnection();
+    }
+    
+    /**
+     * Close the database connection when DAO is no longer needed
+     */
+    public void close() {
+        DBConnection.closeConnection(connection);
     }
     
     /**

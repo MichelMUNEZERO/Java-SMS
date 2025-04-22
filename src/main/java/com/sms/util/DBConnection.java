@@ -12,8 +12,6 @@ public class DBConnection {
     private static final String USERNAME = "root";
     private static final String PASSWORD = "Dedecedric@1"; // Make sure to use the correct password for your MySQL
     
-    private static Connection connection = null;
-    
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -29,10 +27,8 @@ public class DBConnection {
      */
     public static Connection getConnection() {
         try {
-            if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            }
-            return connection;
+            // Create a new connection for each request to prevent connection pooling issues
+            return DriverManager.getConnection(URL, USERNAME, PASSWORD);
         } catch (SQLException e) {
             e.printStackTrace();
             System.err.println("Failed to connect to the database! Error: " + e.getMessage());
@@ -42,8 +38,9 @@ public class DBConnection {
     
     /**
      * Close database connection
+     * @param connection The connection to close
      */
-    public static void closeConnection() {
+    public static void closeConnection(Connection connection) {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();

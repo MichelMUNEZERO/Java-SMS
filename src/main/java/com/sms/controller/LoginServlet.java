@@ -20,14 +20,11 @@ import com.sms.util.PasswordHash;
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
-    private UserDAO userDAO;
-    
     /**
      * @see HttpServlet#HttpServlet()
      */
     public LoginServlet() {
         super();
-        userDAO = new UserDAO();
     }
 
     /**
@@ -54,6 +51,8 @@ public class LoginServlet extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
         
+        UserDAO userDAO = null;
+        
         try {
             // Validate input
             if (username == null || username.trim().isEmpty() || 
@@ -78,6 +77,9 @@ public class LoginServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
                 return;
             }
+            
+            // Create UserDAO
+            userDAO = new UserDAO();
             
             // Normal authentication flow
             User user = userDAO.getUserByUsername(username);
@@ -108,6 +110,11 @@ public class LoginServlet extends HttpServlet {
             getServletContext().log("Login error: " + e.getMessage(), e);
             request.setAttribute("error", "System error occurred. Please try again later.");
             request.getRequestDispatcher("/login.jsp").forward(request, response);
+        } finally {
+            // Close resources
+            if (userDAO != null) {
+                userDAO.close();
+            }
         }
     }
     
