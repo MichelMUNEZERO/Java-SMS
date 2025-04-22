@@ -317,4 +317,55 @@ public class StudentDAO {
         
         return students;
     }
+    
+    /**
+     * Get students by course ID
+     * @param courseId the course ID to search for
+     * @return a list of students enrolled in the course
+     */
+    public List<Student> getStudentsByCourseId(int courseId) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT s.* FROM students s " +
+                     "JOIN student_courses sc ON s.student_id = sc.student_id " +
+                     "WHERE sc.course_id = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, courseId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                students.add(extractStudentFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+    
+    /**
+     * Get students by teacher ID
+     * @param teacherId the teacher ID to search for
+     * @return a list of students taught by the teacher
+     */
+    public List<Student> getStudentsByTeacherId(int teacherId) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT DISTINCT s.* FROM students s " +
+                     "JOIN student_courses sc ON s.student_id = sc.student_id " +
+                     "JOIN courses c ON sc.course_id = c.course_id " +
+                     "WHERE c.teacher_id = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, teacherId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                students.add(extractStudentFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
 } 

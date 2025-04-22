@@ -142,7 +142,7 @@
                                         <a href="${pageContext.request.contextPath}/course/edit?id=${course.courseId}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="#" onclick="confirmDelete(${course.courseId})" class="btn btn-danger btn-sm">
+                                        <a href="#" onclick="confirmDelete('${course.courseId}')" class="btn btn-danger btn-sm">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </td>
