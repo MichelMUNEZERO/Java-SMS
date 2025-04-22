@@ -10,72 +10,22 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .action-buttons .btn {
-            margin-right: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-styles.css">
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar (you would include this from a common file in a real application) -->
-            <nav class="col-md-2 d-none d-md-block bg-dark sidebar p-0" style="min-height: 100vh;">
-                <div class="sidebar-sticky">
-                    <div class="bg-dark text-white p-3 mb-3">
-                        <h4>School Admin</h4>
-                    </div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/admin/dashboard">
-                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/user/list">
-                                <i class="fas fa-users me-2"></i> Users
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white active bg-primary" href="${pageContext.request.contextPath}/course/list">
-                                <i class="fas fa-book me-2"></i> Courses
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/teacher/list">
-                                <i class="fas fa-chalkboard-teacher me-2"></i> Teachers
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/student/list">
-                                <i class="fas fa-user-graduate me-2"></i> Students
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/parent/list">
-                                <i class="fas fa-user-friends me-2"></i> Parents
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/announcement/list">
-                                <i class="fas fa-bullhorn me-2"></i> Announcements
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/logout">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+            <!-- Sidebar -->
+            <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp">
+                <jsp:param name="active" value="courses"/>
+            </jsp:include>
 
             <!-- Main content -->
             <main role="main" class="col-md-10 ml-sm-auto px-4 bg-light">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Course Management</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="${pageContext.request.contextPath}/course/new" class="btn btn-primary">
+                        <a href="${pageContext.request.contextPath}/admin/courses/new" class="btn btn-primary">
                             <i class="fas fa-plus"></i> Add New Course
                         </a>
                     </div>
@@ -98,7 +48,7 @@
                 <!-- Search Box -->
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <form action="${pageContext.request.contextPath}/course/search" method="get" class="d-flex">
+                        <form action="${pageContext.request.contextPath}/admin/courses/search" method="get" class="d-flex">
                             <input type="text" name="searchTerm" class="form-control me-2" placeholder="Search courses..." required>
                             <button type="submit" class="btn btn-outline-primary">Search</button>
                         </form>
@@ -136,10 +86,10 @@
                                     <td>${course.teacherId}</td>
                                     <td>${course.studentCount}</td>
                                     <td class="action-buttons">
-                                        <a href="${pageContext.request.contextPath}/course/view?id=${course.courseId}" class="btn btn-info btn-sm">
+                                        <a href="${pageContext.request.contextPath}/admin/courses/view?id=${course.courseId}" class="btn btn-info btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="${pageContext.request.contextPath}/course/edit?id=${course.courseId}" class="btn btn-warning btn-sm">
+                                        <a href="${pageContext.request.contextPath}/admin/courses/edit?id=${course.courseId}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <a href="#" onclick="confirmDelete('${course.courseId}')" class="btn btn-danger btn-sm">
@@ -181,12 +131,13 @@
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/admin.js"></script>
     <script>
         // Function to confirm deletion
         function confirmDelete(courseId) {
             const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            confirmDeleteBtn.href = "${pageContext.request.contextPath}/course/delete?id=" + courseId;
+            confirmDeleteBtn.href = "${pageContext.request.contextPath}/admin/courses/delete?id=" + courseId;
             deleteModal.show();
         }
     </script>

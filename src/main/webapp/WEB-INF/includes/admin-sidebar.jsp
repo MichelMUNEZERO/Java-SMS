@@ -10,7 +10,6 @@
         <li><a href="${pageContext.request.contextPath}/admin/dashboard" class="${param.active == 'dashboard' ? 'active' : ''}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/teachers" class="${param.active == 'teachers' ? 'active' : ''}"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/students" class="${param.active == 'students' ? 'active' : ''}"><i class="fas fa-user-graduate"></i> Students</a></li>
-        <li><a href="${pageContext.request.contextPath}/admin/parents" class="${param.active == 'parents' ? 'active' : ''}"><i class="fas fa-user-friends"></i> Parents</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/courses" class="${param.active == 'courses' ? 'active' : ''}"><i class="fas fa-book"></i> Courses</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/announcements" class="${param.active == 'announcements' ? 'active' : ''}"><i class="fas fa-bullhorn"></i> Announcements</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/appointments" class="${param.active == 'appointments' ? 'active' : ''}"><i class="fas fa-calendar-check"></i> Appointments</a></li>

@@ -9,114 +9,16 @@
     <title>Admin Dashboard - School Management System</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-            color: #fff;
-            padding-top: 20px;
-        }
-        .sidebar-heading {
-            padding: 15px;
-            font-size: 1.2rem;
-            text-align: center;
-            border-bottom: 1px solid #495057;
-        }
-        .sidebar-menu {
-            padding: 0;
-            list-style: none;
-        }
-        .sidebar-menu li {
-            margin: 0;
-            padding: 0;
-        }
-        .sidebar-menu li a {
-            display: block;
-            padding: 15px;
-            color: #adb5bd;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
-            background-color: #495057;
-            color: #fff;
-        }
-        .sidebar-menu li a i {
-            margin-right: 10px;
-        }
-        .main-content {
-            padding: 20px;
-        }
-        .card-counter {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-        }
-        .card-counter i {
-            font-size: 4rem;
-            margin-right: 20px;
-        }
-        .card-counter .count-name {
-            font-size: 1.2rem;
-            color: #6c757d;
-        }
-        .card-counter .count-numbers {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .admin-primary {
-            background-color: #007bff;
-            color: #fff;
-        }
-        .admin-warning {
-            background-color: #ffc107;
-            color: #fff;
-        }
-        .admin-success {
-            background-color: #28a745;
-            color: #fff;
-        }
-        .admin-danger {
-            background-color: #dc3545;
-            color: #fff;
-        }
-        .admin-info {
-            background-color: #17a2b8;
-            color: #fff;
-        }
-        .admin-secondary {
-            background-color: #6c757d;
-            color: #fff;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-styles.css">
 </head>
 <body>
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-2 sidebar">
-                <div class="sidebar-heading">
-                    <i class="fas fa-school"></i> SMS Admin
-                </div>
-                <ul class="sidebar-menu">
-                    <li><a href="${pageContext.request.contextPath}/admin/dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/teachers"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/students"><i class="fas fa-user-graduate"></i> Students</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/parents"><i class="fas fa-user-friends"></i> Parents</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/courses"><i class="fas fa-book"></i> Courses</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                    <li><a href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </div>
+            <c:set var="active" value="dashboard" scope="request"/>
+            <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp">
+                <jsp:param name="active" value="dashboard"/>
+            </jsp:include>
             
             <!-- Main Content -->
             <div class="col-md-10 main-content">
@@ -256,31 +158,24 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-3 mb-3">
                                         <a href="${pageContext.request.contextPath}/admin/students/new" class="btn btn-primary btn-block">
                                             <i class="fas fa-user-plus"></i> Add Student
                                         </a>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-3 mb-3">
                                         <a href="${pageContext.request.contextPath}/admin/teachers/new" class="btn btn-warning btn-block">
-                                            <i class="fas fa-chalkboard-teacher"></i> Add Teacher
+                                            <i class="fas fa-user-plus"></i> Add Teacher
                                         </a>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-3 mb-3">
                                         <a href="${pageContext.request.contextPath}/admin/courses/new" class="btn btn-success btn-block">
                                             <i class="fas fa-plus-circle"></i> Add Course
                                         </a>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <a href="${pageContext.request.contextPath}/admin/announcements/new" class="btn btn-info btn-block">
-                                            <i class="fas fa-bullhorn"></i> New Announcement
-                                        </a>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <a href="${pageContext.request.contextPath}/admin/appointments" class="btn btn-secondary btn-block">
-                                            <i class="fas fa-calendar-check"></i> Manage Appointments
+                                    <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/reports/generate" class="btn btn-info btn-block">
+                                            <i class="fas fa-file-export"></i> Generate Report
                                         </a>
                                     </div>
                                 </div>
@@ -292,8 +187,10 @@
         </div>
     </div>
     
+    <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/admin.js"></script>
 </body>
 </html> 
