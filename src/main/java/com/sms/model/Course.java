@@ -8,6 +8,7 @@ public class Course {
     private String courseName;
     private String description;
     private int teacherId;
+    private transient int studentCount; // Transient field, not stored in database
     
     /**
      * Default constructor
@@ -73,6 +74,22 @@ public class Course {
     
     public void setTeacherId(int teacherId) {
         this.teacherId = teacherId;
+    }
+    
+    /**
+     * Get the number of students enrolled in this course
+     * @return the student count
+     */
+    public int getStudentCount() {
+        return studentCount;
+    }
+    
+    /**
+     * Set the number of students enrolled in this course
+     * @param studentCount the student count
+     */
+    public void setStudentCount(int studentCount) {
+        this.studentCount = studentCount;
     }
     
     @Override

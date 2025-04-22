@@ -19,7 +19,11 @@ public class StudentDAO {
     private Connection connection;
 
     public StudentDAO() {
-        connection = DBConnection.getConnection();
+        try {
+            connection = DBConnection.getConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     /**
