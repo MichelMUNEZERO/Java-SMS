@@ -87,18 +87,18 @@ public class LoginServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     private void redirectToDashboard(HttpServletResponse response, User user) throws IOException {
-        String userType = user.getUserType();
-        switch (userType) {
-            case "Admin":
+        String userRole = user.getRole();
+        switch (userRole.toLowerCase()) {
+            case "admin":
                 response.sendRedirect(response.encodeRedirectURL("admin/dashboard.jsp"));
                 break;
-            case "Teacher":
+            case "teacher":
                 response.sendRedirect(response.encodeRedirectURL("teacher/dashboard.jsp"));
                 break;
-            case "Student":
+            case "student":
                 response.sendRedirect(response.encodeRedirectURL("student/dashboard.jsp"));
                 break;
-            case "Parent":
+            case "parent":
                 response.sendRedirect(response.encodeRedirectURL("parent/dashboard.jsp"));
                 break;
             default:
