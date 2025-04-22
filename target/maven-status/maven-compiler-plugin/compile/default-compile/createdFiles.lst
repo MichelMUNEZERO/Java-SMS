@@ -7,6 +7,7 @@ com\sms\controller\teacher\TeacherServlet.class
 com\sms\model\Announcement.class
 com\sms\controller\parent\ParentServlet.class
 com\sms\model\Teacher.class
+com\sms\controller\admin\CourseServlet.class
 com\sms\controller\LogoutServlet.class
 com\sms\filter\AuthenticationFilter.class
 com\sms\model\Course.class
@@ -23,6 +24,7 @@ com\sms\controller\TempLoginServlet.class
 com\sms\dao\StudentDAO.class
 com\sms\util\PasswordHasher.class
 com\sms\dao\EnrollmentDAO.class
+com\sms\controller\admin\TeacherServlet.class
 com\sms\util\DatabaseCheck.class
 com\sms\controller\admin\DashboardServlet.class
 com\sms\model\Parent.class

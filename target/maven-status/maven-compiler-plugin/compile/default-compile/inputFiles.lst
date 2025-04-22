@@ -7,6 +7,7 @@ c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\model\Mark
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\dao\EnrollmentDAO.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\model\Parent.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\admin\AppointmentServlet.java
+c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\admin\TeacherServlet.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\DatabaseCheckServlet.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\util\PasswordHasher.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\CourseServlet.java
@@ -21,6 +22,7 @@ c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\model\Anno
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\teacher\TeacherServlet.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\util\PasswordHash.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\model\Student.java
+c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\admin\CourseServlet.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\LoginServlet.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\util\DatabaseCheck.java
 c:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\dao\StudentDAO.java
