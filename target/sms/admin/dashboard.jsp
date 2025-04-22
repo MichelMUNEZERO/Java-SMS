@@ -264,18 +264,30 @@
                                         </a>
                                     </div>
                                     <div class="col-md-3 mb-3">
-                                        <a href="${pageContext.request.contextPath}/admin/teachers/new" class="btn btn-warning btn-block">
-                                            <i class="fas fa-user-plus"></i> Add Teacher
-                                        </a>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
                                         <a href="${pageContext.request.contextPath}/admin/courses/new" class="btn btn-success btn-block">
                                             <i class="fas fa-plus-circle"></i> Add Course
                                         </a>
                                     </div>
                                     <div class="col-md-3 mb-3">
-                                        <a href="${pageContext.request.contextPath}/admin/announcements/new" class="btn btn-info btn-block">
+                                        <a href="${pageContext.request.contextPath}/admin/doctors/new" class="btn btn-danger btn-block">
+                                            <i class="fas fa-user-md"></i> Add Doctor
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/nurses/new" class="btn btn-info btn-block">
+                                            <i class="fas fa-user-nurse"></i> Add Nurse
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/announcements/new" class="btn btn-warning btn-block">
                                             <i class="fas fa-bullhorn"></i> New Announcement
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/diagnosis/new" class="btn btn-secondary btn-block">
+                                            <i class="fas fa-heartbeat"></i> Add Diagnosis Record
                                         </a>
                                     </div>
                                 </div>
