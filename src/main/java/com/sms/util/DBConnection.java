@@ -10,7 +10,7 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final String URL = "jdbc:mysql://localhost:3306/SMS";
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "Dedecedric@1"; // Set your MySQL password here
+    private static final String PASSWORD = "Dedecedric@1"; // Make sure to use the correct password for your MySQL
     
     private static Connection connection = null;
     
@@ -35,7 +35,7 @@ public class DBConnection {
             return connection;
         } catch (SQLException e) {
             e.printStackTrace();
-            System.err.println("Failed to connect to the database!");
+            System.err.println("Failed to connect to the database! Error: " + e.getMessage());
             return null;
         }
     }

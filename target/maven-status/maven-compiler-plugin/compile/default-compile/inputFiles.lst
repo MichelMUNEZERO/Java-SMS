@@ -6,6 +6,7 @@ C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\model\Mark
 C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\dao\EnrollmentDAO.java
 C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\model\Parent.java
 C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\DatabaseCheckServlet.java
+C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\util\PasswordHasher.java
 C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\controller\CourseServlet.java
 C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\dao\CourseDAO.java
 C:\Users\educa\Desktop\School_Management_system\src\main\java\com\sms\dao\TeacherDAO.java
