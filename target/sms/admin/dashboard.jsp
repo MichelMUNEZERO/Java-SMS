@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -86,6 +87,14 @@
             background-color: #dc3545;
             color: #fff;
         }
+        .admin-info {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .admin-secondary {
+            background-color: #6c757d;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -97,15 +106,17 @@
                     <i class="fas fa-school"></i> SMS Admin
                 </div>
                 <ul class="sidebar-menu">
-                    <li><a href="dashboard.jsp" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="users.jsp"><i class="fas fa-users"></i> Users</a></li>
-                    <li><a href="teachers.jsp"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
-                    <li><a href="students.jsp"><i class="fas fa-user-graduate"></i> Students</a></li>
-                    <li><a href="parents.jsp"><i class="fas fa-user-friends"></i> Parents</a></li>
-                    <li><a href="courses.jsp"><i class="fas fa-book"></i> Courses</a></li>
-                    <li><a href="announcements.jsp"><i class="fas fa-bullhorn"></i> Announcements</a></li>
-                    <li><a href="reports.jsp"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                    <li><a href="../logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/users"><i class="fas fa-users"></i> Users</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/teachers"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/students"><i class="fas fa-user-graduate"></i> Students</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/parents"><i class="fas fa-user-friends"></i> Parents</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/courses"><i class="fas fa-book"></i> Courses</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/health"><i class="fas fa-heartbeat"></i> Health</a></li>
+                    <li><a href="${pageContext.request.contextPath}/admin/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </div>
             
@@ -120,48 +131,70 @@
                 
                 <!-- Statistics Cards -->
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card-counter admin-primary">
                             <i class="fas fa-user-graduate"></i>
                             <div>
-                                <span class="count-numbers">150</span>
+                                <span class="count-numbers">${stats.students != null ? stats.students : 0}</span>
                                 <span class="count-name">Students</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card-counter admin-warning">
                             <i class="fas fa-chalkboard-teacher"></i>
                             <div>
-                                <span class="count-numbers">25</span>
+                                <span class="count-numbers">${stats.teachers != null ? stats.teachers : 0}</span>
                                 <span class="count-name">Teachers</span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card-counter admin-success">
                             <i class="fas fa-book"></i>
                             <div>
-                                <span class="count-numbers">32</span>
+                                <span class="count-numbers">${stats.courses != null ? stats.courses : 0}</span>
                                 <span class="count-name">Courses</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-3">
-                        <div class="card-counter admin-danger">
-                            <i class="fas fa-user-friends"></i>
-                            <div>
-                                <span class="count-numbers">120</span>
-                                <span class="count-name">Parents</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Recent Activities -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="card-counter admin-danger">
+                            <i class="fas fa-user-friends"></i>
+                            <div>
+                                <span class="count-numbers">${stats.parents != null ? stats.parents : 0}</span>
+                                <span class="count-name">Parents</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card-counter admin-info">
+                            <i class="fas fa-calendar-check"></i>
+                            <div>
+                                <span class="count-numbers">${stats.appointments != null ? stats.appointments : 0}</span>
+                                <span class="count-name">Appointments</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card-counter admin-secondary">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <span class="count-numbers">${stats.pendingAppointments != null ? stats.pendingAppointments : 0}</span>
+                                <span class="count-name">Pending Appointments</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activities and Announcements -->
                 <div class="row mt-4">
                     <div class="col-md-6">
                         <div class="card">
@@ -170,11 +203,16 @@
                             </div>
                             <div class="card-body">
                                 <ul class="list-group">
-                                    <li class="list-group-item">New student John Doe registered</li>
-                                    <li class="list-group-item">Teacher Jane Smith updated profile</li>
-                                    <li class="list-group-item">New course Mathematics added</li>
-                                    <li class="list-group-item">Grades updated for Science class</li>
-                                    <li class="list-group-item">New announcement posted by Admin</li>
+                                    <c:choose>
+                                        <c:when test="${empty recentActivities}">
+                                            <li class="list-group-item">No recent activities</li>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:forEach var="activity" items="${recentActivities}">
+                                                <li class="list-group-item">${activity}</li>
+                                            </c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </ul>
                             </div>
                         </div>
@@ -183,24 +221,64 @@
                     <!-- Announcements -->
                     <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between">
                                 <h5>Announcements</h5>
+                                <a href="${pageContext.request.contextPath}/admin/announcements/new" class="btn btn-sm btn-primary">New</a>
                             </div>
                             <div class="card-body">
                                 <ul class="list-group">
-                                    <li class="list-group-item">
-                                        <h6>School Holiday - October 12, 2023</h6>
-                                        <p>School will be closed for National Holiday.</p>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <h6>Parent-Teacher Meeting - October 15, 2023</h6>
-                                        <p>All parents are requested to attend the Parent-Teacher meeting.</p>
-                                    </li>
-                                    <li class="list-group-item">
-                                        <h6>Annual Sports Day - October 25, 2023</h6>
-                                        <p>Annual Sports Day will be held at the school grounds.</p>
-                                    </li>
+                                    <c:choose>
+                                        <c:when test="${empty announcements}">
+                                            <li class="list-group-item">No announcements available</li>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:forEach var="announcement" items="${announcements}">
+                                                <li class="list-group-item">
+                                                    <h6>
+                                                        <fmt:formatDate value="${announcement.date}" pattern="MMMM d, yyyy" />
+                                                        <span class="badge badge-info">${announcement.targetGroup}</span>
+                                                    </h6>
+                                                    <p>${announcement.message}</p>
+                                                </li>
+                                            </c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Quick Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/students/new" class="btn btn-primary btn-block">
+                                            <i class="fas fa-user-plus"></i> Add Student
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/teachers/new" class="btn btn-warning btn-block">
+                                            <i class="fas fa-user-plus"></i> Add Teacher
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/courses/new" class="btn btn-success btn-block">
+                                            <i class="fas fa-plus-circle"></i> Add Course
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <a href="${pageContext.request.contextPath}/admin/announcements/new" class="btn btn-info btn-block">
+                                            <i class="fas fa-bullhorn"></i> New Announcement
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
