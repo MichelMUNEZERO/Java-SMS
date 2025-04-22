@@ -18,11 +18,7 @@ public class CourseDAO {
     private Connection connection;
 
     public CourseDAO() {
-        try {
-            this.connection = DBConnection.getConnection();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.connection = DBConnection.getConnection();
     }
 
     /**

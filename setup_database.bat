@@ -6,7 +6,7 @@ echo Setting up SMS database...
 REM Set MySQL credentials and paths
 set MYSQL_USER=root
 set MYSQL_PASSWORD=Dedecedric@1
-set MYSQL_PATH=C:\Program Files\MySQL\MySQL Server 8.0\bin
+set MYSQL_PATH=C:\Program Files\MySQL\MySQL Server 9.2\bin
 
 REM Check if the MySQL directory exists
 if not exist "%MYSQL_PATH%" (
