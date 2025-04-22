@@ -140,28 +140,31 @@ CREATE TABLE IF NOT EXISTS course_materials (
     FOREIGN KEY (uploaded_by) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- Insert default admin user
+-- Insert default admin user with BCrypt hashed password
+-- admin123 hashed with BCrypt
 INSERT INTO users (username, password, email, role)
-VALUES ('admin', 'admin123', 'admin@school.com', 'ADMIN');
+VALUES ('admin', '$2a$10$vQyTh.ELiD0g7dBpECegwuXLnVYRs7MfhIZRVTpZm9ATmPdG.FQoC', 'admin@school.com', 'ADMIN');
 
--- Sample data for testing
--- Insert a teacher
+-- Insert a teacher with BCrypt hashed password
+-- teacher123 hashed with BCrypt
 INSERT INTO users (username, password, email, role)
-VALUES ('teacher1', 'teacher123', 'teacher1@school.com', 'TEACHER');
+VALUES ('teacher1', '$2a$10$H4Gg4kH.Mjo7dLz2nFXx4Op6PhT.ruJ1iKQVm4tScPCFNJRzYuGIa', 'teacher1@school.com', 'TEACHER');
 
 INSERT INTO teachers (user_id, first_name, last_name, email, phone, specialization, qualification, experience)
 VALUES (2, 'John', 'Smith', 'teacher1@school.com', '123-456-7890', 'Mathematics', 'M.Sc Mathematics', 5);
 
--- Insert a student
+-- Insert a student with BCrypt hashed password
+-- student123 hashed with BCrypt
 INSERT INTO users (username, password, email, role)
-VALUES ('student1', 'student123', 'student1@school.com', 'STUDENT');
+VALUES ('student1', '$2a$10$EcPz78BbkPR9.FH0SQoI5ObxQ1S2ZYjj8sJPFxPd0ZzSJZE0A.UDq', 'student1@school.com', 'STUDENT');
 
 INSERT INTO students (user_id, first_name, last_name, reg_number, email, gender, grade_class)
 VALUES (3, 'Emily', 'Jones', 'S001', 'student1@school.com', 'FEMALE', '10-A');
 
--- Insert a parent
+-- Insert a parent with BCrypt hashed password
+-- parent123 hashed with BCrypt
 INSERT INTO users (username, password, email, role)
-VALUES ('parent1', 'parent123', 'parent1@example.com', 'PARENT');
+VALUES ('parent1', '$2a$10$I4c7C6veN2lI.PBlB2jT9eun/tILTFbJMxw5AHGc5hsVQkYgzH0Rm', 'parent1@example.com', 'PARENT');
 
 INSERT INTO parents (user_id, first_name, last_name, email, phone)
 VALUES (4, 'Robert', 'Jones', 'parent1@example.com', '987-654-3210');

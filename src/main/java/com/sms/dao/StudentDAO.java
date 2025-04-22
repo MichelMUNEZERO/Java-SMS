@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Date;
 
 import com.sms.model.Student;
 import com.sms.util.DBConnection;
@@ -154,7 +155,12 @@ public class StudentDAO {
             stmt.setString(4, student.getEmail());
             stmt.setString(5, student.getRegNumber());
             stmt.setString(6, student.getGender());
-            stmt.setDate(7, student.getDateOfBirth());
+            java.util.Date utilDate = student.getDateOfBirth();
+            java.sql.Date sqlDate = null;
+            if (utilDate != null) {
+                sqlDate = new java.sql.Date(utilDate.getTime());
+            }
+            stmt.setDate(7, sqlDate);
             stmt.setString(8, student.getGradeClass());
             stmt.setInt(9, student.getParentId());
             stmt.setString(10, student.getPhone());
@@ -185,7 +191,12 @@ public class StudentDAO {
             stmt.setString(4, student.getEmail());
             stmt.setString(5, student.getRegNumber());
             stmt.setString(6, student.getGender());
-            stmt.setDate(7, student.getDateOfBirth());
+            java.util.Date utilDate = student.getDateOfBirth();
+            java.sql.Date sqlDate = null;
+            if (utilDate != null) {
+                sqlDate = new java.sql.Date(utilDate.getTime());
+            }
+            stmt.setDate(7, sqlDate);
             stmt.setString(8, student.getGradeClass());
             stmt.setInt(9, student.getParentId());
             stmt.setString(10, student.getPhone());
@@ -236,7 +247,13 @@ public class StudentDAO {
         student.setEmail(rs.getString("email"));
         student.setRegNumber(rs.getString("reg_number"));
         student.setGender(rs.getString("gender"));
-        student.setDateOfBirth(rs.getDate("date_of_birth"));
+        
+        // Convert java.sql.Date to java.util.Date
+        java.sql.Date sqlDate = rs.getDate("date_of_birth");
+        if (sqlDate != null) {
+            student.setDateOfBirth(new java.util.Date(sqlDate.getTime()));
+        }
+        
         student.setGradeClass(rs.getString("grade_class"));
         student.setParentId(rs.getInt("parent_id"));
         student.setPhone(rs.getString("phone"));

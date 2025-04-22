@@ -27,13 +27,21 @@ CREATE TABLE IF NOT EXISTS Teachers (
 
 -- Students table
 CREATE TABLE IF NOT EXISTS Students (
-    StudentID INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    RegNumber VARCHAR(20) NOT NULL UNIQUE,
-    Telephone VARCHAR(20),
-    Email VARCHAR(100) UNIQUE,
-    Address TEXT
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    reg_number VARCHAR(20) NOT NULL UNIQUE,
+    email VARCHAR(100) UNIQUE,
+    gender VARCHAR(10),
+    date_of_birth DATE,
+    grade_class VARCHAR(20),
+    parent_id INT,
+    phone VARCHAR(20),
+    address TEXT,
+    medical_info TEXT,
+    status VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES Users(UserID) ON DELETE CASCADE
 );
 
 -- Parents table
@@ -51,7 +59,7 @@ CREATE TABLE IF NOT EXISTS StudentParent (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     StudentID INT,
     ParentId INT,
-    FOREIGN KEY (StudentID) REFERENCES Students(StudentID) ON DELETE CASCADE,
+    FOREIGN KEY (StudentID) REFERENCES Students(student_id) ON DELETE CASCADE,
     FOREIGN KEY (ParentId) REFERENCES Parents(ParentId) ON DELETE CASCADE
 );
 
@@ -69,6 +77,15 @@ ALTER TABLE Teachers
 ADD CONSTRAINT fk_teacher_course 
 FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE SET NULL;
 
+-- Student-Course relationship
+CREATE TABLE IF NOT EXISTS student_courses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT,
+    course_id INT,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Courses(CourseId) ON DELETE CASCADE
+);
+
 -- Marks table
 CREATE TABLE IF NOT EXISTS Marks (
     MarksId INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +94,7 @@ CREATE TABLE IF NOT EXISTS Marks (
     Marks FLOAT NOT NULL,
     Grade VARCHAR(5),
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
-    FOREIGN KEY (StudentId) REFERENCES Students(StudentID) ON DELETE CASCADE
+    FOREIGN KEY (StudentId) REFERENCES Students(student_id) ON DELETE CASCADE
 );
 
 -- Announcement table
@@ -95,7 +112,7 @@ CREATE TABLE IF NOT EXISTS StudentBehavior (
     Behavior VARCHAR(100) NOT NULL,
     Description TEXT,
     Date DATE NOT NULL,
-    FOREIGN KEY (StudentId) REFERENCES Students(StudentID) ON DELETE CASCADE
+    FOREIGN KEY (StudentId) REFERENCES Students(student_id) ON DELETE CASCADE
 );
 
 -- StudentTracking table
@@ -106,7 +123,7 @@ CREATE TABLE IF NOT EXISTS StudentTracking (
     Progress VARCHAR(100),
     Location VARCHAR(100),
     Date DATE NOT NULL,
-    FOREIGN KEY (StudentId) REFERENCES Students(StudentID) ON DELETE CASCADE
+    FOREIGN KEY (StudentId) REFERENCES Students(student_id) ON DELETE CASCADE
 );
 
 -- Reports table
@@ -158,7 +175,7 @@ CREATE TABLE IF NOT EXISTS Diagnosis (
     DiagnoStatus VARCHAR(100) NOT NULL,
     Result TEXT,
     Date DATETIME NOT NULL,
-    FOREIGN KEY (PatientID) REFERENCES Students(StudentID) ON DELETE CASCADE,
+    FOREIGN KEY (PatientID) REFERENCES Students(student_id) ON DELETE CASCADE,
     FOREIGN KEY (NurseID) REFERENCES Nurses(NurseId) ON DELETE SET NULL,
     FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorId) ON DELETE SET NULL
 );
