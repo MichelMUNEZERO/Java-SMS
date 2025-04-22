@@ -26,10 +26,10 @@ public class CourseDAO {
      */
     private Course extractCourseFromResultSet(ResultSet rs) throws SQLException {
         Course course = new Course();
-        course.setCourseId(rs.getInt("course_id"));
-        course.setCourseName(rs.getString("course_name"));
-        course.setDescription(rs.getString("description"));
-        course.setTeacherId(rs.getInt("teacher_id"));
+        course.setCourseId(rs.getInt("CourseId"));
+        course.setCourseName(rs.getString("CourseName"));
+        course.setDescription(rs.getString("Description"));
+        course.setTeacherId(rs.getInt("TeacherId"));
         return course;
     }
 
@@ -38,7 +38,7 @@ public class CourseDAO {
      */
     public Course getCourseById(int courseId) {
         try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM courses WHERE course_id = ?")) {
+                "SELECT * FROM Courses WHERE CourseId = ?")) {
             stmt.setInt(1, courseId);
             
             try (ResultSet rs = stmt.executeQuery()) {
@@ -57,7 +57,7 @@ public class CourseDAO {
      */
     public Course getCourseByName(String courseName) {
         try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM courses WHERE course_name = ?")) {
+                "SELECT * FROM Courses WHERE CourseName = ?")) {
             stmt.setString(1, courseName);
             
             try (ResultSet rs = stmt.executeQuery()) {
@@ -78,7 +78,7 @@ public class CourseDAO {
         List<Course> courses = new ArrayList<>();
         
         try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM courses")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM Courses")) {
             
             while (rs.next()) {
                 courses.add(extractCourseFromResultSet(rs));
@@ -97,7 +97,7 @@ public class CourseDAO {
         List<Course> courses = new ArrayList<>();
         
         try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM courses WHERE teacher_id = ?")) {
+                "SELECT * FROM Courses WHERE TeacherId = ?")) {
             stmt.setInt(1, teacherId);
             
             try (ResultSet rs = stmt.executeQuery()) {
@@ -120,7 +120,7 @@ public class CourseDAO {
         String searchQuery = "%" + searchTerm + "%";
         
         try (PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM courses WHERE course_name LIKE ? OR description LIKE ?")) {
+                "SELECT * FROM Courses WHERE CourseName LIKE ? OR Description LIKE ?")) {
             stmt.setString(1, searchQuery);
             stmt.setString(2, searchQuery);
             
@@ -141,7 +141,7 @@ public class CourseDAO {
      */
     public int addCourse(Course course) {
         try (PreparedStatement stmt = connection.prepareStatement(
-                "INSERT INTO courses (course_name, description, teacher_id) VALUES (?, ?, ?)",
+                "INSERT INTO Courses (CourseName, Description, TeacherId) VALUES (?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, course.getCourseName());
@@ -170,7 +170,7 @@ public class CourseDAO {
      */
     public boolean updateCourse(Course course) {
         try (PreparedStatement stmt = connection.prepareStatement(
-                "UPDATE courses SET course_name = ?, description = ?, teacher_id = ? WHERE course_id = ?")) {
+                "UPDATE Courses SET CourseName = ?, Description = ?, TeacherId = ? WHERE CourseId = ?")) {
             
             stmt.setString(1, course.getCourseName());
             stmt.setString(2, course.getDescription());
@@ -190,7 +190,7 @@ public class CourseDAO {
      */
     public boolean deleteCourse(int courseId) {
         try (PreparedStatement stmt = connection.prepareStatement(
-                "DELETE FROM courses WHERE course_id = ?")) {
+                "DELETE FROM Courses WHERE CourseId = ?")) {
             
             stmt.setInt(1, courseId);
             
