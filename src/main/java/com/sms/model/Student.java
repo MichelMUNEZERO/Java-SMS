@@ -11,13 +11,13 @@ public class Student {
     private String firstName;
     private String lastName;
     private String regNumber;
+    private String email;
     private String gender;
     private Date dateOfBirth;
     private String gradeClass;
-    private String email;
+    private int parentId;
     private String phone;
     private String address;
-    private int parentId;
     private String medicalInfo;
     private String status;
     
@@ -34,31 +34,65 @@ public class Student {
      * @param firstName the first name
      * @param lastName the last name
      * @param regNumber the registration number
+     * @param email the email
      * @param gender the gender
      * @param dateOfBirth the date of birth
      * @param gradeClass the grade/class
-     * @param email the email
+     * @param parentId the parent id
      * @param phone the phone number
      * @param address the address
-     * @param parentId the parent id
      * @param medicalInfo the medical information
      * @param status the status
      */
     public Student(int studentId, int userId, String firstName, String lastName, String regNumber, 
-                  String gender, Date dateOfBirth, String gradeClass, String email, String phone, 
-                  String address, int parentId, String medicalInfo, String status) {
+                  String email, String gender, Date dateOfBirth, String gradeClass, 
+                  int parentId, String phone, String address, String medicalInfo, String status) {
         this.studentId = studentId;
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.regNumber = regNumber;
+        this.email = email;
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
         this.gradeClass = gradeClass;
-        this.email = email;
+        this.parentId = parentId;
         this.phone = phone;
         this.address = address;
+        this.medicalInfo = medicalInfo;
+        this.status = status;
+    }
+    
+    /**
+     * Constructor without ID for new student creation
+     * @param userId the user id
+     * @param firstName the first name
+     * @param lastName the last name
+     * @param regNumber the registration number
+     * @param email the email
+     * @param gender the gender
+     * @param dateOfBirth the date of birth
+     * @param gradeClass the grade/class
+     * @param parentId the parent id
+     * @param phone the phone number
+     * @param address the address
+     * @param medicalInfo the medical information
+     * @param status the status
+     */
+    public Student(int userId, String firstName, String lastName, String regNumber, 
+                  String email, String gender, Date dateOfBirth, String gradeClass, 
+                  int parentId, String phone, String address, String medicalInfo, String status) {
+        this.userId = userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.regNumber = regNumber;
+        this.email = email;
+        this.gender = gender;
+        this.dateOfBirth = dateOfBirth;
+        this.gradeClass = gradeClass;
         this.parentId = parentId;
+        this.phone = phone;
+        this.address = address;
         this.medicalInfo = medicalInfo;
         this.status = status;
     }
@@ -105,6 +139,14 @@ public class Student {
         this.regNumber = regNumber;
     }
     
+    public String getEmail() {
+        return email;
+    }
+    
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
     public String getGender() {
         return gender;
     }
@@ -129,12 +171,12 @@ public class Student {
         this.gradeClass = gradeClass;
     }
     
-    public String getEmail() {
-        return email;
+    public int getParentId() {
+        return parentId;
     }
     
-    public void setEmail(String email) {
-        this.email = email;
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
     }
     
     public String getPhone() {
@@ -151,14 +193,6 @@ public class Student {
     
     public void setAddress(String address) {
         this.address = address;
-    }
-    
-    public int getParentId() {
-        return parentId;
-    }
-    
-    public void setParentId(int parentId) {
-        this.parentId = parentId;
     }
     
     public String getMedicalInfo() {
@@ -187,7 +221,19 @@ public class Student {
     
     @Override
     public String toString() {
-        return "Student [studentId=" + studentId + ", firstName=" + firstName + ", lastName=" + lastName + 
-                ", regNumber=" + regNumber + ", gradeClass=" + gradeClass + "]";
+        return "Student [studentId=" + studentId + 
+               ", userId=" + userId + 
+               ", firstName=" + firstName + 
+               ", lastName=" + lastName + 
+               ", regNumber=" + regNumber + 
+               ", email=" + email + 
+               ", gender=" + gender + 
+               ", dateOfBirth=" + dateOfBirth + 
+               ", gradeClass=" + gradeClass + 
+               ", parentId=" + parentId + 
+               ", phone=" + phone + 
+               ", address=" + address + 
+               ", medicalInfo=" + medicalInfo + 
+               ", status=" + status + "]";
     }
 } 
