@@ -13,40 +13,6 @@
         body {
             background-color: #f8f9fa;
         }
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-            color: #fff;
-            padding-top: 20px;
-        }
-        .sidebar-heading {
-            padding: 15px;
-            font-size: 1.2rem;
-            text-align: center;
-            border-bottom: 1px solid #495057;
-        }
-        .sidebar-menu {
-            padding: 0;
-            list-style: none;
-        }
-        .sidebar-menu li {
-            margin: 0;
-            padding: 0;
-        }
-        .sidebar-menu li a {
-            display: block;
-            padding: 15px;
-            color: #adb5bd;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .sidebar-menu li a:hover, .sidebar-menu li a.active {
-            background-color: #495057;
-            color: #fff;
-        }
-        .sidebar-menu li a i {
-            margin-right: 10px;
-        }
         .main-content {
             padding: 20px;
         }
@@ -94,22 +60,9 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-2 sidebar">
-                <div class="sidebar-heading">
-                    <i class="fas fa-school"></i> SMS Admin
-                </div>
-                <ul class="sidebar-menu">
-                    <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/teachers" class="active"><i class="fas fa-chalkboard-teacher"></i> Teachers</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/students"><i class="fas fa-user-graduate"></i> Students</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/parents"><i class="fas fa-user-friends"></i> Parents</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/courses"><i class="fas fa-book"></i> Courses</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/appointments"><i class="fas fa-calendar-check"></i> Appointments</a></li>
-                    <li><a href="${pageContext.request.contextPath}/admin/reports"><i class="fas fa-chart-bar"></i> Reports</a></li>
-                    <li><a href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                </ul>
-            </div>
+            <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp">
+                <jsp:param name="active" value="teachers"/>
+            </jsp:include>
             
             <!-- Main Content -->
             <div class="col-md-10 main-content">

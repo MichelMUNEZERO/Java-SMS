@@ -126,23 +126,23 @@
                                             <td>${student.email}</td>
                                             <td>${student.parentName}</td>
                                             <td><span class="badge badge-${student.status == 'active' ? 'success' : 'secondary'}">${student.status}</span></td>
-                                            <td class="action-buttons">
+                                        <td class="action-buttons">
                                                 <a href="${pageContext.request.contextPath}/admin/students/view?id=${student.studentId}" class="btn btn-sm btn-info" data-toggle="tooltip" title="View Details">
-                                                    <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a href="${pageContext.request.contextPath}/admin/students/edit?id=${student.studentId}" class="btn btn-sm btn-primary" data-toggle="tooltip" title="Edit">
-                                                    <i class="fas fa-edit"></i>
+                                                <i class="fas fa-edit"></i>
                                                 </a>
                                                 <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteStudentModal" data-student-id="${student.studentId}" data-toggle="tooltip" title="Delete">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
                                     </c:forEach>
                                     <c:if test="${empty students}">
                                         <tr>
                                             <td colspan="9" class="text-center">No students found</td>
-                                        </tr>
+                                    </tr>
                                     </c:if>
                                 </tbody>
                             </table>

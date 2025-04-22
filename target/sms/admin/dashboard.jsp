@@ -63,17 +63,7 @@
                 </div>
                 
                 <div class="row mt-3">
-                    <div class="col-md-4">
-                        <div class="card-counter admin-danger">
-                            <i class="fas fa-user-friends"></i>
-                            <div>
-                                <span class="count-numbers">${stats.parents != null ? stats.parents : 0}</span>
-                                <span class="count-name">Parents</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="card-counter admin-info">
                             <i class="fas fa-calendar-check"></i>
                             <div>
@@ -83,7 +73,7 @@
                         </div>
                     </div>
                     
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="card-counter admin-secondary">
                             <i class="fas fa-clock"></i>
                             <div>
