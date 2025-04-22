@@ -179,6 +179,7 @@ public class UserDAO {
      * @param rs the ResultSet containing user data
      * @return a populated User object
      * @throws SQLException if a database access error occurs
+     * Updated to use correct column names from database schema
      */
     private User extractUserFromResultSet(ResultSet rs) throws SQLException {
         User user = new User();
