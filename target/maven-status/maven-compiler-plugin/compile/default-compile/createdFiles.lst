@@ -8,6 +8,7 @@ com\sms\controller\parent\ParentServlet.class
 com\sms\model\Teacher.class
 com\sms\controller\LogoutServlet.class
 com\sms\filter\AuthenticationFilter.class
+com\sms\listener\AppContextListener.class
 com\sms\model\Course.class
 com\sms\dao\UserDAO.class
 com\sms\controller\LoginServlet.class
@@ -16,7 +17,6 @@ com\sms\dao\ParentDAO.class
 com\sms\model\Mark.class
 com\sms\util\PasswordHash.class
 com\sms\controller\DatabaseCheckServlet.class
-com\sms\controller\TempLoginServlet.class
 com\sms\dao\StudentDAO.class
 com\sms\util\PasswordHasher.class
 com\sms\dao\EnrollmentDAO.class

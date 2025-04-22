@@ -64,22 +64,13 @@
 <body>
     <div class="error-container">
         <div>
-            <%
-                Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-                if (statusCode == null) {
-                    statusCode = (Integer) response.getStatus();
-                }
-            %>
-            <span class="error-code"><%= statusCode != null ? statusCode : "Error" %></span>
+            <span class="error-code">500</span>
             <div class="error-details">
                 <h1>An error occurred</h1>
                 <p>We apologize for the inconvenience. Please try again later or contact the administrator.</p>
-                <% if (exception != null) { %>
-                <p><small>Details: <%= exception.getMessage() %></small></p>
-                <% } %>
             </div>
         </div>
-        <a href="${pageContext.request.contextPath}/login" class="btn">Return to Login</a>
+        <a href="${pageContext.request.contextPath}/login" class="btn">Go to Login</a>
     </div>
 </body>
 </html> 

@@ -64,10 +64,17 @@
             margin-bottom: 15px;
             text-align: center;
         }
-        .login-footer {
+        .alt-login {
             text-align: center;
             margin-top: 20px;
             color: #777;
+        }
+        .alt-login a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .alt-login a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -95,7 +102,8 @@
             <button type="submit" class="btn">Login</button>
         </form>
         
-        <div class="login-footer">
+        <div class="alt-login">
+            <p>Having trouble? <a href="<%= request.getContextPath() %>/temp-login">Use simplified login</a></p>
             <p><small>Admin login: username "admin", password "admin"</small></p>
         </div>
     </div>

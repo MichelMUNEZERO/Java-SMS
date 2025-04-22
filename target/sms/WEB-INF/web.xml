@@ -43,7 +43,4 @@
     <security-role>
         <role-name>Parent</role-name>
     </security-role>
-    
-    <!-- Security Constraints - Using custom Filter instead of container-managed security -->
-    <!-- Removed container-managed auth constraints to simplify authentication -->
 </web-app> 
