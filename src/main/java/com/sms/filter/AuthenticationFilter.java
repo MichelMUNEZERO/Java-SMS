@@ -25,6 +25,7 @@ public class AuthenticationFilter implements Filter {
      * @see Filter#init(FilterConfig)
      */
     public void init(FilterConfig fConfig) throws ServletException {
+        // No initialization needed
     }
 
     /**
@@ -36,58 +37,65 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         
-        // Get current session
-        HttpSession session = req.getSession(false);
-        
-        // Check if user is authenticated
-        boolean isAuthenticated = (session != null && session.getAttribute("user") != null);
-        
-        if (!isAuthenticated) {
-            // User is not authenticated, redirect to login page
-            res.sendRedirect(req.getContextPath() + "/login");
-            return;
-        }
-        
-        // Get the requested URL and user type
-        String requestURI = req.getRequestURI();
-        User user = (User) session.getAttribute("user");
-        String userType = user.getUserType();
-        
-        // Check if user has the appropriate role for the requested resource
-        boolean hasPermission = false;
-        
-        if (requestURI.contains("/admin/") && userType.equals("Admin")) {
-            hasPermission = true;
-        } else if (requestURI.contains("/teacher/") && userType.equals("Teacher")) {
-            hasPermission = true;
-        } else if (requestURI.contains("/student/") && userType.equals("Student")) {
-            hasPermission = true;
-        } else if (requestURI.contains("/parent/") && userType.equals("Parent")) {
-            hasPermission = true;
-        }
-        
-        if (hasPermission) {
-            // User has permission, continue with the request
-            chain.doFilter(request, response);
-        } else {
-            // User does not have permission, redirect to appropriate dashboard
-            switch (userType) {
-                case "Admin":
-                    res.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp");
-                    break;
-                case "Teacher":
-                    res.sendRedirect(req.getContextPath() + "/teacher/dashboard.jsp");
-                    break;
-                case "Student":
-                    res.sendRedirect(req.getContextPath() + "/student/dashboard.jsp");
-                    break;
-                case "Parent":
-                    res.sendRedirect(req.getContextPath() + "/parent/dashboard.jsp");
-                    break;
-                default:
-                    res.sendRedirect(req.getContextPath() + "/login");
-                    break;
+        try {
+            // Get current session
+            HttpSession session = req.getSession(false);
+            
+            // Check if user is authenticated
+            boolean isAuthenticated = (session != null && session.getAttribute("user") != null);
+            
+            if (!isAuthenticated) {
+                // User is not authenticated, redirect to login page
+                res.sendRedirect(req.getContextPath() + "/login");
+                return;
             }
+            
+            // Get the requested URL and user type
+            String requestURI = req.getRequestURI();
+            User user = (User) session.getAttribute("user");
+            String userType = user.getRole().toLowerCase().trim();
+            
+            // Check if user has the appropriate role for the requested resource
+            boolean hasPermission = false;
+            
+            if (requestURI.contains("/admin/") && userType.equalsIgnoreCase("admin")) {
+                hasPermission = true;
+            } else if (requestURI.contains("/teacher/") && userType.equalsIgnoreCase("teacher")) {
+                hasPermission = true;
+            } else if (requestURI.contains("/student/") && userType.equalsIgnoreCase("student")) {
+                hasPermission = true;
+            } else if (requestURI.contains("/parent/") && userType.equalsIgnoreCase("parent")) {
+                hasPermission = true;
+            }
+            
+            if (hasPermission) {
+                // User has permission, continue with the request
+                chain.doFilter(request, response);
+            } else {
+                // User does not have permission, redirect to appropriate dashboard
+                switch (userType.toLowerCase()) {
+                    case "admin":
+                        res.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp");
+                        break;
+                    case "teacher":
+                        res.sendRedirect(req.getContextPath() + "/teacher/dashboard.jsp");
+                        break;
+                    case "student":
+                        res.sendRedirect(req.getContextPath() + "/student/dashboard.jsp");
+                        break;
+                    case "parent":
+                        res.sendRedirect(req.getContextPath() + "/parent/dashboard.jsp");
+                        break;
+                    default:
+                        res.sendRedirect(req.getContextPath() + "/login");
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            // Log the exception
+            req.getServletContext().log("Authentication filter error: " + e.getMessage(), e);
+            // Redirect to error page
+            res.sendRedirect(req.getContextPath() + "/error.jsp");
         }
     }
 
@@ -95,5 +103,6 @@ public class AuthenticationFilter implements Filter {
      * @see Filter#destroy()
      */
     public void destroy() {
+        // No cleanup needed
     }
 } 

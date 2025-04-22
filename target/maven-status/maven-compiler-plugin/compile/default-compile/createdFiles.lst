@@ -18,12 +18,10 @@ com\sms\util\PasswordHash.class
 com\sms\controller\DatabaseCheckServlet.class
 com\sms\controller\TempLoginServlet.class
 com\sms\dao\StudentDAO.class
-com\sms\util\AdminPasswordReset.class
 com\sms\util\PasswordHasher.class
 com\sms\dao\EnrollmentDAO.class
 com\sms\util\DatabaseCheck.class
 com\sms\model\Parent.class
-com\sms\controller\AdminPasswordResetServlet.class
 com\sms\dao\CourseDAO.class
 com\sms\controller\admin\StudentServlet.class
 com\sms\dao\TeacherDAO.class

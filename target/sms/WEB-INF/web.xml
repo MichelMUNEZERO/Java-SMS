@@ -25,45 +25,25 @@
         <error-code>500</error-code>
         <location>/error.jsp</location>
     </error-page>
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/error.jsp</location>
+    </error-page>
     
-    <!-- Security Constraints -->
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>Protected Admin Area</web-resource-name>
-            <url-pattern>/admin/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>Admin</role-name>
-        </auth-constraint>
-    </security-constraint>
+    <!-- Role Definitions -->
+    <security-role>
+        <role-name>Admin</role-name>
+    </security-role>
+    <security-role>
+        <role-name>Teacher</role-name>
+    </security-role>
+    <security-role>
+        <role-name>Student</role-name>
+    </security-role>
+    <security-role>
+        <role-name>Parent</role-name>
+    </security-role>
     
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>Protected Teacher Area</web-resource-name>
-            <url-pattern>/teacher/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>Teacher</role-name>
-        </auth-constraint>
-    </security-constraint>
-    
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>Protected Student Area</web-resource-name>
-            <url-pattern>/student/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>Student</role-name>
-        </auth-constraint>
-    </security-constraint>
-    
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>Protected Parent Area</web-resource-name>
-            <url-pattern>/parent/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>Parent</role-name>
-        </auth-constraint>
-    </security-constraint>
+    <!-- Security Constraints - Using custom Filter instead of container-managed security -->
+    <!-- Removed container-managed auth constraints to simplify authentication -->
 </web-app> 
