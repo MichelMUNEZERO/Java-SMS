@@ -19,7 +19,11 @@ public class UserDAO {
     private Connection connection;
     
     public UserDAO() {
-        connection = DBConnection.getConnection();
+        try {
+            connection = DBConnection.getConnection();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -29,7 +33,7 @@ public class UserDAO {
      */
     public User getUserById(int userId) {
         User user = null;
-        String sql = "SELECT * FROM Users WHERE UserID = ?";
+        String sql = "SELECT * FROM users WHERE user_id = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
@@ -52,7 +56,7 @@ public class UserDAO {
      */
     public User getUserByEmail(String email) {
         User user = null;
-        String sql = "SELECT * FROM Users WHERE Username = ?";
+        String sql = "SELECT * FROM users WHERE email = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
@@ -69,12 +73,26 @@ public class UserDAO {
     }
     
     /**
-     * For backwards compatibility - Get a user by username (which is now email)
+     * Get a user by username 
      * @param username the username to search for
      * @return the User object if found, null otherwise
      */
     public User getUserByUsername(String username) {
-        return getUserByEmail(username);
+        User user = null;
+        String sql = "SELECT * FROM users WHERE username = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                user = extractUserFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return user;
     }
     
     /**
@@ -83,7 +101,7 @@ public class UserDAO {
      */
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM Users";
+        String sql = "SELECT * FROM users";
         
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -104,13 +122,14 @@ public class UserDAO {
      * @return the generated user ID if successful, -1 otherwise
      */
     public int addUser(User user) {
-        String sql = "INSERT INTO Users (Username, Password, UserType, ImageLink) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, email, role, status) VALUES (?, ?, ?, ?, ?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, user.getEmail());
+            stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getRole());
-            stmt.setString(4, user.getImageLink());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getRole());
+            stmt.setString(5, user.getStatus());
             
             int rowsAffected = stmt.executeUpdate();
             
@@ -133,14 +152,15 @@ public class UserDAO {
      * @return true if the update was successful, false otherwise
      */
     public boolean updateUser(User user) {
-        String sql = "UPDATE Users SET Username = ?, Password = ?, UserType = ?, ImageLink = ? WHERE UserID = ?";
+        String sql = "UPDATE users SET username = ?, password = ?, email = ?, role = ?, status = ? WHERE user_id = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, user.getEmail());
+            stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPassword());
-            stmt.setString(3, user.getRole());
-            stmt.setString(4, user.getImageLink());
-            stmt.setInt(5, user.getUserId());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getRole());
+            stmt.setString(5, user.getStatus());
+            stmt.setInt(6, user.getUserId());
             
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
@@ -156,7 +176,7 @@ public class UserDAO {
      * @return true if deletion was successful, false otherwise
      */
     public boolean deleteUser(int userId) {
-        String sql = "DELETE FROM Users WHERE UserID = ?";
+        String sql = "DELETE FROM users WHERE user_id = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
@@ -177,28 +197,28 @@ public class UserDAO {
      */
     private User extractUserFromResultSet(ResultSet rs) throws SQLException {
         User user = new User();
-        user.setUserId(rs.getInt("UserID"));
-        user.setEmail(rs.getString("Username"));
-        user.setPassword(rs.getString("Password"));
-        user.setRole(rs.getString("UserType"));
-        user.setStatus("active");
-        user.setImageLink(rs.getString("ImageLink"));
+        user.setUserId(rs.getInt("user_id"));
+        user.setUsername(rs.getString("username"));
+        user.setPassword(rs.getString("password"));
+        user.setEmail(rs.getString("email"));
+        user.setRole(rs.getString("role"));
+        user.setStatus(rs.getString("status"));
         return user;
     }
     
     /**
-     * Authenticate a user with email and password
-     * @param email the email
-     * @param password the password (already hashed)
+     * Authenticate a user with username and password
+     * @param username the username
+     * @param hashedPassword the password (already hashed)
      * @return the User object if authentication successful, null otherwise
      */
-    public User authenticateUser(String email, String password) {
+    public User authenticateUser(String username, String hashedPassword) {
         User user = null;
-        String sql = "SELECT * FROM Users WHERE Username = ? AND Password = ?";
+        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, email);
-            stmt.setString(2, password);
+            stmt.setString(1, username);
+            stmt.setString(2, hashedPassword);
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
@@ -218,7 +238,7 @@ public class UserDAO {
      */
     public List<User> getUsersByRole(String role) {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM Users WHERE UserType = ?";
+        String sql = "SELECT * FROM users WHERE role = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, role);
@@ -241,11 +261,12 @@ public class UserDAO {
      */
     public List<User> searchUsers(String searchTerm) {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM Users WHERE Username LIKE ?";
+        String sql = "SELECT * FROM users WHERE username LIKE ? OR email LIKE ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             String searchPattern = "%" + searchTerm + "%";
             stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
