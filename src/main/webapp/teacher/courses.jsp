@@ -10,101 +10,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .course-card {
-            transition: transform 0.3s ease;
-            height: 100%;
-        }
-        .course-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .student-count {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        .sidebar {
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            z-index: 100;
-            padding-top: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/teacher-styles.css">
 </head>
 <body>
     <!-- Sidebar -->
-    <nav class="sidebar bg-dark">
-        <div class="px-3 py-4">
-            <div class="text-center mb-4">
-                <img src="${pageContext.request.contextPath}/images/teacher-avatar.png" alt="Teacher" class="img-fluid rounded-circle mb-3" style="width: 80px;">
-                <h5 class="text-white">Teacher Name</h5>
-                <p class="text-white-50 small">Science Department</p>
-            </div>
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/teacher/dashboard">
-                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active bg-primary text-white" href="${pageContext.request.contextPath}/course/teacher">
-                        <i class="fas fa-book me-2"></i> My Courses
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/student/teacher">
-                        <i class="fas fa-user-graduate me-2"></i> My Students
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/grading/teacher">
-                        <i class="fas fa-star me-2"></i> Grading
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/announcement/teacher">
-                        <i class="fas fa-bullhorn me-2"></i> Announcements
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/schedule/teacher">
-                        <i class="fas fa-calendar-alt me-2"></i> Schedule
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/profile/teacher">
-                        <i class="fas fa-user-circle me-2"></i> My Profile
-                    </a>
-                </li>
-                <li class="nav-item mt-3">
-                    <a class="nav-link text-white" href="${pageContext.request.contextPath}/logout">
-                        <i class="fas fa-sign-out-alt me-2"></i> Logout
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    <jsp:include page="/WEB-INF/includes/teacher-sidebar.jsp">
+        <jsp:param name="active" value="courses"/>
+    </jsp:include>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="col-md-10 main-content">
         <div class="container-fluid">
             <div class="row mb-4">
                 <div class="col">
