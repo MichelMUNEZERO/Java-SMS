@@ -54,7 +54,13 @@ public class StudentDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting all students", e);
         } finally {
-            DBConnection.closeAll(conn, pstmt, rs);
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
         }
         
         return students;
@@ -95,7 +101,13 @@ public class StudentDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting student with ID: " + id, e);
         } finally {
-            DBConnection.closeAll(conn, pstmt, rs);
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
         }
         
         return student;
@@ -133,7 +145,12 @@ public class StudentDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error adding student", e);
         } finally {
-            DBConnection.closeAll(conn, pstmt, null);
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
         }
         
         return success;
@@ -173,7 +190,12 @@ public class StudentDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating student with ID: " + student.getId(), e);
         } finally {
-            DBConnection.closeAll(conn, pstmt, null);
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
         }
         
         return success;
@@ -202,7 +224,12 @@ public class StudentDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error deleting student with ID: " + id, e);
         } finally {
-            DBConnection.closeAll(conn, pstmt, null);
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
         }
         
         return success;
@@ -247,7 +274,13 @@ public class StudentDAO {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting students by class ID: " + classId, e);
         } finally {
-            DBConnection.closeAll(conn, pstmt, rs);
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
         }
         
         return students;
