@@ -2,7 +2,7 @@
 REM Build script for School Management System
 
 REM Set Java home path for JDK-21
-set JAVA_HOME=C:\Program Files\Java\jdk-21
+set JAVA_HOME=C:\Program Files\Java\jdk-23
 echo Using Java from %JAVA_HOME%
 set JRE_HOME=%JAVA_HOME%
 set PATH=%JAVA_HOME%\bin;%PATH%
@@ -58,10 +58,10 @@ if exist "%CATALINA_HOME%\webapps" (
     echo Starting Tomcat...
     start "" "%CATALINA_HOME%\bin\startup.bat"
     
-    echo Tomcat started. Your application should be available at http://localhost:8080/sms/
+    echo Tomcat started. Your application should be available at http://localhost:8083/sms/
     echo Opening application in default browser...
     timeout /t 5 /nobreak > nul
-    start "" http://localhost:8080/sms/
+    start "" http://localhost:8083/sms/
 ) else (
     echo ERROR: Tomcat webapps directory not found at %CATALINA_HOME%\webapps
     echo Please set the correct CATALINA_HOME environment variable or update this script.

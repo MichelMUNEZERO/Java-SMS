@@ -1,76 +1,89 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isErrorPage="true" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+pageEncoding="UTF-8" isErrorPage="true" %>
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Error - School Management System</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Custom CSS -->
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .error-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            max-width: 500px;
-            text-align: center;
-        }
-        .error-code {
-            color: #e74c3c;
-            font-size: 72px;
-            margin: 0;
-            border-right: 1px solid #e74c3c;
-            padding-right: 20px;
-            display: inline-block;
-            margin-right: 20px;
-            vertical-align: middle;
-        }
-        .error-details {
-            display: inline-block;
-            text-align: left;
-            vertical-align: middle;
-        }
-        h1 {
-            margin-top: 0;
-            color: #333;
-        }
-        p {
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #3498db;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        .btn:hover {
-            background-color: #2980b9;
-        }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f8f9fa;
+      }
+      .error-container {
+        text-align: center;
+        padding: 3rem;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        max-width: 600px;
+      }
+      .error-code {
+        font-size: 5rem;
+        font-weight: 700;
+        color: #dc3545;
+        margin-bottom: 1rem;
+      }
+      .error-message {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        color: #343a40;
+      }
+      .btn-back {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+      }
     </style>
-</head>
-<body>
-    <div class="error-container">
-        <div>
-            <span class="error-code">500</span>
-            <div class="error-details">
-                <h1>An error occurred</h1>
-                <p>We apologize for the inconvenience. Please try again later or contact the administrator.</p>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="error-container">
+            <div class="error-code">
+              <% Integer statusCode =
+              (Integer)request.getAttribute("javax.servlet.error.status_code");
+              if (statusCode != null) { out.print(statusCode); } else {
+              out.print("Error"); } %>
             </div>
+            <div class="error-message">
+              <% String errorMessage =
+              (String)request.getAttribute("javax.servlet.error.message"); if
+              (errorMessage != null && !errorMessage.isEmpty()) {
+              out.print(errorMessage); } else { out.print("An error occurred
+              during your request."); } %>
+            </div>
+            <p class="mb-4">
+              We apologize for the inconvenience. Please try again later or
+              contact the system administrator if the problem persists.
+            </p>
+            <a
+              href="${pageContext.request.contextPath}/login"
+              class="btn btn-primary btn-back"
+            >
+              <i class="bi bi-arrow-left"></i> Back to Login
+            </a>
+          </div>
         </div>
-        <a href="${pageContext.request.contextPath}/login" class="btn">Go to Login</a>
+      </div>
     </div>
-</body>
-</html> 
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
+    />
+  </body>
+</html>

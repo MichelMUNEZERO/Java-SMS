@@ -3,116 +3,66 @@ package com.sms.model;
 import java.util.Date;
 
 /**
- * Student model class
+ * Model class for Student
  */
 public class Student {
-    private int studentId;
-    private int userId;
+    private int id;
     private String firstName;
     private String lastName;
-    private String regNumber;
-    private String email;
-    private String gender;
     private Date dateOfBirth;
-    private String gradeClass;
-    private int parentId;
+    private String gender;
+    private String email;
     private String phone;
     private String address;
-    private String medicalInfo;
-    private String status;
+    private Date admissionDate;
+    private int classId;
+    private String className;
+    private String guardianName;
+    private String guardianPhone;
+    private String guardianEmail;
+    private String status; // Active, Inactive, Suspended, etc.
     
-    /**
-     * Default constructor
-     */
+    // Default constructor
     public Student() {
     }
     
-    /**
-     * Constructor with all fields
-     * @param studentId the student id
-     * @param userId the user id
-     * @param firstName the first name
-     * @param lastName the last name
-     * @param regNumber the registration number
-     * @param email the email
-     * @param gender the gender
-     * @param dateOfBirth the date of birth
-     * @param gradeClass the grade/class
-     * @param parentId the parent id
-     * @param phone the phone number
-     * @param address the address
-     * @param medicalInfo the medical information
-     * @param status the status
-     */
-    public Student(int studentId, int userId, String firstName, String lastName, String regNumber, 
-                  String email, String gender, Date dateOfBirth, String gradeClass, 
-                  int parentId, String phone, String address, String medicalInfo, String status) {
-        this.studentId = studentId;
-        this.userId = userId;
+    // Constructor with essential fields
+    public Student(int id, String firstName, String lastName, String email, int classId) {
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.regNumber = regNumber;
         this.email = email;
-        this.gender = gender;
+        this.classId = classId;
+    }
+    
+    // Full constructor
+    public Student(int id, String firstName, String lastName, Date dateOfBirth, String gender, 
+                  String email, String phone, String address, Date admissionDate, 
+                  int classId, String guardianName, String guardianPhone, 
+                  String guardianEmail, String status) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
-        this.gradeClass = gradeClass;
-        this.parentId = parentId;
+        this.gender = gender;
+        this.email = email;
         this.phone = phone;
         this.address = address;
-        this.medicalInfo = medicalInfo;
+        this.admissionDate = admissionDate;
+        this.classId = classId;
+        this.guardianName = guardianName;
+        this.guardianPhone = guardianPhone;
+        this.guardianEmail = guardianEmail;
         this.status = status;
     }
     
-    /**
-     * Constructor without ID for new student creation
-     * @param userId the user id
-     * @param firstName the first name
-     * @param lastName the last name
-     * @param regNumber the registration number
-     * @param email the email
-     * @param gender the gender
-     * @param dateOfBirth the date of birth
-     * @param gradeClass the grade/class
-     * @param parentId the parent id
-     * @param phone the phone number
-     * @param address the address
-     * @param medicalInfo the medical information
-     * @param status the status
-     */
-    public Student(int userId, String firstName, String lastName, String regNumber, 
-                  String email, String gender, Date dateOfBirth, String gradeClass, 
-                  int parentId, String phone, String address, String medicalInfo, String status) {
-        this.userId = userId;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.regNumber = regNumber;
-        this.email = email;
-        this.gender = gender;
-        this.dateOfBirth = dateOfBirth;
-        this.gradeClass = gradeClass;
-        this.parentId = parentId;
-        this.phone = phone;
-        this.address = address;
-        this.medicalInfo = medicalInfo;
-        this.status = status;
+    // Getters and Setters
+    public int getId() {
+        return id;
     }
     
-    // Getters and setters
-    
-    public int getStudentId() {
-        return studentId;
-    }
-    
-    public void setStudentId(int studentId) {
-        this.studentId = studentId;
-    }
-    
-    public int getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setId(int id) {
+        this.id = id;
     }
     
     public String getFirstName() {
@@ -131,20 +81,12 @@ public class Student {
         this.lastName = lastName;
     }
     
-    public String getRegNumber() {
-        return regNumber;
+    public Date getDateOfBirth() {
+        return dateOfBirth;
     }
     
-    public void setRegNumber(String regNumber) {
-        this.regNumber = regNumber;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
     
     public String getGender() {
@@ -155,28 +97,12 @@ public class Student {
         this.gender = gender;
     }
     
-    public Date getDateOfBirth() {
-        return dateOfBirth;
+    public String getEmail() {
+        return email;
     }
     
-    public void setDateOfBirth(Date dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-    
-    public String getGradeClass() {
-        return gradeClass;
-    }
-    
-    public void setGradeClass(String gradeClass) {
-        this.gradeClass = gradeClass;
-    }
-    
-    public int getParentId() {
-        return parentId;
-    }
-    
-    public void setParentId(int parentId) {
-        this.parentId = parentId;
+    public void setEmail(String email) {
+        this.email = email;
     }
     
     public String getPhone() {
@@ -195,12 +121,52 @@ public class Student {
         this.address = address;
     }
     
-    public String getMedicalInfo() {
-        return medicalInfo;
+    public Date getAdmissionDate() {
+        return admissionDate;
     }
     
-    public void setMedicalInfo(String medicalInfo) {
-        this.medicalInfo = medicalInfo;
+    public void setAdmissionDate(Date admissionDate) {
+        this.admissionDate = admissionDate;
+    }
+    
+    public int getClassId() {
+        return classId;
+    }
+    
+    public void setClassId(int classId) {
+        this.classId = classId;
+    }
+    
+    public String getClassName() {
+        return className;
+    }
+    
+    public void setClassName(String className) {
+        this.className = className;
+    }
+    
+    public String getGuardianName() {
+        return guardianName;
+    }
+    
+    public void setGuardianName(String guardianName) {
+        this.guardianName = guardianName;
+    }
+    
+    public String getGuardianPhone() {
+        return guardianPhone;
+    }
+    
+    public void setGuardianPhone(String guardianPhone) {
+        this.guardianPhone = guardianPhone;
+    }
+    
+    public String getGuardianEmail() {
+        return guardianEmail;
+    }
+    
+    public void setGuardianEmail(String guardianEmail) {
+        this.guardianEmail = guardianEmail;
     }
     
     public String getStatus() {
@@ -211,29 +177,20 @@ public class Student {
         this.status = status;
     }
     
-    /**
-     * Get full name
-     * @return the full name of the student
-     */
+    // Helper methods
     public String getFullName() {
         return firstName + " " + lastName;
     }
     
     @Override
     public String toString() {
-        return "Student [studentId=" + studentId + 
-               ", userId=" + userId + 
-               ", firstName=" + firstName + 
-               ", lastName=" + lastName + 
-               ", regNumber=" + regNumber + 
-               ", email=" + email + 
-               ", gender=" + gender + 
-               ", dateOfBirth=" + dateOfBirth + 
-               ", gradeClass=" + gradeClass + 
-               ", parentId=" + parentId + 
-               ", phone=" + phone + 
-               ", address=" + address + 
-               ", medicalInfo=" + medicalInfo + 
-               ", status=" + status + "]";
+        return "Student{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", class='" + className + '\'' +
+                ", status='" + status + '\'' +
+                '}';
     }
 } 

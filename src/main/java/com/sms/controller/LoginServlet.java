@@ -1,6 +1,12 @@
 package com.sms.controller;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,146 +15,148 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.sms.dao.UserDAO;
 import com.sms.model.User;
-import com.sms.util.PasswordHash;
+import com.sms.util.DBConnection;
 
 /**
- * Servlet implementation class LoginServlet
+ * Servlet to handle user login
  */
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
-    private UserDAO userDAO;
+    /**
+     * Handle GET requests - show login page
+     */
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        
+        // Check if user is already logged in
+        if (session != null && session.getAttribute("user") != null) {
+            User user = (User) session.getAttribute("user");
+            redirectToDashboard(request, response, user);
+            return;
+        }
+        
+        // Forward to login page
+        request.getRequestDispatcher("/login.jsp").forward(request, response);
+    }
     
     /**
-     * @see HttpServlet#HttpServlet()
+     * Handle POST requests - process login
      */
-    public LoginServlet() {
-        super();
-        userDAO = new UserDAO();
-    }
-
-    /**
-     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-     */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Check if user is already logged in
-        HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("user") != null) {
-            // Redirect to appropriate dashboard based on user type
-            redirectToDashboard(request, response, (User) session.getAttribute("user"));
-        } else {
-            // Forward to login page
-            request.getRequestDispatcher("/login.jsp").forward(request, response);
-        }
-    }
-
-    /**
-     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-     */
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
+        // Get form parameters
         String username = request.getParameter("username");
         String password = request.getParameter("password");
         
+        // Basic validation
+        if (username == null || username.trim().isEmpty() || 
+            password == null || password.trim().isEmpty()) {
+            request.setAttribute("error", "Username and password are required");
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+            return;
+        }
+        
+        Connection conn = null;
         try {
-            // Validate input
-            if (username == null || username.trim().isEmpty() || 
-                password == null || password.trim().isEmpty()) {
-                request.setAttribute("error", "Username and password are required");
-                request.getRequestDispatcher("/login.jsp").forward(request, response);
-                return;
-            }
+            conn = DBConnection.getConnection();
             
-            // For testing purposes, allow direct login with simple credentials
-            // In production, you would remove this
-            if (username.equals("admin") && password.equals("admin")) {
-                User adminUser = new User();
-                adminUser.setUserId(1);
-                adminUser.setUsername("admin");
-                adminUser.setRole("Admin");
-                
-                // Create session
-                HttpSession session = request.getSession();
-                session.setAttribute("user", adminUser);
-                session.setMaxInactiveInterval(30 * 60); // 30 minutes
-                
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
-                return;
-            }
+            // Query to get user
+            String sql = "SELECT * FROM Users WHERE username = ? AND active = true";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
             
-            // Normal authentication flow
-            User user = userDAO.getUserByUsername(username);
-            if (user != null) {
-                boolean passwordValid = false;
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                // User found - create User object
+                User user = new User();
+                user.setUserId(rs.getInt("user_id"));
+                user.setUsername(rs.getString("username"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(rs.getString("role"));
+                user.setEmail(rs.getString("email"));
+                user.setImageLink(rs.getString("image_link"));
+                user.setCreatedAt(rs.getTimestamp("created_at"));
+                user.setLastLogin(rs.getTimestamp("last_login"));
+                user.setActive(rs.getBoolean("active"));
                 
-                try {
-                    // Try to validate with BCrypt
-                    passwordValid = PasswordHash.checkPassword(password, user.getPassword());
-                } catch (Exception e) {
-                    // If BCrypt fails (possibly wrong format), check direct match for testing
-                    passwordValid = password.equals(user.getPassword()) || 
-                                   password.equals("password123");
-                }
-                
-                if (passwordValid) {
-                    // Create session and store user information
+                // Check password (in a real app, you would use BCrypt to check hashed passwords)
+                if (password.equals(user.getPassword())) {
+                    // Authentication successful - update last login time
+                    updateLastLogin(conn, user.getUserId());
+                    
+                    // Create session and store user
                     HttpSession session = request.getSession();
                     session.setAttribute("user", user);
-                    session.setMaxInactiveInterval(30 * 60); // 30 minutes
                     
                     // Redirect to appropriate dashboard
                     redirectToDashboard(request, response, user);
+                    return;
                 } else {
-                    // Authentication failed
+                    // Wrong password
                     request.setAttribute("error", "Invalid username or password");
                     request.getRequestDispatcher("/login.jsp").forward(request, response);
                 }
             } else {
                 // User not found
-                request.setAttribute("error", "User not found");
+                request.setAttribute("error", "Invalid username or password");
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
             }
-        } catch (Exception e) {
-            // Log the exception
+        } catch (SQLException e) {
+            // Database error
             e.printStackTrace();
-            request.setAttribute("error", "System error occurred: " + e.getMessage());
+            request.setAttribute("error", "Database error: " + e.getMessage());
             request.getRequestDispatcher("/login.jsp").forward(request, response);
+        } finally {
+            DBConnection.closeConnection(conn);
         }
     }
     
     /**
-     * Redirect to appropriate dashboard based on user type
-     * 
-     * @param request the HttpServletRequest
-     * @param response the HttpServletResponse
-     * @param user the authenticated user
-     * @throws IOException if an I/O error occurs
+     * Update user's last login time
      */
-    private void redirectToDashboard(HttpServletRequest request, HttpServletResponse response, User user) throws IOException {
-        String userType = user.getRole(); // getRole() returns the UserType from the database
+    private void updateLastLogin(Connection conn, int userId) throws SQLException {
+        String sql = "UPDATE Users SET last_login = ? WHERE user_id = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setTimestamp(1, new Timestamp(new Date().getTime()));
+        stmt.setInt(2, userId);
+        stmt.executeUpdate();
+    }
+    
+    /**
+     * Redirect user to appropriate dashboard based on role
+     */
+    private void redirectToDashboard(HttpServletRequest request, HttpServletResponse response, User user)
+            throws IOException {
+        String contextPath = request.getContextPath();
+        String role = user.getRole().toLowerCase();
         
-        // Convert to lowercase and remove any whitespace for case-insensitive comparison
-        userType = userType.toLowerCase().trim();
-        
-        switch (userType) {
+        switch (role) {
             case "admin":
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
+                response.sendRedirect(contextPath + "/admin/dashboard");
                 break;
             case "teacher":
-                response.sendRedirect(request.getContextPath() + "/teacher/dashboard.jsp");
+                response.sendRedirect(contextPath + "/teacher/dashboard");
                 break;
             case "student":
-                response.sendRedirect(request.getContextPath() + "/student/dashboard.jsp");
+                response.sendRedirect(contextPath + "/student/dashboard");
                 break;
             case "parent":
-                response.sendRedirect(request.getContextPath() + "/parent/dashboard.jsp");
+                response.sendRedirect(contextPath + "/parent/dashboard");
+                break;
+            case "nurse":
+                response.sendRedirect(contextPath + "/nurse/dashboard");
+                break;
+            case "doctor":
+                response.sendRedirect(contextPath + "/doctor/dashboard");
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/dashboard.jsp");
+                // Invalid role
+                response.sendRedirect(contextPath + "/login");
                 break;
         }
     }

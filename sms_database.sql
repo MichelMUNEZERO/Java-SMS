@@ -1,186 +1,214 @@
--- MySQL database schema for School Management System
-
--- Create the database
-CREATE DATABASE IF NOT EXISTS SMS;
+-- Drop database if exists and create a new one
+DROP DATABASE IF EXISTS SMS;
+CREATE DATABASE SMS;
 USE SMS;
 
 -- Users table
-CREATE TABLE IF NOT EXISTS Users (
-    UserID INT AUTO_INCREMENT PRIMARY KEY,
-    Username VARCHAR(50) NOT NULL UNIQUE,
-    Password VARCHAR(255) NOT NULL,
-    UserType ENUM('Admin', 'Teacher', 'Student', 'Parent', 'Staff') NOT NULL,
-    ImageLink VARCHAR(255)
+CREATE TABLE Users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    image_link VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NULL,
+    active BOOLEAN DEFAULT TRUE
 );
 
 -- Teachers table
-CREATE TABLE IF NOT EXISTS Teachers (
-    TeacherId INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    CourseId INT,
-    Qualification VARCHAR(100) NOT NULL,
-    Experience INT,
-    Email VARCHAR(100) NOT NULL UNIQUE,
-    Telephone VARCHAR(20) NOT NULL
+CREATE TABLE Teachers (
+    teacher_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    qualification VARCHAR(100),
+    experience INT,
+    specialization VARCHAR(100),
+    address VARCHAR(255),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
 -- Students table
-CREATE TABLE IF NOT EXISTS Students (
+CREATE TABLE Students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    reg_number VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(100) UNIQUE,
-    gender VARCHAR(10),
-    date_of_birth DATE,
-    grade_class VARCHAR(20),
-    parent_id INT,
     phone VARCHAR(20),
-    address TEXT,
-    medical_info TEXT,
-    status VARCHAR(20),
-    FOREIGN KEY (user_id) REFERENCES Users(UserID) ON DELETE CASCADE
+    address VARCHAR(255),
+    date_of_birth DATE,
+    reg_number VARCHAR(20) UNIQUE NOT NULL,
+    admission_date DATE,
+    grade VARCHAR(10),
+    parent_id INT,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
 -- Parents table
-CREATE TABLE IF NOT EXISTS Parents (
-    ParentId INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    Email VARCHAR(100) UNIQUE,
-    Telephone VARCHAR(20) NOT NULL,
-    Location VARCHAR(100)
+CREATE TABLE Parents (
+    parent_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20) NOT NULL,
+    address VARCHAR(255),
+    occupation VARCHAR(100),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
--- Student-Parent relationship
-CREATE TABLE IF NOT EXISTS StudentParent (
-    ID INT AUTO_INCREMENT PRIMARY KEY,
-    StudentID INT,
-    ParentId INT,
-    FOREIGN KEY (StudentID) REFERENCES Students(student_id) ON DELETE CASCADE,
-    FOREIGN KEY (ParentId) REFERENCES Parents(ParentId) ON DELETE CASCADE
-);
+-- Update Students table to add foreign key for parents
+ALTER TABLE Students 
+ADD CONSTRAINT fk_student_parent 
+FOREIGN KEY (parent_id) REFERENCES Parents(parent_id) ON DELETE SET NULL;
 
 -- Courses table
-CREATE TABLE IF NOT EXISTS Courses (
-    CourseId INT AUTO_INCREMENT PRIMARY KEY,
-    CourseName VARCHAR(100) NOT NULL,
-    Description TEXT,
-    TeacherId INT,
-    FOREIGN KEY (TeacherId) REFERENCES Teachers(TeacherId) ON DELETE SET NULL
+CREATE TABLE Courses (
+    course_id INT AUTO_INCREMENT PRIMARY KEY,
+    course_name VARCHAR(100) NOT NULL,
+    course_code VARCHAR(20) UNIQUE NOT NULL,
+    description TEXT,
+    credits INT,
+    teacher_id INT,
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id) ON DELETE SET NULL
 );
 
--- Add foreign key to Teachers table
-ALTER TABLE Teachers 
-ADD CONSTRAINT fk_teacher_course 
-FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE SET NULL;
-
--- Student-Course relationship
-CREATE TABLE IF NOT EXISTS student_courses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    student_id INT,
-    course_id INT,
+-- Student-Course enrollment table
+CREATE TABLE Student_Courses (
+    enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    course_id INT NOT NULL,
+    enrollment_date DATE DEFAULT (CURRENT_DATE),
     FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES Courses(CourseId) ON DELETE CASCADE
+    FOREIGN KEY (course_id) REFERENCES Courses(course_id) ON DELETE CASCADE,
+    UNIQUE (student_id, course_id)
 );
 
 -- Marks table
-CREATE TABLE IF NOT EXISTS Marks (
-    MarksId INT AUTO_INCREMENT PRIMARY KEY,
-    CourseId INT,
-    StudentId INT,
-    Marks FLOAT NOT NULL,
-    Grade VARCHAR(5),
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
-    FOREIGN KEY (StudentId) REFERENCES Students(student_id) ON DELETE CASCADE
-);
-
--- Announcement table
-CREATE TABLE IF NOT EXISTS Announcement (
-    AnnouncementId INT AUTO_INCREMENT PRIMARY KEY,
-    Message TEXT NOT NULL,
-    Date DATETIME NOT NULL,
-    TargetGroup ENUM('All', 'Teachers', 'Students', 'Parents') NOT NULL
-);
-
--- StudentBehavior table
-CREATE TABLE IF NOT EXISTS StudentBehavior (
-    BehaviorId INT AUTO_INCREMENT PRIMARY KEY,
-    StudentId INT,
-    Behavior VARCHAR(100) NOT NULL,
-    Description TEXT,
-    Date DATE NOT NULL,
-    FOREIGN KEY (StudentId) REFERENCES Students(student_id) ON DELETE CASCADE
-);
-
--- StudentTracking table
-CREATE TABLE IF NOT EXISTS StudentTracking (
-    TrackId INT AUTO_INCREMENT PRIMARY KEY,
-    StudentId INT,
-    Status ENUM('Present', 'Absent', 'Late') NOT NULL,
-    Progress VARCHAR(100),
-    Location VARCHAR(100),
-    Date DATE NOT NULL,
-    FOREIGN KEY (StudentId) REFERENCES Students(student_id) ON DELETE CASCADE
-);
-
--- Reports table
-CREATE TABLE IF NOT EXISTS Reports (
-    ReportId INT AUTO_INCREMENT PRIMARY KEY,
-    Type VARCHAR(50) NOT NULL,
-    Date DATE NOT NULL,
-    Content TEXT
+CREATE TABLE Marks (
+    mark_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    course_id INT NOT NULL,
+    assessment_type VARCHAR(50) NOT NULL,
+    score DECIMAL(5,2) NOT NULL,
+    max_score DECIMAL(5,2) NOT NULL,
+    term VARCHAR(20),
+    assessment_date DATE,
+    remarks TEXT,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES Courses(course_id) ON DELETE CASCADE
 );
 
 -- Appointment table
-CREATE TABLE IF NOT EXISTS Appointment (
-    AppointmentId INT AUTO_INCREMENT PRIMARY KEY,
-    Purpose VARCHAR(100) NOT NULL,
-    Responsible INT,
-    Date DATETIME NOT NULL,
-    Status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
-    Notes TEXT
+CREATE TABLE Appointments (
+    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    appointment_date DATETIME NOT NULL,
+    status VARCHAR(20) DEFAULT 'Scheduled',
+    created_by INT,
+    student_id INT,
+    parent_id INT,
+    teacher_id INT,
+    FOREIGN KEY (created_by) REFERENCES Users(user_id) ON DELETE SET NULL,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES Parents(parent_id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id) ON DELETE CASCADE
 );
 
+-- Announcement table
+CREATE TABLE Announcements (
+    announcement_id INT AUTO_INCREMENT PRIMARY KEY,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    target_audience VARCHAR(50) NOT NULL, -- 'All', 'Teachers', 'Students', 'Parents'
+    created_by INT,
+    FOREIGN KEY (created_by) REFERENCES Users(user_id) ON DELETE SET NULL
+);
+
+-- Student Behavior table
+CREATE TABLE StudentBehavior (
+    behavior_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    behavior_type VARCHAR(50) NOT NULL, -- 'Positive', 'Negative'
+    description TEXT NOT NULL,
+    behavior_date DATE NOT NULL,
+    reported_by INT NOT NULL,
+    action_taken TEXT,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (reported_by) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
+-- Student Tracking table
+CREATE TABLE StudentTracking (
+    tracking_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    tracking_date DATE NOT NULL,
+    attendance_status VARCHAR(20) NOT NULL, -- 'Present', 'Absent', 'Late'
+    arrival_time TIME,
+    departure_time TIME,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE
+);
+
+-- Reports table
+CREATE TABLE Reports (
+    report_id INT AUTO_INCREMENT PRIMARY KEY,
+    report_type VARCHAR(50) NOT NULL,
+    report_name VARCHAR(100) NOT NULL,
+    generated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    generated_by INT,
+    file_path VARCHAR(255),
+    parameters TEXT,
+    FOREIGN KEY (generated_by) REFERENCES Users(user_id) ON DELETE SET NULL
+);
+
+-- HEALTH-RELATED TABLES
+
 -- Nurses table
-CREATE TABLE IF NOT EXISTS Nurses (
-    NurseId INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    Telephone VARCHAR(20) NOT NULL,
-    Email VARCHAR(100) UNIQUE,
-    Address TEXT,
-    HealthCenter VARCHAR(100)
+CREATE TABLE Nurses (
+    nurse_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    qualification VARCHAR(100),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
 -- Doctors table
-CREATE TABLE IF NOT EXISTS Doctors (
-    DoctorId INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    Telephone VARCHAR(20) NOT NULL,
-    Email VARCHAR(100) UNIQUE,
-    Address TEXT,
-    HospitalName VARCHAR(100)
+CREATE TABLE Doctors (
+    doctor_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(20),
+    specialization VARCHAR(100),
+    hospital VARCHAR(100),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
 
 -- Diagnosis table
-CREATE TABLE IF NOT EXISTS Diagnosis (
-    DiagnosisID INT AUTO_INCREMENT PRIMARY KEY,
-    PatientID INT,
-    NurseID INT,
-    DoctorID INT,
-    DiagnoStatus VARCHAR(100) NOT NULL,
-    Result TEXT,
-    Date DATETIME NOT NULL,
-    FOREIGN KEY (PatientID) REFERENCES Students(student_id) ON DELETE CASCADE,
-    FOREIGN KEY (NurseID) REFERENCES Nurses(NurseId) ON DELETE SET NULL,
-    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorId) ON DELETE SET NULL
+CREATE TABLE Diagnosis (
+    diagnosis_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    diagnosis_date DATETIME NOT NULL,
+    symptoms TEXT,
+    diagnosis TEXT NOT NULL,
+    treatment TEXT,
+    nurse_id INT,
+    doctor_id INT,
+    follow_up_date DATE,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (nurse_id) REFERENCES Nurses(nurse_id) ON DELETE SET NULL,
+    FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id) ON DELETE SET NULL
 );
 
--- Insert default admin user
-INSERT INTO Users (Username, Password, UserType) 
-VALUES ('admin', '$2a$10$D5H/P1ZjuDDwvt3jXXCrIehQFkX0PJux9rDk7ukLAT/MYnKE8n9/2', 'Admin');
--- Default password is 'admin123' (hashed with BCrypt) 
+-- Create an admin user
+INSERT INTO Users (username, password, role, email, active) 
+VALUES ('admin', '$2a$10$h.dl5J86rGH7I8bD9bZeZe', 'admin', 'admin@school.com', true); 

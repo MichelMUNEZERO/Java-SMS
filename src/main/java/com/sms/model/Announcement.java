@@ -1,14 +1,16 @@
 package com.sms.model;
 
-import java.util.Date;
+import java.sql.Timestamp;
 
 /**
- * Announcement model class
+ * Model class for announcements in the School Management System
  */
 public class Announcement {
     private int announcementId;
+    private String title;
     private String message;
-    private Date date;
+    private Timestamp date;
+    private String postedBy;
     private String targetGroup;
     
     /**
@@ -18,30 +20,19 @@ public class Announcement {
     }
     
     /**
-     * Constructor with all fields except id
-     * @param message the announcement message
-     * @param date the announcement date
-     * @param targetGroup the target audience group
+     * Constructor with all fields
      */
-    public Announcement(String message, Date date, String targetGroup) {
+    public Announcement(int announcementId, String title, String message, Timestamp date, 
+                        String postedBy, String targetGroup) {
+        this.announcementId = announcementId;
+        this.title = title;
         this.message = message;
         this.date = date;
+        this.postedBy = postedBy;
         this.targetGroup = targetGroup;
     }
     
-    /**
-     * Constructor with all fields
-     * @param announcementId the announcement id
-     * @param message the announcement message
-     * @param date the announcement date
-     * @param targetGroup the target audience group
-     */
-    public Announcement(int announcementId, String message, Date date, String targetGroup) {
-        this.announcementId = announcementId;
-        this.message = message;
-        this.date = date;
-        this.targetGroup = targetGroup;
-    }
+    // Getters and Setters
     
     public int getAnnouncementId() {
         return announcementId;
@@ -49,6 +40,14 @@ public class Announcement {
     
     public void setAnnouncementId(int announcementId) {
         this.announcementId = announcementId;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
     }
     
     public String getMessage() {
@@ -59,12 +58,20 @@ public class Announcement {
         this.message = message;
     }
     
-    public Date getDate() {
+    public Timestamp getDate() {
         return date;
     }
     
-    public void setDate(Date date) {
+    public void setDate(Timestamp date) {
         this.date = date;
+    }
+    
+    public String getPostedBy() {
+        return postedBy;
+    }
+    
+    public void setPostedBy(String postedBy) {
+        this.postedBy = postedBy;
     }
     
     public String getTargetGroup() {
@@ -77,7 +84,7 @@ public class Announcement {
     
     @Override
     public String toString() {
-        return "Announcement [announcementId=" + announcementId + ", message=" + message + 
-               ", date=" + date + ", targetGroup=" + targetGroup + "]";
+        return "Announcement [announcementId=" + announcementId + ", title=" + title + ", message=" + message
+                + ", date=" + date + ", postedBy=" + postedBy + ", targetGroup=" + targetGroup + "]";
     }
 } 
