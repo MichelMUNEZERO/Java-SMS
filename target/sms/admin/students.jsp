@@ -81,17 +81,17 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/parents"
+                  href="${pageContext.request.contextPath}/admin/teachers"
                 >
-                  <i class="bi bi-people me-2"></i> Parents
+                  <i class="bi bi-person-badge me-2"></i> Teachers
                 </a>
               </li>
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/teachers"
+                  href="${pageContext.request.contextPath}/admin/parents"
                 >
-                  <i class="bi bi-person-badge me-2"></i> Teachers
+                  <i class="bi bi-people me-2"></i> Parents
                 </a>
               </li>
               <li class="nav-item">
@@ -105,9 +105,17 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/schedule"
+                  href="${pageContext.request.contextPath}/admin/doctors"
                 >
-                  <i class="bi bi-calendar-event me-2"></i> Schedule
+                  <i class="bi bi-heart-pulse me-2"></i> Doctors
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/admin/nurses"
+                >
+                  <i class="bi bi-bandaid me-2"></i> Nurses
                 </a>
               </li>
               <li class="nav-item">
@@ -152,14 +160,6 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
             class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
           >
             <h1 class="h2">Student Management</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
-              <a
-                href="${pageContext.request.contextPath}/admin/students/new"
-                class="btn btn-sm btn-primary"
-              >
-                <i class="bi bi-person-plus me-1"></i> Add New Student
-              </a>
-            </div>
           </div>
 
           <!-- Filters -->
@@ -256,9 +256,9 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                       <tr>
                         <td>${student.id}</td>
                         <td>${student.firstName} ${student.lastName}</td>
-                        <td>Grade ${student.gradeLevel}</td>
-                        <td>${student.section}</td>
-                        <td>${student.parentName}</td>
+                        <td>${student.className}</td>
+                        <td>-</td>
+                        <td>-</td>
                         <td><fmt:formatDate value="${student.dateOfBirth}" pattern="MMM dd, yyyy" /></td>
                         <td>
                           <span

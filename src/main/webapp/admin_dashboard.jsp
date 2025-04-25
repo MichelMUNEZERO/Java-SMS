@@ -119,6 +119,14 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/admin/parents"
+                >
+                  <i class="bi bi-people me-2"></i> Parents
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link text-white"
                   href="${pageContext.request.contextPath}/admin/courses"
                 >
                   <i class="bi bi-book me-2"></i> Courses
@@ -127,19 +135,20 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/schedule"
+                  href="${pageContext.request.contextPath}/admin/doctors"
                 >
-                  <i class="bi bi-calendar-event me-2"></i> Schedule
+                  <i class="bi bi-heart-pulse me-2"></i> Doctors
                 </a>
               </li>
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/announcements"
+                  href="${pageContext.request.contextPath}/admin/nurses"
                 >
-                  <i class="bi bi-megaphone me-2"></i> Announcements
+                  <i class="bi bi-bandaid me-2"></i> Nurses
                 </a>
               </li>
+
               <li class="nav-item">
                 <a
                   class="nav-link text-white"
@@ -220,7 +229,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
 
           <!-- Summary cards -->
           <div class="row mb-4">
-            <div class="col-md-3 col-xl-2 mb-4">
+            <div class="col-md-4 mb-4">
               <div class="card dashboard-card bg-primary text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-people-fill card-icon"></i>
@@ -234,7 +243,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-3 col-xl-2 mb-4">
+            <div class="col-md-4 mb-4">
               <div class="card dashboard-card bg-success text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-person-badge-fill card-icon"></i>
@@ -248,7 +257,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-3 col-xl-2 mb-4">
+            <div class="col-md-4 mb-4">
               <div class="card dashboard-card bg-warning text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-book-fill card-icon"></i>
@@ -262,7 +271,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-3 col-xl-2 mb-4">
+            <div class="col-md-4 mb-4">
               <div class="card dashboard-card bg-danger text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-people card-icon"></i>
@@ -276,8 +285,36 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 </div>
               </div>
             </div>
-            <div class="col-md-3 col-xl-2 mb-4">
+            <div class="col-md-4 mb-4">
               <div class="card dashboard-card bg-info text-white">
+                <div class="card-body text-center">
+                  <i class="bi bi-heart-pulse card-icon"></i>
+                  <h5 class="card-title">Total Doctors</h5>
+                  <h2 class="card-text">${stats.doctors}</h2>
+                  <a
+                    href="${pageContext.request.contextPath}/admin/doctors"
+                    class="text-white"
+                    >View Details <i class="bi bi-arrow-right-circle"></i
+                  ></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card dashboard-card bg-secondary text-white">
+                <div class="card-body text-center">
+                  <i class="bi bi-bandaid card-icon"></i>
+                  <h5 class="card-title">Total Nurses</h5>
+                  <h2 class="card-text">${stats.nurses}</h2>
+                  <a
+                    href="${pageContext.request.contextPath}/admin/nurses"
+                    class="text-white"
+                    >View Details <i class="bi bi-arrow-right-circle"></i
+                  ></a>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card dashboard-card bg-dark text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-calendar-check card-icon"></i>
                   <h5 class="card-title">Today's Appointments</h5>
@@ -377,43 +414,6 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                             class="bi bi-person-plus card-icon text-primary"
                           ></i>
                           <h6>Add Teacher</h6>
-                        </div>
-                      </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                      <a
-                        href="${pageContext.request.contextPath}/admin/students/new"
-                        class="card-link"
-                      >
-                        <div class="card dashboard-card text-center py-3">
-                          <i
-                            class="bi bi-person-plus-fill card-icon text-success"
-                          ></i>
-                          <h6>Add Student</h6>
-                        </div>
-                      </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                      <a
-                        href="${pageContext.request.contextPath}/admin/courses/new"
-                        class="card-link"
-                      >
-                        <div class="card dashboard-card text-center py-3">
-                          <i class="bi bi-book card-icon text-warning"></i>
-                          <h6>Add Course</h6>
-                        </div>
-                      </a>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                      <a
-                        href="${pageContext.request.contextPath}/admin/appointments/new"
-                        class="card-link"
-                      >
-                        <div class="card dashboard-card text-center py-3">
-                          <i
-                            class="bi bi-calendar-plus card-icon text-danger"
-                          ></i>
-                          <h6>Schedule Appointment</h6>
                         </div>
                       </a>
                     </div>

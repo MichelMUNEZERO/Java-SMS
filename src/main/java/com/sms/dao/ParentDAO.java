@@ -30,22 +30,22 @@ public class ParentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT p.*, COUNT(s.id) as children_count FROM Parent p " +
-                         "LEFT JOIN Student s ON p.id = s.parent_id " +
-                         "GROUP BY p.id ORDER BY p.last_name, p.first_name";
+            String sql = "SELECT p.*, COUNT(s.student_id) as children_count FROM Parents p " +
+                         "LEFT JOIN Students s ON p.parent_id = s.parent_id " +
+                         "GROUP BY p.parent_id ORDER BY p.last_name, p.first_name";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
                 Parent parent = new Parent();
-                parent.setId(rs.getInt("id"));
+                parent.setId(rs.getInt("parent_id"));
                 parent.setFirstName(rs.getString("first_name"));
                 parent.setLastName(rs.getString("last_name"));
                 parent.setEmail(rs.getString("email"));
                 parent.setPhone(rs.getString("phone"));
                 parent.setAddress(rs.getString("address"));
                 parent.setOccupation(rs.getString("occupation"));
-                parent.setStatus(rs.getString("status"));
+                parent.setStatus(rs.getBoolean("user_id") != false ? "active" : "inactive");
                 parent.setChildrenCount(rs.getInt("children_count"));
                 
                 parents.add(parent);
@@ -72,24 +72,24 @@ public class ParentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT p.*, COUNT(s.id) as children_count FROM Parent p " +
-                         "LEFT JOIN Student s ON p.id = s.parent_id " +
-                         "WHERE p.id = ? " +
-                         "GROUP BY p.id";
+            String sql = "SELECT p.*, COUNT(s.student_id) as children_count FROM Parents p " +
+                         "LEFT JOIN Students s ON p.parent_id = s.parent_id " +
+                         "WHERE p.parent_id = ? " +
+                         "GROUP BY p.parent_id";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, parentId);
             rs = pstmt.executeQuery();
             
             if (rs.next()) {
                 parent = new Parent();
-                parent.setId(rs.getInt("id"));
+                parent.setId(rs.getInt("parent_id"));
                 parent.setFirstName(rs.getString("first_name"));
                 parent.setLastName(rs.getString("last_name"));
                 parent.setEmail(rs.getString("email"));
                 parent.setPhone(rs.getString("phone"));
                 parent.setAddress(rs.getString("address"));
                 parent.setOccupation(rs.getString("occupation"));
-                parent.setStatus(rs.getString("status"));
+                parent.setStatus(rs.getBoolean("user_id") != false ? "active" : "inactive");
                 parent.setChildrenCount(rs.getInt("children_count"));
             }
         } catch (SQLException e) {
@@ -113,8 +113,8 @@ public class ParentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO Parent (first_name, last_name, email, phone, address, occupation, status) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, 'active')";
+            String sql = "INSERT INTO Parents (first_name, last_name, email, phone, address, occupation) " +
+                         "VALUES (?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, parent.getFirstName());
             pstmt.setString(2, parent.getLastName());
@@ -146,9 +146,9 @@ public class ParentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "UPDATE Parent SET first_name = ?, last_name = ?, email = ?, " +
-                         "phone = ?, address = ?, occupation = ?, status = ? " +
-                         "WHERE id = ?";
+            String sql = "UPDATE Parents SET first_name = ?, last_name = ?, email = ?, " +
+                         "phone = ?, address = ?, occupation = ? " +
+                         "WHERE parent_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, parent.getFirstName());
             pstmt.setString(2, parent.getLastName());
@@ -156,8 +156,7 @@ public class ParentDAO {
             pstmt.setString(4, parent.getPhone());
             pstmt.setString(5, parent.getAddress());
             pstmt.setString(6, parent.getOccupation());
-            pstmt.setString(7, parent.getStatus());
-            pstmt.setInt(8, parent.getId());
+            pstmt.setInt(7, parent.getId());
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -183,13 +182,13 @@ public class ParentDAO {
         try {
             conn = DBConnection.getConnection();
             // First update any students that reference this parent
-            String updateStudentsSql = "UPDATE Student SET parent_id = NULL WHERE parent_id = ?";
+            String updateStudentsSql = "UPDATE Students SET parent_id = NULL WHERE parent_id = ?";
             pstmt = conn.prepareStatement(updateStudentsSql);
             pstmt.setInt(1, parentId);
             pstmt.executeUpdate();
             
             // Then delete the parent
-            String deleteParentSql = "DELETE FROM Parent WHERE id = ?";
+            String deleteParentSql = "DELETE FROM Parents WHERE parent_id = ?";
             pstmt = conn.prepareStatement(deleteParentSql);
             pstmt.setInt(1, parentId);
             
@@ -217,10 +216,10 @@ public class ParentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT p.*, COUNT(s.id) as children_count FROM Parent p " +
-                         "LEFT JOIN Student s ON p.id = s.parent_id " +
+            String sql = "SELECT p.*, COUNT(s.student_id) as children_count FROM Parents p " +
+                         "LEFT JOIN Students s ON p.parent_id = s.parent_id " +
                          "WHERE p.first_name LIKE ? OR p.last_name LIKE ? OR p.email LIKE ? " +
-                         "GROUP BY p.id ORDER BY p.last_name, p.first_name";
+                         "GROUP BY p.parent_id ORDER BY p.last_name, p.first_name";
             pstmt = conn.prepareStatement(sql);
             
             String searchPattern = "%" + searchTerm + "%";
@@ -232,14 +231,14 @@ public class ParentDAO {
             
             while (rs.next()) {
                 Parent parent = new Parent();
-                parent.setId(rs.getInt("id"));
+                parent.setId(rs.getInt("parent_id"));
                 parent.setFirstName(rs.getString("first_name"));
                 parent.setLastName(rs.getString("last_name"));
                 parent.setEmail(rs.getString("email"));
                 parent.setPhone(rs.getString("phone"));
                 parent.setAddress(rs.getString("address"));
                 parent.setOccupation(rs.getString("occupation"));
-                parent.setStatus(rs.getString("status"));
+                parent.setStatus(rs.getBoolean("user_id") != false ? "active" : "inactive");
                 parent.setChildrenCount(rs.getInt("children_count"));
                 
                 parents.add(parent);

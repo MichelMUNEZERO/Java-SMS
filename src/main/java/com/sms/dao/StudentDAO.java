@@ -31,7 +31,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT s.*, c.class_name FROM students s LEFT JOIN classes c ON s.class_id = c.class_id";
+            String sql = "SELECT * FROM students";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
@@ -45,9 +45,13 @@ public class StudentDAO {
                 student.setAddress(rs.getString("address"));
                 student.setDateOfBirth(rs.getDate("date_of_birth"));
                 student.setAdmissionDate(rs.getDate("admission_date"));
-                student.setClassId(rs.getInt("class_id"));
-                student.setClassName(rs.getString("class_name"));
-                student.setStatus(rs.getString("status"));
+                // Set classId based on grade field from the database
+                String grade = rs.getString("grade");
+                if (grade != null) {
+                    student.setClassId(0); // Set a default value
+                    student.setClassName(grade); // Use grade as the class name
+                }
+                student.setStatus("active"); // Set a default status
                 
                 students.add(student);
             }
@@ -79,7 +83,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT s.*, c.class_name FROM students s LEFT JOIN classes c ON s.class_id = c.class_id WHERE s.student_id = ?";
+            String sql = "SELECT * FROM students WHERE student_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             rs = pstmt.executeQuery();
@@ -94,9 +98,13 @@ public class StudentDAO {
                 student.setAddress(rs.getString("address"));
                 student.setDateOfBirth(rs.getDate("date_of_birth"));
                 student.setAdmissionDate(rs.getDate("admission_date"));
-                student.setClassId(rs.getInt("class_id"));
-                student.setClassName(rs.getString("class_name"));
-                student.setStatus(rs.getString("status"));
+                // Set classId based on grade field from the database
+                String grade = rs.getString("grade");
+                if (grade != null) {
+                    student.setClassId(0); // Set a default value
+                    student.setClassName(grade); // Use grade as the class name
+                }
+                student.setStatus("active"); // Set a default status
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting student with ID: " + id, e);
@@ -125,7 +133,7 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO students (first_name, last_name, email, phone, address, date_of_birth, admission_date, class_id, status) " +
+            String sql = "INSERT INTO students (first_name, last_name, email, phone, address, date_of_birth, admission_date, grade, reg_number) " +
                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             pstmt = conn.prepareStatement(sql);
@@ -136,8 +144,11 @@ public class StudentDAO {
             pstmt.setString(5, student.getAddress());
             pstmt.setDate(6, new java.sql.Date(student.getDateOfBirth().getTime()));
             pstmt.setDate(7, new java.sql.Date(student.getAdmissionDate().getTime()));
-            pstmt.setInt(8, student.getClassId());
-            pstmt.setString(9, student.getStatus());
+            pstmt.setString(8, student.getClassName()); // Use className as grade
+            
+            // Generate a registration number if not provided
+            String regNumber = "STU" + System.currentTimeMillis();
+            pstmt.setString(9, regNumber);
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -169,7 +180,7 @@ public class StudentDAO {
         try {
             conn = DBConnection.getConnection();
             String sql = "UPDATE students SET first_name = ?, last_name = ?, email = ?, phone = ?, " +
-                         "address = ?, date_of_birth = ?, admission_date = ?, class_id = ?, status = ? " +
+                         "address = ?, date_of_birth = ?, admission_date = ?, grade = ? " +
                          "WHERE student_id = ?";
             
             pstmt = conn.prepareStatement(sql);
@@ -180,9 +191,8 @@ public class StudentDAO {
             pstmt.setString(5, student.getAddress());
             pstmt.setDate(6, new java.sql.Date(student.getDateOfBirth().getTime()));
             pstmt.setDate(7, new java.sql.Date(student.getAdmissionDate().getTime()));
-            pstmt.setInt(8, student.getClassId());
-            pstmt.setString(9, student.getStatus());
-            pstmt.setInt(10, student.getId());
+            pstmt.setString(8, student.getClassName()); // Use className as grade
+            pstmt.setInt(9, student.getId());
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -248,11 +258,11 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT s.*, c.class_name FROM students s " +
-                         "LEFT JOIN classes c ON s.class_id = c.class_id " +
-                         "WHERE s.class_id = ?";
+            // Since we don't have a classes table, we can filter by grade
+            // For this implementation, we'll assume grade value corresponds to classId
+            String sql = "SELECT * FROM students WHERE grade = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, classId);
+            pstmt.setString(1, String.valueOf(classId)); // Convert classId to string to match grade
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
@@ -265,9 +275,13 @@ public class StudentDAO {
                 student.setAddress(rs.getString("address"));
                 student.setDateOfBirth(rs.getDate("date_of_birth"));
                 student.setAdmissionDate(rs.getDate("admission_date"));
-                student.setClassId(rs.getInt("class_id"));
-                student.setClassName(rs.getString("class_name"));
-                student.setStatus(rs.getString("status"));
+                // Set classId and className based on grade
+                String grade = rs.getString("grade");
+                if (grade != null) {
+                    student.setClassId(classId);
+                    student.setClassName(grade);
+                }
+                student.setStatus("active"); // Set a default status
                 
                 students.add(student);
             }

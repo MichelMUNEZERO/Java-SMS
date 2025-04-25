@@ -31,18 +31,18 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Announcement ORDER BY date DESC";
+            String sql = "SELECT * FROM Announcements ORDER BY created_at DESC";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
                 Announcement announcement = new Announcement();
                 announcement.setAnnouncementId(rs.getInt("announcement_id"));
-                announcement.setTitle(rs.getString("title"));
-                announcement.setMessage(rs.getString("message"));
-                announcement.setDate(rs.getTimestamp("date"));
-                announcement.setPostedBy(rs.getString("posted_by"));
-                announcement.setTargetGroup(rs.getString("target_group"));
+                announcement.setTitle(rs.getString("content"));
+                announcement.setMessage(rs.getString("content"));
+                announcement.setDate(rs.getTimestamp("created_at"));
+                announcement.setPostedBy(rs.getString("created_by"));
+                announcement.setTargetGroup(rs.getString("target_audience"));
                 
                 announcements.add(announcement);
             }
@@ -68,7 +68,7 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Announcement ORDER BY date DESC LIMIT ?";
+            String sql = "SELECT * FROM Announcements ORDER BY created_at DESC LIMIT ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, limit);
             rs = pstmt.executeQuery();
@@ -76,11 +76,11 @@ public class AnnouncementDAO {
             while (rs.next()) {
                 Announcement announcement = new Announcement();
                 announcement.setAnnouncementId(rs.getInt("announcement_id"));
-                announcement.setTitle(rs.getString("title"));
-                announcement.setMessage(rs.getString("message"));
-                announcement.setDate(rs.getTimestamp("date"));
-                announcement.setPostedBy(rs.getString("posted_by"));
-                announcement.setTargetGroup(rs.getString("target_group"));
+                announcement.setTitle(rs.getString("content"));
+                announcement.setMessage(rs.getString("content"));
+                announcement.setDate(rs.getTimestamp("created_at"));
+                announcement.setPostedBy(rs.getString("created_by"));
+                announcement.setTargetGroup(rs.getString("target_audience"));
                 
                 announcements.add(announcement);
             }
@@ -106,7 +106,7 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Announcement WHERE target_group = ? ORDER BY date DESC";
+            String sql = "SELECT * FROM Announcements WHERE target_audience = ? ORDER BY created_at DESC";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, targetGroup);
             rs = pstmt.executeQuery();
@@ -114,11 +114,11 @@ public class AnnouncementDAO {
             while (rs.next()) {
                 Announcement announcement = new Announcement();
                 announcement.setAnnouncementId(rs.getInt("announcement_id"));
-                announcement.setTitle(rs.getString("title"));
-                announcement.setMessage(rs.getString("message"));
-                announcement.setDate(rs.getTimestamp("date"));
-                announcement.setPostedBy(rs.getString("posted_by"));
-                announcement.setTargetGroup(rs.getString("target_group"));
+                announcement.setTitle(rs.getString("content"));
+                announcement.setMessage(rs.getString("content"));
+                announcement.setDate(rs.getTimestamp("created_at"));
+                announcement.setPostedBy(rs.getString("created_by"));
+                announcement.setTargetGroup(rs.getString("target_audience"));
                 
                 announcements.add(announcement);
             }
@@ -144,7 +144,7 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Announcement WHERE announcement_id = ?";
+            String sql = "SELECT * FROM Announcements WHERE announcement_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, announcementId);
             rs = pstmt.executeQuery();
@@ -152,11 +152,11 @@ public class AnnouncementDAO {
             if (rs.next()) {
                 announcement = new Announcement();
                 announcement.setAnnouncementId(rs.getInt("announcement_id"));
-                announcement.setTitle(rs.getString("title"));
-                announcement.setMessage(rs.getString("message"));
-                announcement.setDate(rs.getTimestamp("date"));
-                announcement.setPostedBy(rs.getString("posted_by"));
-                announcement.setTargetGroup(rs.getString("target_group"));
+                announcement.setTitle(rs.getString("content"));
+                announcement.setMessage(rs.getString("content"));
+                announcement.setDate(rs.getTimestamp("created_at"));
+                announcement.setPostedBy(rs.getString("created_by"));
+                announcement.setTargetGroup(rs.getString("target_audience"));
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting announcement with ID: " + announcementId, e);
@@ -179,13 +179,12 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO Announcement (title, message, date, posted_by, target_group) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO Announcements (content, created_at, target_audience, created_by) VALUES (?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, announcement.getTitle());
-            pstmt.setString(2, announcement.getMessage());
-            pstmt.setTimestamp(3, announcement.getDate());
+            pstmt.setString(1, announcement.getMessage());
+            pstmt.setTimestamp(2, announcement.getDate());
+            pstmt.setString(3, announcement.getTargetGroup());
             pstmt.setString(4, announcement.getPostedBy());
-            pstmt.setString(5, announcement.getTargetGroup());
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -210,12 +209,11 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "UPDATE Announcement SET title = ?, message = ?, target_group = ? WHERE announcement_id = ?";
+            String sql = "UPDATE Announcements SET content = ?, target_audience = ? WHERE announcement_id = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, announcement.getTitle());
-            pstmt.setString(2, announcement.getMessage());
-            pstmt.setString(3, announcement.getTargetGroup());
-            pstmt.setInt(4, announcement.getAnnouncementId());
+            pstmt.setString(1, announcement.getMessage());
+            pstmt.setString(2, announcement.getTargetGroup());
+            pstmt.setInt(3, announcement.getAnnouncementId());
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -240,7 +238,7 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "DELETE FROM Announcement WHERE announcement_id = ?";
+            String sql = "DELETE FROM Announcements WHERE announcement_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, announcementId);
             

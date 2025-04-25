@@ -71,7 +71,7 @@ public class DashboardDAO {
             DBConnection.closeStatement(pstmt);
             
             // Count today's appointments
-            sql = "SELECT COUNT(*) FROM Appointment WHERE Date = CURDATE()";
+            sql = "SELECT COUNT(*) FROM Appointments WHERE appointment_date = CURDATE()";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             if (rs.next()) {

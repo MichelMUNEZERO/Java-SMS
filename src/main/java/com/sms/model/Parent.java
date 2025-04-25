@@ -13,6 +13,7 @@ public class Parent {
     private String occupation;
     private String status;
     private int childrenCount;
+    private Integer userId;
 
     // Default constructor
     public Parent() {
@@ -89,6 +90,14 @@ public class Parent {
 
     public void setChildrenCount(int childrenCount) {
         this.childrenCount = childrenCount;
+    }
+    
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     @Override

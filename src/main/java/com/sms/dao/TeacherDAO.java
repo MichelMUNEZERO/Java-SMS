@@ -184,7 +184,7 @@ public class TeacherDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "DELETE FROM teachers WHERE id = ?";
+            String sql = "DELETE FROM teachers WHERE teacher_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             
@@ -262,7 +262,7 @@ public class TeacherDAO {
      */
     private Teacher mapResultSetToTeacher(ResultSet rs) throws SQLException {
         Teacher teacher = new Teacher();
-        teacher.setId(rs.getInt("id"));
+        teacher.setId(rs.getInt("teacher_id"));
         teacher.setFirstName(rs.getString("first_name"));
         teacher.setLastName(rs.getString("last_name"));
         teacher.setEmail(rs.getString("email"));
