@@ -1,8 +1,10 @@
 package com.sms.dao;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -251,5 +253,109 @@ public class AnnouncementDAO {
         }
         
         return success;
+    }
+    
+    /**
+     * Retrieves announcements by target audience
+     * 
+     * @param target The target audience (e.g., "teacher", "student", "all")
+     * @return List of announcements
+     */
+    public List<Announcement> getAnnouncementsByTarget(String target) {
+        List<Announcement> announcements = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            LOGGER.info("Fetching announcements for target: " + target);
+            conn = DBConnection.getConnection();
+            
+            // First, let's see what columns are actually in the announcements table
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet columns = meta.getColumns(null, null, "announcements", null);
+            
+            StringBuilder columnInfo = new StringBuilder("Columns in announcements table: ");
+            while (columns.next()) {
+                columnInfo.append(columns.getString("COLUMN_NAME")).append(", ");
+            }
+            LOGGER.info(columnInfo.toString());
+            columns.close();
+            
+            // Simplify the query to avoid column name issues
+            String sql = "SELECT * FROM announcements";
+            pstmt = conn.prepareStatement(sql);
+            LOGGER.info("Executing SQL: " + sql);
+            rs = pstmt.executeQuery();
+            
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            StringBuilder columnNames = new StringBuilder("Column names in result set: ");
+            for (int i = 1; i <= columnCount; i++) {
+                columnNames.append(rsmd.getColumnName(i)).append(", ");
+            }
+            LOGGER.info(columnNames.toString());
+            
+            while (rs.next()) {
+                Announcement announcement = new Announcement();
+                try {
+                    announcement.setAnnouncementId(rs.getInt("announcement_id"));
+                    announcement.setTitle(rs.getString("content"));
+                    announcement.setMessage(rs.getString("content"));
+                    // Try to set targetGroup, but handle if column name is different
+                    try {
+                        announcement.setTargetGroup(rs.getString("target_audience"));
+                    } catch (SQLException e) {
+                        LOGGER.info("Column 'target_audience' not found, trying alternatives");
+                        try {
+                            announcement.setTargetGroup(rs.getString("target_group"));
+                        } catch (SQLException e2) {
+                            announcement.setTargetGroup("all"); // default value
+                        }
+                    }
+                    
+                    // Try to set date, but handle if column name is different
+                    try {
+                        announcement.setDate(rs.getTimestamp("created_at"));
+                    } catch (SQLException e) {
+                        LOGGER.info("Column 'created_at' not found, trying alternatives");
+                        try {
+                            announcement.setDate(rs.getTimestamp("date"));
+                        } catch (SQLException e2) {
+                            announcement.setDate(new Timestamp(System.currentTimeMillis())); // current time as fallback
+                        }
+                    }
+                    
+                    // Try to set postedBy, but handle if column name is different
+                    try {
+                        announcement.setPostedBy(rs.getString("created_by"));
+                    } catch (SQLException e) {
+                        LOGGER.info("Column 'created_by' not found, trying alternatives");
+                        try {
+                            announcement.setPostedBy(rs.getString("posted_by"));
+                        } catch (SQLException e2) {
+                            announcement.setPostedBy("System"); // default value
+                        }
+                    }
+                    
+                    announcements.add(announcement);
+                    LOGGER.info("Added announcement: " + announcement.getTitle());
+                } catch (SQLException e) {
+                    LOGGER.log(Level.WARNING, "Error mapping announcement result, skipping row", e);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error retrieving announcements for target: " + target, e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return announcements;
     }
 } 

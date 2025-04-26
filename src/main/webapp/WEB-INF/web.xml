@@ -6,6 +6,89 @@
          
     <display-name>School Management System</display-name>
     
+    <!-- Servlet Definitions -->
+    <servlet>
+        <servlet-name>TeacherCoursesServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.CoursesServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>TeacherCourseMaterialsServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.CourseMaterialsServlet</servlet-class>
+        <multipart-config>
+            <location>/tmp</location>
+            <max-file-size>20848820</max-file-size>
+            <max-request-size>418018841</max-request-size>
+            <file-size-threshold>1048576</file-size-threshold>
+        </multipart-config>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>TeacherDownloadMaterialServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.DownloadMaterialServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>CourseDetailsServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.CourseDetailsServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>CourseStudentsServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.CourseStudentsServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>CourseMarksServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.CourseMarksServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>TeacherMarksServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.TeacherMarksServlet</servlet-class>
+    </servlet>
+    
+    <!-- Servlet Mappings -->
+    <servlet-mapping>
+        <servlet-name>TeacherCoursesServlet</servlet-name>
+        <url-pattern>/teacher/courses</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>TeacherCourseMaterialsServlet</servlet-name>
+        <url-pattern>/teacher/course-materials</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>TeacherDownloadMaterialServlet</servlet-name>
+        <url-pattern>/teacher/download-material</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>CourseDetailsServlet</servlet-name>
+        <url-pattern>/teacher/course-details</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>CourseStudentsServlet</servlet-name>
+        <url-pattern>/teacher/course-students</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>CourseMarksServlet</servlet-name>
+        <url-pattern>/teacher/course-marks</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>CourseMarksServlet</servlet-name>
+        <url-pattern>/teacher/mark</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>TeacherMarksServlet</servlet-name>
+        <url-pattern>/teacher/marks</url-pattern>
+    </servlet-mapping>
+    
     <!-- Session Configuration -->
     <session-config>
         <session-timeout>30</session-timeout>

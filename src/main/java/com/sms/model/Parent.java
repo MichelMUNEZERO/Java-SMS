@@ -1,7 +1,7 @@
 package com.sms.model;
 
 /**
- * Parent model class representing a parent/guardian in the school system
+ * Parent model class representing a parent/guardian in the system
  */
 public class Parent {
     private int id;
@@ -11,15 +11,26 @@ public class Parent {
     private String phone;
     private String address;
     private String occupation;
+    private int userId;
+    // Additional fields
     private String status;
     private int childrenCount;
-    private Integer userId;
 
-    // Default constructor
     public Parent() {
     }
 
-    // Getters and Setters
+    public Parent(int id, String firstName, String lastName, String email, String phone, String address, 
+                 String occupation, int userId) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.address = address;
+        this.occupation = occupation;
+        this.userId = userId;
+    }
+
     public int getId() {
         return id;
     }
@@ -76,33 +87,34 @@ public class Parent {
         this.occupation = occupation;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public int getChildrenCount() {
-        return childrenCount;
-    }
-
-    public void setChildrenCount(int childrenCount) {
-        this.childrenCount = childrenCount;
-    }
-    
-    public Integer getUserId() {
+    public int getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(int userId) {
         this.userId = userId;
+    }
+    
+    // New methods that were missing
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    public int getChildrenCount() {
+        return childrenCount;
+    }
+    
+    public void setChildrenCount(int childrenCount) {
+        this.childrenCount = childrenCount;
     }
 
     @Override
     public String toString() {
-        return "Parent [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
-                + ", phone=" + phone + ", address=" + address + ", occupation=" + occupation + ", status=" + status + "]";
+        return "Parent [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + 
+               ", email=" + email + ", phone=" + phone + "]";
     }
 } 

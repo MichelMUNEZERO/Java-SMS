@@ -11,79 +11,69 @@ pageEncoding="UTF-8" isErrorPage="true" %>
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <!-- Custom CSS -->
-    <style>
-      body {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background-color: #f8f9fa;
-      }
-      .error-container {
-        text-align: center;
-        padding: 3rem;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        max-width: 600px;
-      }
-      .error-code {
-        font-size: 5rem;
-        font-weight: 700;
-        color: #dc3545;
-        margin-bottom: 1rem;
-      }
-      .error-message {
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
-        color: #343a40;
-      }
-      .btn-back {
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="error-container">
-            <div class="error-code">
-              <% Integer statusCode =
-              (Integer)request.getAttribute("javax.servlet.error.status_code");
-              if (statusCode != null) { out.print(statusCode); } else {
-              out.print("Error"); } %>
-            </div>
-            <div class="error-message">
-              <% String errorMessage =
-              (String)request.getAttribute("javax.servlet.error.message"); if
-              (errorMessage != null && !errorMessage.isEmpty()) {
-              out.print(errorMessage); } else { out.print("An error occurred
-              during your request."); } %>
-            </div>
-            <p class="mb-4">
-              We apologize for the inconvenience. Please try again later or
-              contact the system administrator if the problem persists.
-            </p>
-            <a
-              href="${pageContext.request.contextPath}/login"
-              class="btn btn-primary btn-back"
-            >
-              <i class="bi bi-arrow-left"></i> Back to Login
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Bootstrap Icons -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
     />
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/style.css"
+    />
+  </head>
+  <body>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white">
+              <h4 class="mb-0">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Error
+              </h4>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">Something went wrong!</h5>
+
+              <% if(request.getAttribute("errorMessage") != null) { %>
+              <div class="alert alert-danger mt-3">
+                <p><strong>Error Details:</strong> ${errorMessage}</p>
+              </div>
+              <% } %> <% if(exception != null) { %>
+              <div class="alert alert-danger mt-3">
+                <p><strong>Exception:</strong> <%= exception.getMessage() %></p>
+                <p>
+                  <strong>Type:</strong> <%= exception.getClass().getName() %>
+                </p>
+              </div>
+
+              <div class="mt-3">
+                <p><strong>Stack Trace:</strong></p>
+                <pre
+                  class="bg-light p-3"
+                  style="max-height: 300px; overflow-y: auto"
+                >
+<% for(StackTraceElement element : exception.getStackTrace()) { %>
+<%= element.toString() %>
+<% } %>
+                  </pre
+                >
+              </div>
+              <% } %>
+
+              <a
+                href="${pageContext.request.contextPath}/"
+                class="btn btn-primary mt-3"
+              >
+                <i class="bi bi-house-door me-2"></i>Return to Home Page
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

@@ -105,4 +105,42 @@ public class AppointmentDAO {
         
         return count;
     }
+    
+    /**
+     * Gets the count of appointments for a teacher on a specific date
+     * 
+     * @param teacherId The teacher ID
+     * @param dateFilter The date filter (e.g., "CURDATE()" for today)
+     * @return Count of appointments
+     */
+    public int getAppointmentCountByTeacherIdAndDate(int teacherId, String dateFilter) {
+        int count = 0;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT COUNT(*) FROM appointments WHERE teacher_id = ? AND DATE(appointment_date) = " + dateFilter;
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, teacherId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting appointment count for teacher ID: " + teacherId, e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return count;
+    }
 } 

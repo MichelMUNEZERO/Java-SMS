@@ -160,6 +160,11 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
             class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
           >
             <h1 class="h2">Student Management</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <a href="${pageContext.request.contextPath}/admin/students/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Add Student
+              </a>
+            </div>
           </div>
 
           <!-- Filters -->

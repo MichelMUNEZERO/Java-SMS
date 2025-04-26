@@ -92,11 +92,6 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               </li>
               <li class="nav-item">
                 <a class="nav-link text-white" href="#">
-                  <i class="bi bi-chat-dots me-2"></i> Messages
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white" href="#">
                   <i class="bi bi-person me-2"></i> Profile
                 </a>
               </li>
@@ -295,7 +290,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             </div>
           </div>
 
-          <!-- Pending Assignments and Course Progress -->
+          <!-- Pending Assignments and Notifications (replaced Course Progress) -->
           <div class="row mb-4">
             <div class="col-md-6 mb-4">
               <div class="card dashboard-card">
@@ -349,105 +344,51 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             <div class="col-md-6 mb-4">
               <div class="card dashboard-card">
                 <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Course Progress</h5>
+                  <h5 class="card-title mb-0">Notifications</h5>
                 </div>
                 <div class="card-body">
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                      <span>Mathematics</span>
-                      <span>85%</span>
-                    </div>
-                    <div class="progress mb-2">
-                      <div
-                        class="progress-bar bg-success"
-                        role="progressbar"
-                        style="width: 85%"
-                        aria-valuenow="85"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                      <span>English Literature</span>
-                      <span>70%</span>
-                    </div>
-                    <div class="progress mb-2">
-                      <div
-                        class="progress-bar bg-primary"
-                        role="progressbar"
-                        style="width: 70%"
-                        aria-valuenow="70"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                      <span>Physics</span>
-                      <span>60%</span>
-                    </div>
-                    <div class="progress mb-2">
-                      <div
-                        class="progress-bar bg-info"
-                        role="progressbar"
-                        style="width: 60%"
-                        aria-valuenow="60"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                      <span>Computer Science</span>
-                      <span>90%</span>
-                    </div>
-                    <div class="progress mb-2">
-                      <div
-                        class="progress-bar bg-success"
-                        role="progressbar"
-                        style="width: 90%"
-                        aria-valuenow="90"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
-                  <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                      <span>Chemistry</span>
-                      <span>65%</span>
-                    </div>
-                    <div class="progress mb-2">
-                      <div
-                        class="progress-bar bg-warning"
-                        role="progressbar"
-                        style="width: 65%"
-                        aria-valuenow="65"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="d-flex justify-content-between mb-1">
-                      <span>History</span>
-                      <span>75%</span>
-                    </div>
-                    <div class="progress">
-                      <div
-                        class="progress-bar bg-primary"
-                        role="progressbar"
-                        style="width: 75%"
-                        aria-valuenow="75"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
-                    </div>
-                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">New Grade Posted</h6>
+                        <small class="text-muted">Today</small>
+                      </div>
+                      <p class="mb-1">Your Physics quiz has been graded.</p>
+                      <span class="badge bg-success">Grade: A</span>
+                    </li>
+                    <li class="list-group-item">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">School Announcement</h6>
+                        <small class="text-muted">Yesterday</small>
+                      </div>
+                      <p class="mb-1">
+                        Field trip permission slips due this Friday.
+                      </p>
+                    </li>
+                    <li class="list-group-item">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Assignment Reminder</h6>
+                        <small class="text-muted">2 days ago</small>
+                      </div>
+                      <p class="mb-1">
+                        Don't forget to submit your Math homework!
+                      </p>
+                    </li>
+                    <li class="list-group-item">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Calendar Update</h6>
+                        <small class="text-muted">3 days ago</small>
+                      </div>
+                      <p class="mb-1">
+                        School holiday announced for next Monday.
+                      </p>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card-footer bg-white">
+                  <a href="#" class="btn btn-sm btn-outline-primary"
+                    >View All Notifications</a
+                  >
                 </div>
               </div>
             </div>

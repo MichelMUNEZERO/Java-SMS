@@ -141,39 +141,73 @@ public class StudentServlet extends HttpServlet {
      */
     private void addStudent(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Collect form data
-        String firstName = request.getParameter("firstName");
-        String lastName = request.getParameter("lastName");
-        String email = request.getParameter("email");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        java.sql.Date dateOfBirth = java.sql.Date.valueOf(request.getParameter("dateOfBirth"));
-        java.sql.Date admissionDate = java.sql.Date.valueOf(request.getParameter("admissionDate"));
-        int classId = Integer.parseInt(request.getParameter("classId"));
-        String status = request.getParameter("status");
-        
-        // Create student object
-        Student student = new Student();
-        student.setFirstName(firstName);
-        student.setLastName(lastName);
-        student.setEmail(email);
-        student.setPhone(phone);
-        student.setAddress(address);
-        student.setDateOfBirth(dateOfBirth);
-        student.setAdmissionDate(admissionDate);
-        student.setClassId(classId);
-        student.setStatus(status);
-        
-        // Save to database
-        boolean success = studentDAO.addStudent(student);
-        
-        if (success) {
-            // Redirect to student list with success message
-            response.sendRedirect(request.getContextPath() + "/admin/students?message=Student added successfully");
-        } else {
-            // Redirect back to form with error message
-            request.setAttribute("error", "Failed to add student. Please try again.");
-            request.setAttribute("student", student);
+        try {
+            // Collect form data
+            String firstName = request.getParameter("firstName");
+            String lastName = request.getParameter("lastName");
+            String gender = request.getParameter("gender");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            
+            // Process dates
+            java.sql.Date dateOfBirth = null;
+            if (request.getParameter("dateOfBirth") != null && !request.getParameter("dateOfBirth").isEmpty()) {
+                dateOfBirth = java.sql.Date.valueOf(request.getParameter("dateOfBirth"));
+            }
+            
+            java.sql.Date admissionDate = null;
+            if (request.getParameter("admissionDate") != null && !request.getParameter("admissionDate").isEmpty()) {
+                admissionDate = java.sql.Date.valueOf(request.getParameter("admissionDate"));
+            }
+            
+            // Guardian information
+            String guardianName = request.getParameter("guardianName");
+            String guardianPhone = request.getParameter("guardianPhone");
+            String guardianEmail = request.getParameter("guardianEmail");
+            
+            // Academic information
+            int classId = 0;
+            if (request.getParameter("classId") != null && !request.getParameter("classId").isEmpty()) {
+                classId = Integer.parseInt(request.getParameter("classId"));
+            }
+            
+            String status = request.getParameter("status");
+            
+            // Create student object
+            Student student = new Student();
+            student.setFirstName(firstName);
+            student.setLastName(lastName);
+            student.setGender(gender);
+            student.setEmail(email);
+            student.setPhone(phone);
+            student.setAddress(address);
+            student.setDateOfBirth(dateOfBirth);
+            student.setAdmissionDate(admissionDate);
+            student.setGuardianName(guardianName);
+            student.setGuardianPhone(guardianPhone);
+            student.setGuardianEmail(guardianEmail);
+            student.setClassId(classId);
+            student.setStatus(status);
+            
+            // Save to database
+            boolean success = studentDAO.addStudent(student);
+            
+            if (success) {
+                // Redirect to student list with success message
+                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student added successfully");
+            } else {
+                // Show form again with error message
+                request.setAttribute("error", "Failed to add student. Please try again.");
+                request.setAttribute("student", student);
+                request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
+            }
+        } catch (Exception e) {
+            // Log the error
+            e.printStackTrace();
+            
+            // Show form with error message
+            request.setAttribute("error", "Error: " + e.getMessage());
             request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
         }
     }
@@ -183,44 +217,78 @@ public class StudentServlet extends HttpServlet {
      */
     private void updateStudent(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Get student ID from path
-        String pathInfo = request.getPathInfo();
-        int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
-        
-        // Collect form data
-        String firstName = request.getParameter("firstName");
-        String lastName = request.getParameter("lastName");
-        String email = request.getParameter("email");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
-        java.sql.Date dateOfBirth = java.sql.Date.valueOf(request.getParameter("dateOfBirth"));
-        java.sql.Date admissionDate = java.sql.Date.valueOf(request.getParameter("admissionDate"));
-        int classId = Integer.parseInt(request.getParameter("classId"));
-        String status = request.getParameter("status");
-        
-        // Create student object
-        Student student = new Student();
-        student.setId(studentId);
-        student.setFirstName(firstName);
-        student.setLastName(lastName);
-        student.setEmail(email);
-        student.setPhone(phone);
-        student.setAddress(address);
-        student.setDateOfBirth(dateOfBirth);
-        student.setAdmissionDate(admissionDate);
-        student.setClassId(classId);
-        student.setStatus(status);
-        
-        // Update in database
-        boolean success = studentDAO.updateStudent(student);
-        
-        if (success) {
-            // Redirect to student list with success message
-            response.sendRedirect(request.getContextPath() + "/admin/students?message=Student updated successfully");
-        } else {
-            // Redirect back to form with error message
-            request.setAttribute("error", "Failed to update student. Please try again.");
-            request.setAttribute("student", student);
+        try {
+            // Get student ID from path
+            String pathInfo = request.getPathInfo();
+            int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            
+            // Collect form data
+            String firstName = request.getParameter("firstName");
+            String lastName = request.getParameter("lastName");
+            String gender = request.getParameter("gender");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            
+            // Process dates
+            java.sql.Date dateOfBirth = null;
+            if (request.getParameter("dateOfBirth") != null && !request.getParameter("dateOfBirth").isEmpty()) {
+                dateOfBirth = java.sql.Date.valueOf(request.getParameter("dateOfBirth"));
+            }
+            
+            java.sql.Date admissionDate = null;
+            if (request.getParameter("admissionDate") != null && !request.getParameter("admissionDate").isEmpty()) {
+                admissionDate = java.sql.Date.valueOf(request.getParameter("admissionDate"));
+            }
+            
+            // Guardian information
+            String guardianName = request.getParameter("guardianName");
+            String guardianPhone = request.getParameter("guardianPhone");
+            String guardianEmail = request.getParameter("guardianEmail");
+            
+            // Academic information
+            int classId = 0;
+            if (request.getParameter("classId") != null && !request.getParameter("classId").isEmpty()) {
+                classId = Integer.parseInt(request.getParameter("classId"));
+            }
+            
+            String status = request.getParameter("status");
+            
+            // Create student object
+            Student student = new Student();
+            student.setId(studentId);
+            student.setFirstName(firstName);
+            student.setLastName(lastName);
+            student.setGender(gender);
+            student.setEmail(email);
+            student.setPhone(phone);
+            student.setAddress(address);
+            student.setDateOfBirth(dateOfBirth);
+            student.setAdmissionDate(admissionDate);
+            student.setGuardianName(guardianName);
+            student.setGuardianPhone(guardianPhone);
+            student.setGuardianEmail(guardianEmail);
+            student.setClassId(classId);
+            student.setStatus(status);
+            
+            // Update in database
+            boolean success = studentDAO.updateStudent(student);
+            
+            if (success) {
+                // Redirect to student list with success message
+                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student updated successfully");
+            } else {
+                // Show form again with error message
+                request.setAttribute("error", "Failed to update student. Please try again.");
+                request.setAttribute("student", student);
+                request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
+            }
+        } catch (Exception e) {
+            // Log the error
+            e.printStackTrace();
+            
+            // Show form with error message
+            request.setAttribute("error", "Error: " + e.getMessage());
             request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
         }
     }

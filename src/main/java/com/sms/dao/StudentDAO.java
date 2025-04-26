@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -298,5 +300,170 @@ public class StudentDAO {
         }
         
         return students;
+    }
+    
+    /**
+     * Gets all students that can be enrolled in courses
+     * 
+     * @return List of students with basic information
+     */
+    public List<Map<String, Object>> getAllStudentsForEnrollment() {
+        List<Map<String, Object>> students = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            LOGGER.info("Getting all students for enrollment");
+            conn = DBConnection.getConnection();
+            
+            String sql = "SELECT student_id, first_name, last_name, email FROM students WHERE status = 'Active' ORDER BY last_name, first_name";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> student = new HashMap<>();
+                student.put("studentId", rs.getInt("student_id"));
+                student.put("firstName", rs.getString("first_name"));
+                student.put("lastName", rs.getString("last_name"));
+                student.put("email", rs.getString("email"));
+                student.put("fullName", rs.getString("first_name") + " " + rs.getString("last_name"));
+                students.add(student);
+            }
+            
+            LOGGER.info("Found " + students.size() + " students for enrollment");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting students for enrollment", e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return students;
+    }
+
+    /**
+     * Get all students for a specific teacher
+     * 
+     * @param teacherId The teacher ID
+     * @return List of students enrolled in this teacher's courses
+     */
+    public List<Student> getStudentsByTeacherId(int teacherId) {
+        List<Student> students = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT DISTINCT s.* FROM students s " +
+                         "JOIN student_courses sc ON s.student_id = sc.student_id " +
+                         "JOIN courses c ON sc.course_id = c.course_id " +
+                         "WHERE c.teacher_id = ? " +
+                         "ORDER BY s.last_name, s.first_name";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, teacherId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Student student = mapResultSetToStudent(rs);
+                students.add(student);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving students for teacher ID: " + teacherId);
+            e.printStackTrace();
+        } finally {
+            closeResources(conn, pstmt, rs);
+        }
+        
+        return students;
+    }
+
+    /**
+     * Get all available students for enrollment
+     * (students not already enrolled in a specific course could be shown here)
+     * 
+     * @return List of all active students
+     */
+    public List<Student> getAllAvailableStudents() {
+        List<Student> students = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM students WHERE status = 'active' ORDER BY last_name, first_name";
+            
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Student student = mapResultSetToStudent(rs);
+                students.add(student);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving all available students");
+            e.printStackTrace();
+        } finally {
+            closeResources(conn, pstmt, rs);
+        }
+        
+        return students;
+    }
+
+    /**
+     * Helper method to close database resources
+     */
+    private void closeResources(Connection conn, PreparedStatement pstmt, ResultSet rs) {
+        try {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Map database result set to a Student object
+     */
+    private Student mapResultSetToStudent(ResultSet rs) throws SQLException {
+        Student student = new Student();
+        student.setId(rs.getInt("student_id"));
+        student.setFirstName(rs.getString("first_name"));
+        student.setLastName(rs.getString("last_name"));
+        student.setEmail(rs.getString("email"));
+        student.setPhone(rs.getString("phone"));
+        student.setAddress(rs.getString("address"));
+        student.setGender(rs.getString("gender"));
+        student.setDateOfBirth(rs.getDate("date_of_birth"));
+        student.setAdmissionDate(rs.getDate("admission_date"));
+        student.setClassId(rs.getInt("class_id"));
+        
+        // Optional fields (may be null)
+        try {
+            student.setClassName(rs.getString("class_name"));
+        } catch (SQLException e) {
+            // Column not available, ignore
+        }
+        
+        try {
+            student.setGuardianName(rs.getString("guardian_name"));
+            student.setGuardianPhone(rs.getString("guardian_phone"));
+            student.setGuardianEmail(rs.getString("guardian_email"));
+        } catch (SQLException e) {
+            // Columns not available, ignore
+        }
+        
+        student.setStatus(rs.getString("status"));
+        
+        return student;
     }
 }
