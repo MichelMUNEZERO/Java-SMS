@@ -893,4 +893,82 @@ public class TeacherDAO {
         
         return stats;
     }
+    
+    /**
+     * Get all teachers with basic information
+     * @return List of teachers with basic info as maps
+     */
+    public List<Map<String, Object>> getAllTeachersWithBasicInfo() {
+        List<Map<String, Object>> teachers = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT t.teacher_id, t.first_name, t.last_name, t.email, t.subject, " +
+                         "d.department_name FROM Teachers t " +
+                         "LEFT JOIN Departments d ON t.department_id = d.department_id " +
+                         "ORDER BY t.last_name, t.first_name";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> teacher = new HashMap<>();
+                teacher.put("teacherId", rs.getInt("teacher_id"));
+                teacher.put("firstName", rs.getString("first_name"));
+                teacher.put("lastName", rs.getString("last_name"));
+                teacher.put("fullName", rs.getString("first_name") + " " + rs.getString("last_name"));
+                teacher.put("email", rs.getString("email"));
+                teacher.put("subject", rs.getString("subject"));
+                teacher.put("departmentName", rs.getString("department_name"));
+                
+                teachers.add(teacher);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting all teachers with basic info", e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return teachers;
+    }
+    
+    /**
+     * Get all admin staff
+     * @return List of admin staff as maps
+     */
+    public List<Map<String, Object>> getAdminStaff() {
+        List<Map<String, Object>> adminStaff = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT admin_id, first_name, last_name, email, role, designation " +
+                         "FROM Admins ORDER BY last_name, first_name";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> admin = new HashMap<>();
+                admin.put("adminId", rs.getInt("admin_id"));
+                admin.put("firstName", rs.getString("first_name"));
+                admin.put("lastName", rs.getString("last_name"));
+                admin.put("fullName", rs.getString("first_name") + " " + rs.getString("last_name"));
+                admin.put("email", rs.getString("email"));
+                admin.put("role", rs.getString("role"));
+                admin.put("designation", rs.getString("designation"));
+                
+                adminStaff.add(admin);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting admin staff", e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return adminStaff;
+    }
 } 

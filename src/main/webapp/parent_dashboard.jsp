@@ -73,33 +73,43 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             <hr class="text-white" />
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link active text-white" href="#">
+                <a
+                  class="nav-link active text-white"
+                  href="${pageContext.request.contextPath}/parent/dashboard"
+                >
                   <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/parent/student-progress"
+                >
                   <i class="bi bi-people me-2"></i> My Children
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/parent/student-progress"
+                >
                   <i class="bi bi-card-checklist me-2"></i> Academic Progress
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
-                  <i class="bi bi-calendar-event me-2"></i> School Calendar
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/parent/announcements"
+                >
+                  <i class="bi bi-megaphone me-2"></i> Announcements
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
-                  <i class="bi bi-chat-dots me-2"></i> Messages
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white" href="#">
-                  <i class="bi bi-receipt me-2"></i> Fee Payment
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/parent/appointments"
+                >
+                  <i class="bi bi-calendar-check me-2"></i> Book Appointments
                 </a>
               </li>
               <li class="nav-item">
@@ -179,10 +189,69 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               <div class="card dashboard-card">
                 <div class="card-body">
                   <h5 class="card-title">Select Child</h5>
-                  <select class="form-select">
+                  <select
+                    class="form-select"
+                    id="childSelect"
+                    onchange="changeChild(this.value)"
+                  >
                     <option selected>Jane Doe (Grade 10)</option>
                     <option>Tom Doe (Grade 8)</option>
                   </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigational Cards -->
+          <div class="row mb-4">
+            <div class="col-md-4 mb-4">
+              <div class="card dashboard-card h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-card-checklist card-icon text-primary"></i>
+                  <h5 class="card-title">Student Progress</h5>
+                  <p class="card-text">
+                    View your child's academic progress, behavior records, and
+                    attendance information.
+                  </p>
+                  <a
+                    href="${pageContext.request.contextPath}/parent/student-progress"
+                    class="btn btn-primary"
+                    >View Progress</a
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card dashboard-card h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-megaphone card-icon text-success"></i>
+                  <h5 class="card-title">Announcements</h5>
+                  <p class="card-text">
+                    Stay updated with the latest announcements from school
+                    administration and teachers.
+                  </p>
+                  <a
+                    href="${pageContext.request.contextPath}/parent/announcements"
+                    class="btn btn-success"
+                    >View Announcements</a
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div class="card dashboard-card h-100">
+                <div class="card-body text-center">
+                  <i class="bi bi-calendar-check card-icon text-danger"></i>
+                  <h5 class="card-title">Book Appointments</h5>
+                  <p class="card-text">
+                    Schedule appointments with teachers and administrators to
+                    discuss your child's education.
+                  </p>
+                  <a
+                    href="${pageContext.request.contextPath}/parent/appointments"
+                    class="btn btn-danger"
+                    >Book Appointment</a
+                  >
                 </div>
               </div>
             </div>
@@ -274,7 +343,9 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                   </table>
                 </div>
                 <div class="card-footer bg-white">
-                  <a href="#" class="btn btn-sm btn-outline-primary"
+                  <a
+                    href="${pageContext.request.contextPath}/parent/student-progress"
+                    class="btn btn-sm btn-outline-primary"
                     >View Full Attendance</a
                   >
                 </div>
@@ -283,48 +354,47 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             <div class="col-md-6 mb-4">
               <div class="card dashboard-card">
                 <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Fee Information</h5>
+                  <h5 class="card-title mb-0">Recent Announcements</h5>
                 </div>
                 <div class="card-body">
-                  <table class="table">
-                    <thead>
-                      <tr>
-                        <th>Fee Type</th>
-                        <th>Amount</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Tuition Fee (May)</td>
-                        <td>$500</td>
-                        <td>May 10, 2023</td>
-                        <td><span class="badge bg-success">Paid</span></td>
-                      </tr>
-                      <tr>
-                        <td>Lab Fee</td>
-                        <td>$100</td>
-                        <td>May 15, 2023</td>
-                        <td><span class="badge bg-success">Paid</span></td>
-                      </tr>
-                      <tr>
-                        <td>Field Trip</td>
-                        <td>$50</td>
-                        <td>May 20, 2023</td>
-                        <td><span class="badge bg-warning">Pending</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                  <div class="mt-3">
-                    <h6>Total Paid: $600</h6>
-                    <h6>Total Pending: $50</h6>
-                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div>
+                        <h6 class="mb-1">Parent-Teacher Meeting</h6>
+                        <p class="mb-1">
+                          The upcoming parent-teacher meeting is scheduled for
+                          June 5th.
+                        </p>
+                        <small class="text-muted">2 days ago</small>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div>
+                        <h6 class="mb-1">Math Competition Results</h6>
+                        <p class="mb-1">
+                          Results of the regional Math Competition are out.
+                          Check the announcement board.
+                        </p>
+                        <small class="text-muted">1 week ago</small>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div>
+                        <h6 class="mb-1">School Trip Permission</h6>
+                        <p class="mb-1">
+                          Please submit the permission slip for the upcoming
+                          Science Museum trip.
+                        </p>
+                        <small class="text-muted">2 weeks ago</small>
+                      </div>
+                    </li>
+                  </ul>
                 </div>
                 <div class="card-footer bg-white">
-                  <a href="#" class="btn btn-sm btn-outline-primary">Pay Now</a>
-                  <a href="#" class="btn btn-sm btn-outline-secondary"
-                    >View Payment History</a
+                  <a
+                    href="${pageContext.request.contextPath}/parent/announcements"
+                    class="btn btn-sm btn-outline-primary"
+                    >View All Announcements</a
                   >
                 </div>
               </div>
@@ -437,7 +507,9 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                   </div>
                 </div>
                 <div class="card-footer bg-white">
-                  <a href="#" class="btn btn-sm btn-outline-primary"
+                  <a
+                    href="${pageContext.request.contextPath}/parent/student-progress"
+                    class="btn btn-sm btn-outline-primary"
                     >View Detailed Report</a
                   >
                 </div>
@@ -506,9 +578,12 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                   </ul>
                 </div>
                 <div class="card-footer bg-white">
-                  <button class="btn btn-primary btn-sm">
-                    <i class="bi bi-chat-dots me-2"></i> Contact Teacher
-                  </button>
+                  <a
+                    href="${pageContext.request.contextPath}/parent/appointments"
+                    class="btn btn-primary btn-sm"
+                  >
+                    <i class="bi bi-calendar-check me-2"></i> Book Appointment
+                  </a>
                   <a href="#" class="btn btn-sm btn-outline-primary"
                     >View All Messages</a
                   >
@@ -522,5 +597,13 @@ uri="http://java.sun.com/jsp/jstl/core" %>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      function changeChild(childInfo) {
+        // This would be replaced with actual functionality to change the dashboard view
+        console.log("Selected child: " + childInfo);
+        // In a real implementation, this would trigger an AJAX request to update dashboard data
+      }
+    </script>
   </body>
 </html>

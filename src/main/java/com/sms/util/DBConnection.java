@@ -31,12 +31,17 @@ public class DBConnection {
             Class.forName(JDBC_DRIVER);
             
             // Open a connection
+            LOGGER.info("Attempting to connect to database: " + DB_URL);
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            if (conn != null) {
+                LOGGER.info("Database connection established successfully");
+            }
             
         } catch (ClassNotFoundException e) {
             LOGGER.log(Level.SEVERE, "JDBC Driver not found", e);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Connection error", e);
+            LOGGER.log(Level.SEVERE, "Connection error: " + e.getMessage(), e);
+            e.printStackTrace();
         }
         return conn;
     }

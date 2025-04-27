@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,6 +27,7 @@ import com.sms.model.User;
 @WebServlet("/admin/dashboard")
 public class DashboardServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = Logger.getLogger(DashboardServlet.class.getName());
     private DashboardDAO dashboardDAO;
     private AnnouncementDAO announcementDAO;
     private AppointmentDAO appointmentDAO;
@@ -60,6 +63,31 @@ public class DashboardServlet extends HttpServlet {
         
         // Fetch real dashboard statistics from the database
         Map<String, Integer> stats = dashboardDAO.getDashboardStats();
+        
+        // Log the stats for debugging
+        LOGGER.log(Level.INFO, "Dashboard stats retrieved: " + stats);
+        
+        // Check if key stats exist
+        if (!stats.containsKey("doctors")) {
+            LOGGER.log(Level.WARNING, "No doctors count in stats");
+            stats.put("doctors", 0); // Default value
+        }
+        
+        if (!stats.containsKey("nurses")) {
+            LOGGER.log(Level.WARNING, "No nurses count in stats");
+            stats.put("nurses", 0); // Default value
+        }
+        
+        if (!stats.containsKey("courses")) {
+            LOGGER.log(Level.WARNING, "No courses count in stats");
+            stats.put("courses", 0); // Default value
+        }
+        
+        if (!stats.containsKey("todayAppointments")) {
+            LOGGER.log(Level.WARNING, "No appointments count in stats");
+            stats.put("todayAppointments", 0); // Default value
+        }
+        
         request.setAttribute("stats", stats);
         
         // Fetch recent activities (This could be a log table in the database)

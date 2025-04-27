@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 pageEncoding="UTF-8"%> <%@ taglib prefix="c"
-uri="http://java.sun.com/jsp/jstl/core" %>
+uri="http://java.sun.com/jsp/jstl/core" %> <%@ taglib prefix="fmt"
+uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -66,28 +67,43 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             <hr class="text-white" />
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link active text-white" href="#">
+                <a
+                  class="nav-link active text-white"
+                  href="${pageContext.request.contextPath}/student/dashboard"
+                >
                   <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/student/courses"
+                >
                   <i class="bi bi-book me-2"></i> My Courses
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/student/grades"
+                >
                   <i class="bi bi-card-checklist me-2"></i> Grades
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/student/assignments"
+                >
                   <i class="bi bi-file-earmark-text me-2"></i> Assignments
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-white" href="#">
-                  <i class="bi bi-calendar-event me-2"></i> Schedule
+                <a
+                  class="nav-link text-white"
+                  href="${pageContext.request.contextPath}/student/update-parent"
+                >
+                  <i class="bi bi-people me-2"></i> Parent Info
                 </a>
               </li>
               <li class="nav-item">
@@ -149,6 +165,11 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             </div>
           </div>
 
+          <!-- Error display -->
+          <c:if test="${not empty error}">
+            <div class="alert alert-danger" role="alert">${error}</div>
+          </c:if>
+
           <!-- Welcome message -->
           <div class="row mb-4">
             <div class="col-md-12">
@@ -156,10 +177,15 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 <div class="card-body">
                   <h5 class="card-title">Welcome, ${user.username}!</h5>
                   <p class="card-text">
-                    You have <span class="fw-bold text-danger">3</span> pending
-                    assignments and
-                    <span class="fw-bold text-primary">2</span> upcoming tests
-                    this week.
+                    You have
+                    <span class="fw-bold text-danger"
+                      >${pendingAssignmentsCount}</span
+                    >
+                    pending assignments and
+                    <span class="fw-bold text-primary"
+                      >${upcomingTestsCount}</span
+                    >
+                    upcoming tests this week.
                   </p>
                 </div>
               </div>
@@ -173,7 +199,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 <div class="card-body text-center">
                   <i class="bi bi-book-fill card-icon"></i>
                   <h5 class="card-title">My Courses</h5>
-                  <h2 class="card-text">6</h2>
+                  <h2 class="card-text">${courseCount}</h2>
                 </div>
               </div>
             </div>
@@ -182,7 +208,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 <div class="card-body text-center">
                   <i class="bi bi-clipboard-check-fill card-icon"></i>
                   <h5 class="card-title">Attendance</h5>
-                  <h2 class="card-text">96%</h2>
+                  <h2 class="card-text">${attendancePercentage}%</h2>
                 </div>
               </div>
             </div>
@@ -191,7 +217,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 <div class="card-body text-center">
                   <i class="bi bi-file-earmark-text card-icon"></i>
                   <h5 class="card-title">Assignments</h5>
-                  <h2 class="card-text">12</h2>
+                  <h2 class="card-text">${assignmentsCount}</h2>
                 </div>
               </div>
             </div>
@@ -200,7 +226,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 <div class="card-body text-center">
                   <i class="bi bi-calendar-event-fill card-icon"></i>
                   <h5 class="card-title">Today's Classes</h5>
-                  <h2 class="card-text">4</h2>
+                  <h2 class="card-text">${todayClassesCount}</h2>
                 </div>
               </div>
             </div>
@@ -290,7 +316,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             </div>
           </div>
 
-          <!-- Pending Assignments and Notifications (replaced Course Progress) -->
+          <!-- Pending Assignments and Notifications -->
           <div class="row mb-4">
             <div class="col-md-6 mb-4">
               <div class="card dashboard-card">
@@ -347,48 +373,99 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                   <h5 class="card-title mb-0">Notifications</h5>
                 </div>
                 <div class="card-body">
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">New Grade Posted</h6>
-                        <small class="text-muted">Today</small>
-                      </div>
-                      <p class="mb-1">Your Physics quiz has been graded.</p>
-                      <span class="badge bg-success">Grade: A</span>
-                    </li>
-                    <li class="list-group-item">
-                      <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">School Announcement</h6>
-                        <small class="text-muted">Yesterday</small>
-                      </div>
-                      <p class="mb-1">
-                        Field trip permission slips due this Friday.
+                  <c:choose>
+                    <c:when test="${empty announcements}">
+                      <p class="text-muted text-center">
+                        No announcements at this time.
                       </p>
-                    </li>
-                    <li class="list-group-item">
-                      <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">Assignment Reminder</h6>
-                        <small class="text-muted">2 days ago</small>
-                      </div>
-                      <p class="mb-1">
-                        Don't forget to submit your Math homework!
-                      </p>
-                    </li>
-                    <li class="list-group-item">
-                      <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">Calendar Update</h6>
-                        <small class="text-muted">3 days ago</small>
-                      </div>
-                      <p class="mb-1">
-                        School holiday announced for next Monday.
-                      </p>
-                    </li>
-                  </ul>
+                    </c:when>
+                    <c:otherwise>
+                      <ul class="list-group list-group-flush">
+                        <c:forEach var="announcement" items="${announcements}">
+                          <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                              <h6 class="mb-1">School Announcement</h6>
+                              <small class="text-muted">
+                                ${announcement.createdAt}
+                              </small>
+                            </div>
+                            <p class="mb-1">${announcement.content}</p>
+                          </li>
+                        </c:forEach>
+                      </ul>
+                    </c:otherwise>
+                  </c:choose>
+                  <c:if test="${empty announcements}">
+                    <ul class="list-group list-group-flush">
+                      <li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                          <h6 class="mb-1">New Grade Posted</h6>
+                          <small class="text-muted">Today</small>
+                        </div>
+                        <p class="mb-1">Your Physics quiz has been graded.</p>
+                        <span class="badge bg-success">Grade: A</span>
+                      </li>
+                      <li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                          <h6 class="mb-1">School Announcement</h6>
+                          <small class="text-muted">Yesterday</small>
+                        </div>
+                        <p class="mb-1">
+                          Field trip permission slips due this Friday.
+                        </p>
+                      </li>
+                      <li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                          <h6 class="mb-1">Assignment Reminder</h6>
+                          <small class="text-muted">2 days ago</small>
+                        </div>
+                        <p class="mb-1">
+                          Don't forget to submit your Math homework!
+                        </p>
+                      </li>
+                      <li class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                          <h6 class="mb-1">Calendar Update</h6>
+                          <small class="text-muted">3 days ago</small>
+                        </div>
+                        <p class="mb-1">
+                          School holiday announced for next Monday.
+                        </p>
+                      </li>
+                    </ul>
+                  </c:if>
                 </div>
                 <div class="card-footer bg-white">
                   <a href="#" class="btn btn-sm btn-outline-primary"
                     >View All Notifications</a
                   >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Parent Information Card -->
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div class="card dashboard-card">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-people me-2"></i> Parent Information
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <p>
+                    Keep your parent information up-to-date for emergency
+                    contacts, school communications, and important
+                    notifications.
+                  </p>
+                  <a
+                    href="${pageContext.request.contextPath}/student/update-parent"
+                    class="btn btn-outline-primary"
+                  >
+                    <i class="bi bi-pencil-square me-2"></i> Update Parent
+                    Information
+                  </a>
                 </div>
               </div>
             </div>

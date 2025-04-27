@@ -251,4 +251,47 @@ public class ParentDAO {
         
         return parents;
     }
+    
+    /**
+     * Get a parent by their user ID
+     * @param userId The ID of the user associated with the parent
+     * @return Parent object if found, null otherwise
+     */
+    public Parent getParentByUserId(int userId) {
+        Parent parent = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT p.*, COUNT(s.student_id) as children_count FROM Parents p " +
+                         "LEFT JOIN Students s ON p.parent_id = s.parent_id " +
+                         "WHERE p.user_id = ? " +
+                         "GROUP BY p.parent_id";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                parent = new Parent();
+                parent.setId(rs.getInt("parent_id"));
+                parent.setFirstName(rs.getString("first_name"));
+                parent.setLastName(rs.getString("last_name"));
+                parent.setEmail(rs.getString("email"));
+                parent.setPhone(rs.getString("phone"));
+                parent.setAddress(rs.getString("address"));
+                parent.setOccupation(rs.getString("occupation"));
+                parent.setUserId(rs.getInt("user_id"));
+                parent.setStatus(rs.getString("status"));
+                parent.setChildrenCount(rs.getInt("children_count"));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting parent with user ID: " + userId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return parent;
+    }
 } 

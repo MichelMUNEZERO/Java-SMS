@@ -4,6 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,5 +90,97 @@ public class MarksDAO {
         }
         
         return success;
+    }
+
+    /**
+     * Get marks for a student by courses
+     * @param studentId The ID of the student
+     * @return List of maps containing course marks
+     */
+    public List<Map<String, Object>> getStudentMarksByCourses(int studentId) {
+        List<Map<String, Object>> courseMarks = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT m.*, c.course_name, c.course_code, e.exam_name, " +
+                         "t.first_name as teacher_first_name, t.last_name as teacher_last_name " +
+                         "FROM Marks m " +
+                         "JOIN Courses c ON m.course_id = c.course_id " +
+                         "JOIN Exams e ON m.exam_id = e.exam_id " +
+                         "JOIN Teachers t ON c.teacher_id = t.teacher_id " +
+                         "WHERE m.student_id = ? " +
+                         "ORDER BY c.course_name, e.exam_date DESC";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, studentId);
+            rs = pstmt.executeQuery();
+            
+            Map<Integer, Map<String, Object>> courseSummary = new HashMap<>();
+            
+            while (rs.next()) {
+                int courseId = rs.getInt("course_id");
+                
+                // Create course summary if it doesn't exist
+                if (!courseSummary.containsKey(courseId)) {
+                    Map<String, Object> course = new HashMap<>();
+                    course.put("courseId", courseId);
+                    course.put("courseName", rs.getString("course_name"));
+                    course.put("courseCode", rs.getString("course_code"));
+                    course.put("teacherName", rs.getString("teacher_first_name") + " " + rs.getString("teacher_last_name"));
+                    course.put("marks", new ArrayList<Map<String, Object>>());
+                    course.put("totalMarks", 0);
+                    course.put("examCount", 0);
+                    courseSummary.put(courseId, course);
+                }
+                
+                // Add mark to course
+                Map<String, Object> course = courseSummary.get(courseId);
+                List<Map<String, Object>> marks = (List<Map<String, Object>>) course.get("marks");
+                
+                Map<String, Object> mark = new HashMap<>();
+                mark.put("examId", rs.getInt("exam_id"));
+                mark.put("examName", rs.getString("exam_name"));
+                mark.put("marks", rs.getDouble("marks"));
+                mark.put("grade", rs.getString("grade"));
+                mark.put("comments", rs.getString("comments"));
+                
+                marks.add(mark);
+                
+                // Update totals
+                course.put("totalMarks", (double) course.get("totalMarks") + rs.getDouble("marks"));
+                course.put("examCount", (int) course.get("examCount") + 1);
+            }
+            
+            // Calculate averages and add to result list
+            for (Map<String, Object> course : courseSummary.values()) {
+                double totalMarks = (double) course.get("totalMarks");
+                int examCount = (int) course.get("examCount");
+                
+                if (examCount > 0) {
+                    double average = totalMarks / examCount;
+                    course.put("average", average);
+                    
+                    // Determine grade based on average
+                    String grade = "F";
+                    if (average >= 90) grade = "A";
+                    else if (average >= 80) grade = "B";
+                    else if (average >= 70) grade = "C";
+                    else if (average >= 60) grade = "D";
+                    
+                    course.put("grade", grade);
+                }
+                
+                courseMarks.add(course);
+            }
+            
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting marks for student ID: " + studentId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return courseMarks;
     }
 } 

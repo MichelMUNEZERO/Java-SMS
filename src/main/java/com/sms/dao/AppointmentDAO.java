@@ -5,8 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Date;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -142,5 +145,207 @@ public class AppointmentDAO {
         }
         
         return count;
+    }
+    
+    /**
+     * Get all appointments for a specific parent
+     * @param parentId The ID of the parent
+     * @return List of appointments as maps
+     */
+    public List<Map<String, Object>> getAppointmentsByParentId(int parentId) {
+        List<Map<String, Object>> appointments = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT a.*, s.first_name as student_first_name, s.last_name as student_last_name, " +
+                         "CASE " +
+                         "  WHEN a.staff_type = 'teacher' THEN (SELECT CONCAT(first_name, ' ', last_name) FROM Teachers WHERE teacher_id = a.staff_id) " +
+                         "  WHEN a.staff_type = 'admin' THEN (SELECT CONCAT(first_name, ' ', last_name) FROM Admins WHERE admin_id = a.staff_id) " +
+                         "END as staff_name, " +
+                         "CASE " +
+                         "  WHEN a.staff_type = 'teacher' THEN 'Teacher' " +
+                         "  WHEN a.staff_type = 'admin' THEN 'Administrator' " +
+                         "END as staff_role " +
+                         "FROM Appointments a " +
+                         "JOIN Students s ON a.student_id = s.student_id " +
+                         "WHERE a.parent_id = ? " +
+                         "ORDER BY a.appointment_date DESC, a.appointment_time DESC";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, parentId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> appointment = new HashMap<>();
+                appointment.put("appointmentId", rs.getInt("appointment_id"));
+                appointment.put("parentId", rs.getInt("parent_id"));
+                appointment.put("staffId", rs.getInt("staff_id"));
+                appointment.put("staffType", rs.getString("staff_type"));
+                appointment.put("staffName", rs.getString("staff_name"));
+                appointment.put("staffRole", rs.getString("staff_role"));
+                appointment.put("studentId", rs.getInt("student_id"));
+                appointment.put("studentName", rs.getString("student_first_name") + " " + rs.getString("student_last_name"));
+                appointment.put("appointmentDate", rs.getDate("appointment_date"));
+                appointment.put("appointmentTime", rs.getTime("appointment_time"));
+                appointment.put("purpose", rs.getString("purpose"));
+                appointment.put("status", rs.getString("status"));
+                appointment.put("notes", rs.getString("notes"));
+                appointment.put("createdAt", rs.getTimestamp("created_at"));
+                
+                appointments.add(appointment);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting appointments for parent ID: " + parentId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return appointments;
+    }
+    
+    /**
+     * Create a new appointment
+     * @param parentId The parent ID
+     * @param staffId The staff ID (teacher or admin)
+     * @param staffType The type of staff ("teacher" or "admin")
+     * @param studentId The student ID
+     * @param appointmentDate The date of the appointment
+     * @param appointmentTime The time of the appointment
+     * @param purpose The purpose of the appointment
+     * @return true if successful, false otherwise
+     */
+    public boolean createAppointment(int parentId, int staffId, String staffType, int studentId, 
+                                   Date appointmentDate, Time appointmentTime, String purpose) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "INSERT INTO Appointments (parent_id, staff_id, staff_type, student_id, " +
+                         "appointment_date, appointment_time, purpose, status, created_at) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, parentId);
+            pstmt.setInt(2, staffId);
+            pstmt.setString(3, staffType);
+            pstmt.setInt(4, studentId);
+            pstmt.setDate(5, appointmentDate);
+            pstmt.setTime(6, appointmentTime);
+            pstmt.setString(7, purpose);
+            
+            int affectedRows = pstmt.executeUpdate();
+            success = (affectedRows > 0);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error creating appointment", e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, null);
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Get all appointments from the database
+     * @return List of all appointments as maps
+     */
+    public List<Map<String, Object>> getAllAppointments() {
+        List<Map<String, Object>> appointments = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT a.*, " +
+                         "s.first_name as student_first_name, s.last_name as student_last_name, " +
+                         "p.first_name as parent_first_name, p.last_name as parent_last_name, " +
+                         "CASE " +
+                         "  WHEN a.teacher_id IS NOT NULL THEN (SELECT CONCAT(first_name, ' ', last_name) FROM teachers WHERE teacher_id = a.teacher_id) " +
+                         "END as teacher_name " +
+                         "FROM appointments a " +
+                         "LEFT JOIN students s ON a.student_id = s.student_id " +
+                         "LEFT JOIN parents p ON a.parent_id = p.parent_id " +
+                         "ORDER BY a.appointment_date DESC, a.appointment_date DESC";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> appointment = new HashMap<>();
+                appointment.put("appointmentId", rs.getInt("appointment_id"));
+                appointment.put("title", rs.getString("title"));
+                appointment.put("description", rs.getString("description"));
+                appointment.put("appointmentDate", rs.getTimestamp("appointment_date"));
+                appointment.put("status", rs.getString("status"));
+                
+                // Parent info
+                Integer parentId = rs.getInt("parent_id");
+                if (!rs.wasNull()) {
+                    appointment.put("parentId", parentId);
+                    appointment.put("parentName", rs.getString("parent_first_name") + " " + rs.getString("parent_last_name"));
+                }
+                
+                // Student info
+                Integer studentId = rs.getInt("student_id");
+                if (!rs.wasNull()) {
+                    appointment.put("studentId", studentId);
+                    appointment.put("studentName", rs.getString("student_first_name") + " " + rs.getString("student_last_name"));
+                }
+                
+                // Teacher info
+                Integer teacherId = rs.getInt("teacher_id");
+                if (!rs.wasNull()) {
+                    appointment.put("teacherId", teacherId);
+                    appointment.put("teacherName", rs.getString("teacher_name"));
+                }
+                
+                // Created by info
+                Integer createdBy = rs.getInt("created_by");
+                if (!rs.wasNull()) {
+                    appointment.put("createdBy", createdBy);
+                }
+                
+                appointments.add(appointment);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting all appointments", e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return appointments;
+    }
+    
+    /**
+     * Update appointment status and notes
+     * @param appointmentId The appointment ID
+     * @param status The new status
+     * @param notes Additional notes
+     * @return true if successful, false otherwise
+     */
+    public boolean updateAppointmentStatus(int appointmentId, String status, String notes) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "UPDATE appointments SET status = ?, description = ? WHERE appointment_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, status);
+            pstmt.setString(2, notes);
+            pstmt.setInt(3, appointmentId);
+            
+            int affectedRows = pstmt.executeUpdate();
+            success = (affectedRows > 0);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error updating appointment status for ID: " + appointmentId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, null);
+        }
+        
+        return success;
     }
 } 

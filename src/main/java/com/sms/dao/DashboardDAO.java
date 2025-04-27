@@ -31,7 +31,7 @@ public class DashboardDAO {
             conn = DBConnection.getConnection();
             
             // Count students
-            String sql = "SELECT COUNT(*) FROM Students";
+            String sql = "SELECT COUNT(*) FROM students";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -41,7 +41,7 @@ public class DashboardDAO {
             DBConnection.closeStatement(pstmt);
             
             // Count teachers
-            sql = "SELECT COUNT(*) FROM Teachers";
+            sql = "SELECT COUNT(*) FROM teachers";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -51,7 +51,7 @@ public class DashboardDAO {
             DBConnection.closeStatement(pstmt);
             
             // Count parents
-            sql = "SELECT COUNT(*) FROM Parents";
+            sql = "SELECT COUNT(*) FROM parents";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -61,7 +61,7 @@ public class DashboardDAO {
             DBConnection.closeStatement(pstmt);
             
             // Count courses
-            sql = "SELECT COUNT(*) FROM Courses";
+            sql = "SELECT COUNT(*) FROM courses";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -70,8 +70,28 @@ public class DashboardDAO {
             DBConnection.closeResultSet(rs);
             DBConnection.closeStatement(pstmt);
             
+            // Count doctors
+            sql = "SELECT COUNT(*) FROM doctors";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                stats.put("doctors", rs.getInt(1));
+            }
+            DBConnection.closeResultSet(rs);
+            DBConnection.closeStatement(pstmt);
+            
+            // Count nurses
+            sql = "SELECT COUNT(*) FROM nurses";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                stats.put("nurses", rs.getInt(1));
+            }
+            DBConnection.closeResultSet(rs);
+            DBConnection.closeStatement(pstmt);
+            
             // Count today's appointments
-            sql = "SELECT COUNT(*) FROM Appointments WHERE appointment_date = CURDATE()";
+            sql = "SELECT COUNT(*) FROM appointments WHERE DATE(appointment_date) = CURDATE()";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             if (rs.next()) {
@@ -80,6 +100,9 @@ public class DashboardDAO {
             
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error fetching dashboard statistics", e);
+            // Add debug information
+            LOGGER.log(Level.INFO, "SQL Error: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             DBConnection.closeAll(conn, pstmt, rs);
         }
