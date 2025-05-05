@@ -113,11 +113,13 @@ public class TeacherStudentsServlet extends HttpServlet {
         List<Student> enrolledStudents = studentDAO.getStudentsByTeacherId(teacherId);
         List<Student> availableStudents = studentDAO.getAllAvailableStudents();
         
-        request.setAttribute("enrolledStudents", enrolledStudents);
+        // Use students attribute instead of separate enrolled/available lists to match student-list.jsp
+        request.setAttribute("students", enrolledStudents);
         request.setAttribute("availableStudents", availableStudents);
         request.setAttribute("courses", teacherDAO.getCoursesByTeacherId(teacherId));
         
-        request.getRequestDispatcher("/WEB-INF/views/teacher/students.jsp").forward(request, response);
+        // Use correct JSP file path
+        request.getRequestDispatcher("/WEB-INF/views/teacher/student-list.jsp").forward(request, response);
     }
     
     /**

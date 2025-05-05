@@ -8,6 +8,7 @@ public class Course {
     private int teacherId;
     private String teacherName;
     private int credits;
+    private String status;
 
     public Course() {
     }
@@ -20,6 +21,18 @@ public class Course {
         this.description = description;
         this.teacherId = teacherId;
         this.credits = credits;
+        this.status = "active"; // Default status
+    }
+    
+    public Course(int id, String courseName, String courseCode, String description, int teacherId,
+                  int credits, String status) {
+        this.id = id;
+        this.courseName = courseName;
+        this.courseCode = courseCode;
+        this.description = description;
+        this.teacherId = teacherId;
+        this.credits = credits;
+        this.status = status;
     }
 
     public int getId() {
@@ -28,6 +41,10 @@ public class Course {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getCourseId() {
+        return id;
     }
 
     public String getCourseName() {
@@ -76,5 +93,13 @@ public class Course {
 
     public void setCredits(int credits) {
         this.credits = credits;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
 } 

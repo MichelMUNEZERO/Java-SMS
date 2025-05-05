@@ -56,27 +56,62 @@ public class AssignmentsServlet extends HttpServlet {
         int studentId = student != null ? student.getId() : 0;
         
         if (studentId == 0) {
-            // For development/testing, could use a default ID
-            studentId = 1;
+            // Get student ID from user ID
+            try {
+                studentId = getStudentIdFromUserId(user.getUserId());
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error getting student ID", e);
+                request.setAttribute("error", "Error loading assignments: " + e.getMessage());
+                request.getRequestDispatcher("/error.jsp").forward(request, response);
+                return;
+            }
         }
         
-        // Get pending, completed, and upcoming assignments for this student
-        List<Map<String, Object>> pendingAssignments = getAssignments(studentId, "pending");
-        List<Map<String, Object>> completedAssignments = getAssignments(studentId, "completed");
-        List<Map<String, Object>> upcomingAssignments = getAssignments(studentId, "upcoming");
-        
-        request.setAttribute("pendingAssignments", pendingAssignments);
-        request.setAttribute("completedAssignments", completedAssignments);
-        request.setAttribute("upcomingAssignments", upcomingAssignments);
-        
-        // Forward to the assignments JSP
-        request.getRequestDispatcher("/WEB-INF/views/student/assignments.jsp").forward(request, response);
+        try {
+            // Get pending, completed, and upcoming assignments for this student
+            List<Map<String, Object>> pendingAssignments = getAssignments(studentId, "pending");
+            List<Map<String, Object>> completedAssignments = getAssignments(studentId, "completed");
+            List<Map<String, Object>> upcomingAssignments = getAssignments(studentId, "upcoming");
+            
+            // Set attributes for the JSP
+            request.setAttribute("user", user);
+            request.setAttribute("pendingAssignments", pendingAssignments);
+            request.setAttribute("completedAssignments", completedAssignments);
+            request.setAttribute("upcomingAssignments", upcomingAssignments);
+            
+            // Forward to the assignments JSP
+            request.getRequestDispatcher("/WEB-INF/views/student/assignments.jsp").forward(request, response);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error loading assignments", e);
+            request.setAttribute("error", "Error loading assignments: " + e.getMessage());
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
+        }
+    }
+    
+    private int getStudentIdFromUserId(int userId) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT student_id FROM students WHERE user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("student_id");
+            }
+            return 0;
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
     }
     
     /**
      * Retrieves assignments for a given student ID and status
      */
-    private List<Map<String, Object>> getAssignments(int studentId, String status) {
+    private List<Map<String, Object>> getAssignments(int studentId, String status) throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -89,38 +124,38 @@ public class AssignmentsServlet extends HttpServlet {
             String sql;
             if ("pending".equals(status)) {
                 // Assignments that are due soon and not completed
-                sql = "SELECT a.assignment_id, a.title, a.description, a.due_date, a.max_score, " +
+                sql = "SELECT a.assignment_id, a.assignment_name as title, a.description, a.due_date, a.max_marks as max_score, " +
                       "c.course_id, c.course_code, c.course_name " +
                       "FROM Assignments a " +
                       "JOIN Courses c ON a.course_id = c.course_id " +
                       "JOIN Student_Courses sc ON c.course_id = sc.course_id " +
-                      "LEFT JOIN Submission s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
+                      "LEFT JOIN Assignment_Submissions s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
                       "WHERE sc.student_id = ? " +
                       "AND a.due_date > NOW() " +
-                      "AND (s.status IS NULL OR s.status <> 'completed') " +
+                      "AND (s.status IS NULL OR s.status <> 'graded') " +
                       "ORDER BY a.due_date ASC";
             } else if ("completed".equals(status)) {
                 // Assignments that the student has submitted
-                sql = "SELECT a.assignment_id, a.title, a.description, a.due_date, a.max_score, " +
-                      "c.course_id, c.course_code, c.course_name, s.submission_date, s.score " +
+                sql = "SELECT a.assignment_id, a.assignment_name as title, a.description, a.due_date, a.max_marks as max_score, " +
+                      "c.course_id, c.course_code, c.course_name, s.submission_date, s.marks as score " +
                       "FROM Assignments a " +
                       "JOIN Courses c ON a.course_id = c.course_id " +
                       "JOIN Student_Courses sc ON c.course_id = sc.course_id " +
-                      "JOIN Submission s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
+                      "JOIN Assignment_Submissions s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
                       "WHERE sc.student_id = ? " +
-                      "AND s.status = 'completed' " +
+                      "AND s.status = 'graded' " +
                       "ORDER BY s.submission_date DESC";
             } else { // upcoming
                 // Assignments that are due in the future
-                sql = "SELECT a.assignment_id, a.title, a.description, a.due_date, a.max_score, " +
+                sql = "SELECT a.assignment_id, a.assignment_name as title, a.description, a.due_date, a.max_marks as max_score, " +
                       "c.course_id, c.course_code, c.course_name " +
                       "FROM Assignments a " +
                       "JOIN Courses c ON a.course_id = c.course_id " +
                       "JOIN Student_Courses sc ON c.course_id = sc.course_id " +
-                      "LEFT JOIN Submission s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
+                      "LEFT JOIN Assignment_Submissions s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
                       "WHERE sc.student_id = ? " +
                       "AND a.due_date > DATE_ADD(NOW(), INTERVAL 7 DAY) " +
-                      "AND (s.status IS NULL OR s.status <> 'completed') " +
+                      "AND (s.status IS NULL OR s.status <> 'graded') " +
                       "ORDER BY a.due_date ASC";
             }
             
@@ -154,8 +189,6 @@ public class AssignmentsServlet extends HttpServlet {
                 
                 assignmentsList.add(assignment);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error retrieving student assignments", e);
         } finally {
             DBConnection.closeAll(conn, pstmt, rs);
         }

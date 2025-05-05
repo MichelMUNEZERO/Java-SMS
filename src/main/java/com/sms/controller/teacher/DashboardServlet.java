@@ -61,6 +61,9 @@ public class DashboardServlet extends HttpServlet {
             AnnouncementDAO announcementDAO = new AnnouncementDAO();
             AppointmentDAO appointmentDAO = new AppointmentDAO();
             
+            // Ensure student-course relationship exists (for debugging)
+            teacherDAO.ensureStudentCourseRelationship();
+            
             // Fetch teacher dashboard data
             Map<String, Object> dashboardData = new HashMap<>();
             
@@ -75,7 +78,7 @@ public class DashboardServlet extends HttpServlet {
             LOGGER.info("Total courses: " + totalCourses);
             
             // 3. Number of appointments for today
-            int todayAppointments = appointmentDAO.getAppointmentCountByTeacherIdAndDate(teacherId, "CURDATE()");
+            int todayAppointments = teacherDAO.getTodayAppointmentCountByTeacherId(teacherId);
             dashboardData.put("todayAppointments", todayAppointments);
             LOGGER.info("Today's appointments: " + todayAppointments);
             

@@ -18,6 +18,10 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
     />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- DataTables CSS -->
     <link
       rel="stylesheet"
@@ -28,182 +32,70 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
       rel="stylesheet"
       href="${pageContext.request.contextPath}/css/style.css"
     />
+    <link
+      rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/admin-styles.css"
+    />
     <style>
-      .card {
-        border-radius: 10px;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-      }
-      .action-btn {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        line-height: 32px;
-        text-align: center;
+      .badge {
+        padding: 0.5em 0.8em;
+        font-weight: 500;
+        border-radius: 6px;
       }
     </style>
   </head>
   <body>
     <div class="container-fluid">
       <div class="row">
-        <!-- Sidebar -->
-        <div
-          class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse"
-          style="min-height: 100vh"
-        >
-          <div class="position-sticky pt-3">
-            <div class="d-flex align-items-center justify-content-center mb-4">
-              <img
-                src="${pageContext.request.contextPath}/images/school-logo.png"
-                alt="School Logo"
-                width="50"
-                class="me-2"
-              />
-              <span class="fs-4 text-white">School MS</span>
-            </div>
-            <hr class="text-white" />
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/dashboard"
-                >
-                  <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link active text-white"
-                  href="${pageContext.request.contextPath}/admin/students"
-                >
-                  <i class="bi bi-person me-2"></i> Students
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/teachers"
-                >
-                  <i class="bi bi-person-badge me-2"></i> Teachers
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/parents"
-                >
-                  <i class="bi bi-people me-2"></i> Parents
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/courses"
-                >
-                  <i class="bi bi-book me-2"></i> Courses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/doctors"
-                >
-                  <i class="bi bi-heart-pulse me-2"></i> Doctors
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/nurses"
-                >
-                  <i class="bi bi-bandaid me-2"></i> Nurses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/announcements"
-                >
-                  <i class="bi bi-megaphone me-2"></i> Announcements
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/appointments"
-                >
-                  <i class="bi bi-calendar-check me-2"></i> Appointments
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/settings"
-                >
-                  <i class="bi bi-gear me-2"></i> Settings
-                </a>
-              </li>
-              <li class="nav-item mt-5">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/logout"
-                >
-                  <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <!-- Include Sidebar -->
+        <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp" />
 
         <!-- Main content -->
-        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
-          <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-          >
-            <h1 class="h2">Student Management</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+          <div class="page-header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+            <h1 class="page-title">Student Management</h1>
+            <div class="btn-toolbar">
               <a href="${pageContext.request.contextPath}/admin/students/new" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i> Add Student
+                <i class="bi bi-person-plus me-1"></i> Add New Student
               </a>
             </div>
           </div>
 
           <!-- Filters -->
-          <div class="card mb-4">
-            <div class="card-body">
-              <form action="${pageContext.request.contextPath}/admin/students" method="get" class="row g-3">
-                <div class="col-md-3">
-                  <label for="gradeLevel" class="form-label">Grade Level</label>
-                  <select class="form-select" id="gradeLevel" name="gradeLevel">
-                    <option value="">All Grades</option>
-                    <c:forEach var="i" begin="1" end="12">
-                      <option value="${i}" ${param.gradeLevel eq i ? 'selected' : ''}>Grade ${i}</option>
-                    </c:forEach>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <label for="section" class="form-label">Section</label>
-                  <select class="form-select" id="section" name="section">
-                    <option value="">All Sections</option>
-                    <option value="A" ${param.section eq 'A' ? 'selected' : ''}>A</option>
-                    <option value="B" ${param.section eq 'B' ? 'selected' : ''}>B</option>
-                    <option value="C" ${param.section eq 'C' ? 'selected' : ''}>C</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <label for="status" class="form-label">Status</label>
-                  <select class="form-select" id="status" name="status">
-                    <option value="">All Status</option>
-                    <option value="active" ${param.status eq 'active' ? 'selected' : ''}>Active</option>
-                    <option value="inactive" ${param.status eq 'inactive' ? 'selected' : ''}>Inactive</option>
-                  </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                  <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-filter me-1"></i> Apply Filters
-                  </button>
-                </div>
-              </form>
-            </div>
+          <div class="filter-section">
+            <form action="${pageContext.request.contextPath}/admin/students" method="get" class="row g-3">
+              <div class="col-md-3">
+                <label for="gradeLevel" class="form-label">Grade Level</label>
+                <select class="form-select" id="gradeLevel" name="gradeLevel">
+                  <option value="">All Grades</option>
+                  <c:forEach var="i" begin="1" end="12">
+                    <option value="${i}" ${param.gradeLevel eq i ? 'selected' : ''}>Grade ${i}</option>
+                  </c:forEach>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="section" class="form-label">Section</label>
+                <select class="form-select" id="section" name="section">
+                  <option value="">All Sections</option>
+                  <option value="A" ${param.section eq 'A' ? 'selected' : ''}>A</option>
+                  <option value="B" ${param.section eq 'B' ? 'selected' : ''}>B</option>
+                  <option value="C" ${param.section eq 'C' ? 'selected' : ''}>C</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                  <option value="">All Status</option>
+                  <option value="active" ${param.status eq 'active' ? 'selected' : ''}>Active</option>
+                  <option value="inactive" ${param.status eq 'inactive' ? 'selected' : ''}>Inactive</option>
+                </select>
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="bi bi-filter me-1"></i> Apply Filters
+                </button>
+              </div>
+            </form>
           </div>
 
           <!-- Alert for success/error messages -->
@@ -237,13 +129,10 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
           </c:if>
 
           <!-- Students Table -->
-          <div class="card mb-4">
+          <div class="content-card">
             <div class="card-body">
-              <div class="table-responsive">
-                <table
-                  class="table table-striped table-hover"
-                  id="studentTable"
-                >
+              <div class="table-container">
+                <table class="table table-striped data-table" id="studentTable">
                   <thead>
                     <tr>
                       <th>ID</th>
@@ -260,30 +149,39 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                     <c:forEach var="student" items="${students}">
                       <tr>
                         <td>${student.id}</td>
-                        <td>${student.firstName} ${student.lastName}</td>
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <div class="avatar-circle me-2 d-flex align-items-center justify-content-center bg-light" style="width: 35px; height: 35px; border-radius: 50%;">
+                              <i class="bi bi-person text-secondary"></i>
+                            </div>
+                            <div>
+                              <span class="fw-medium">${student.firstName} ${student.lastName}</span>
+                            </div>
+                          </div>
+                        </td>
                         <td>${student.className}</td>
                         <td>-</td>
                         <td>-</td>
                         <td><fmt:formatDate value="${student.dateOfBirth}" pattern="MMM dd, yyyy" /></td>
                         <td>
                           <span
-                            class="badge ${student.status eq 'active' ? 'bg-success' : 'bg-danger'}"
+                            class="badge ${student.status eq 'active' ? 'bg-dark' : 'bg-danger'}"
                           >
                             ${student.status}
                           </span>
                         </td>
                         <td>
-                          <div class="btn-group">
+                          <div class="d-flex">
                             <a
                               href="${pageContext.request.contextPath}/admin/students/view/${student.id}"
-                              class="btn btn-sm btn-outline-primary action-btn me-1"
+                              class="btn btn-sm btn-outline-primary action-btn"
                               title="View"
                             >
                               <i class="bi bi-eye"></i>
                             </a>
                             <a
                               href="${pageContext.request.contextPath}/admin/students/edit/${student.id}"
-                              class="btn btn-sm btn-outline-secondary action-btn me-1"
+                              class="btn btn-sm btn-outline-secondary action-btn"
                               title="Edit"
                             >
                               <i class="bi bi-pencil"></i>
@@ -332,7 +230,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                                 <div class="modal-footer">
                                   <button
                                     type="button"
-                                    class="btn btn-secondary"
+                                    class="btn btn-outline-secondary"
                                     data-bs-dismiss="modal"
                                   >
                                     Cancel

@@ -1,6 +1,7 @@
 package com.sms.dao;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,30 +34,29 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM students";
+            String sql = "SELECT * FROM students ORDER BY last_name, first_name";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
+            LOGGER.info("Fetching all students from database");
+            
             while (rs.next()) {
-                Student student = new Student();
-                student.setId(rs.getInt("student_id"));
-                student.setFirstName(rs.getString("first_name"));
-                student.setLastName(rs.getString("last_name"));
-                student.setEmail(rs.getString("email"));
-                student.setPhone(rs.getString("phone"));
-                student.setAddress(rs.getString("address"));
-                student.setDateOfBirth(rs.getDate("date_of_birth"));
-                student.setAdmissionDate(rs.getDate("admission_date"));
-                // Set classId based on grade field from the database
-                String grade = rs.getString("grade");
-                if (grade != null) {
-                    student.setClassId(0); // Set a default value
-                    student.setClassName(grade); // Use grade as the class name
+                try {
+                    Student student = mapResultSetToStudent(rs);
+                    
+                    // Ensure status is set to 'active' if it's null
+                    if (student.getStatus() == null || student.getStatus().isEmpty()) {
+                        student.setStatus("active");
+                    }
+                    
+                    students.add(student);
+                    LOGGER.info("Loaded student: " + student.getFirstName() + " " + student.getLastName() + " (ID: " + student.getId() + ")");
+                } catch(Exception e) {
+                    LOGGER.log(Level.WARNING, "Error mapping student: " + e.getMessage());
                 }
-                student.setStatus("active"); // Set a default status
-                
-                students.add(student);
             }
+            
+            LOGGER.info("Loaded " + students.size() + " students in total");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting all students", e);
         } finally {
@@ -85,7 +85,16 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM students WHERE student_id = ?";
+            String sql = "SELECT s.*, p.first_name as parent_first_name, p.last_name as parent_last_name, " +
+                        "p.email as parent_email, p.phone as parent_phone, p.address as parent_address, " +
+                        "p.occupation as parent_occupation, u.username, u.active as user_status, " +
+                        "sc.course_id " +
+                        "FROM students s " +
+                        "LEFT JOIN parents p ON s.parent_id = p.parent_id " +
+                        "LEFT JOIN users u ON s.user_id = u.user_id " +
+                        "LEFT JOIN student_courses sc ON s.student_id = sc.student_id " +
+                        "WHERE s.student_id = ?";
+            
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             rs = pstmt.executeQuery();
@@ -98,29 +107,60 @@ public class StudentDAO {
                 student.setEmail(rs.getString("email"));
                 student.setPhone(rs.getString("phone"));
                 student.setAddress(rs.getString("address"));
-                student.setDateOfBirth(rs.getDate("date_of_birth"));
-                student.setAdmissionDate(rs.getDate("admission_date"));
-                // Set classId based on grade field from the database
-                String grade = rs.getString("grade");
-                if (grade != null) {
-                    student.setClassId(0); // Set a default value
-                    student.setClassName(grade); // Use grade as the class name
+                
+                // Handle date fields that might be null
+                java.sql.Date dob = rs.getDate("date_of_birth");
+                student.setDateOfBirth(dob != null ? dob : null);
+                
+                java.sql.Date admissionDate = rs.getDate("admission_date");
+                student.setAdmissionDate(admissionDate != null ? admissionDate : null);
+                
+                student.setRegNumber(rs.getString("reg_number"));
+                student.setClassName(rs.getString("grade"));
+                
+                // Handle parent_id and user_id that might be null
+                int parentId = rs.getInt("parent_id");
+                student.setParentId(rs.wasNull() ? 0 : parentId);
+                
+                int userId = rs.getInt("user_id");
+                student.setUserId(rs.wasNull() ? 0 : userId);
+                
+                // Set status based on user's active status
+                boolean isActive = rs.getBoolean("user_status");
+                student.setStatus(isActive ? "active" : "inactive");
+                
+                // Set username if available
+                student.setUsername(rs.getString("username"));
+                
+                // Set course ID if available
+                int courseId = rs.getInt("course_id");
+                student.setCourseId(rs.wasNull() ? null : courseId);
+                
+                // Set parent information if available
+                if (rs.getString("parent_first_name") != null) {
+                    student.setParentFirstName(rs.getString("parent_first_name"));
+                    student.setParentLastName(rs.getString("parent_last_name"));
+                    student.setParentName(rs.getString("parent_first_name") + " " + rs.getString("parent_last_name"));
+                    student.setGuardianEmail(rs.getString("parent_email"));
+                    student.setGuardianPhone(rs.getString("parent_phone"));
+                    student.setGuardianAddress(rs.getString("parent_address"));
+                    student.setGuardianOccupation(rs.getString("parent_occupation"));
                 }
-                student.setStatus("active"); // Set a default status
             }
+            
+            return student;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error getting student with ID: " + id, e);
+            throw new RuntimeException("Database error while retrieving student: " + e.getMessage());
         } finally {
             try {
                 if (rs != null) rs.close();
                 if (pstmt != null) pstmt.close();
                 if (conn != null) conn.close();
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+                LOGGER.log(Level.SEVERE, "Error closing database resources", e);
             }
         }
-        
-        return student;
     }
     
     /**
@@ -348,10 +388,10 @@ public class StudentDAO {
     }
 
     /**
-     * Get all students for a specific teacher
+     * Get all students taught by a specific teacher
      * 
-     * @param teacherId The teacher ID
-     * @return List of students enrolled in this teacher's courses
+     * @param teacherId The ID of the teacher
+     * @return List of Student objects
      */
     public List<Student> getStudentsByTeacherId(int teacherId) {
         List<Student> students = new ArrayList<>();
@@ -361,23 +401,53 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT DISTINCT s.* FROM students s " +
-                         "JOIN student_courses sc ON s.student_id = sc.student_id " +
-                         "JOIN courses c ON sc.course_id = c.course_id " +
-                         "WHERE c.teacher_id = ? " +
-                         "ORDER BY s.last_name, s.first_name";
             
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, teacherId);
-            rs = pstmt.executeQuery();
+            // First check if the student_courses table exists
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet tables = meta.getTables(null, null, "student_courses", new String[] {"TABLE"});
+            boolean tableExists = tables.next();
+            tables.close();
             
-            while (rs.next()) {
-                Student student = mapResultSetToStudent(rs);
-                students.add(student);
+            if (tableExists) {
+                // Try to get students through the student_courses relationship
+                String sql = "SELECT DISTINCT s.* FROM students s " +
+                             "JOIN student_courses sc ON s.student_id = sc.student_id " +
+                             "JOIN courses c ON sc.course_id = c.course_id " +
+                             "WHERE c.teacher_id = ? " +
+                             "ORDER BY s.last_name, s.first_name";
+                
+                pstmt = conn.prepareStatement(sql);
+                pstmt.setInt(1, teacherId);
+                rs = pstmt.executeQuery();
+                
+                while (rs.next()) {
+                    try {
+                        Student student = mapResultSetToStudent(rs);
+                        students.add(student);
+                    } catch (SQLException e) {
+                        LOGGER.log(Level.WARNING, "Error mapping student result set: " + e.getMessage());
+                    }
+                }
+                
+                // If no students found through join, or if there was an error, get all students as fallback
+                if (students.isEmpty()) {
+                    closeResources(null, pstmt, rs);
+                    
+                    // Get all students instead as a fallback
+                    return getAllStudents();
+                }
+            } else {
+                // If student_courses table doesn't exist, get all students
+                return getAllStudents();
             }
         } catch (SQLException e) {
-            System.out.println("Error retrieving students for teacher ID: " + teacherId);
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error retrieving students for teacher ID: " + teacherId, e);
+            // Fallback to getting all students if there's an error
+            try {
+                return getAllStudents();
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error retrieving all students as fallback", ex);
+            }
         } finally {
             closeResources(conn, pstmt, rs);
         }
@@ -386,7 +456,7 @@ public class StudentDAO {
     }
 
     /**
-     * Get all available students for enrollment
+     * Get all available students
      * (students not already enrolled in a specific course could be shown here)
      * 
      * @return List of all active students
@@ -399,13 +469,16 @@ public class StudentDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM students WHERE status = 'active' ORDER BY last_name, first_name";
+            // Removed the WHERE status = 'active' filter since the column doesn't exist
+            String sql = "SELECT * FROM students ORDER BY last_name, first_name";
             
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
                 Student student = mapResultSetToStudent(rs);
+                // Set status to active by default since we don't have a status column
+                student.setStatus("active");
                 students.add(student);
             }
         } catch (SQLException e) {
@@ -436,33 +509,78 @@ public class StudentDAO {
      */
     private Student mapResultSetToStudent(ResultSet rs) throws SQLException {
         Student student = new Student();
+        
+        // Required fields
         student.setId(rs.getInt("student_id"));
         student.setFirstName(rs.getString("first_name"));
         student.setLastName(rs.getString("last_name"));
-        student.setEmail(rs.getString("email"));
-        student.setPhone(rs.getString("phone"));
-        student.setAddress(rs.getString("address"));
-        student.setGender(rs.getString("gender"));
-        student.setDateOfBirth(rs.getDate("date_of_birth"));
-        student.setAdmissionDate(rs.getDate("admission_date"));
-        student.setClassId(rs.getInt("class_id"));
         
-        // Optional fields (may be null)
-        try {
-            student.setClassName(rs.getString("class_name"));
-        } catch (SQLException e) {
-            // Column not available, ignore
+        // Optional fields with fallback values
+        try { 
+            String email = rs.getString("email");
+            student.setEmail(email != null ? email : "");
+        } catch (SQLException e) { 
+            student.setEmail(""); 
+        }
+        
+        try { 
+            String phone = rs.getString("phone");
+            student.setPhone(phone != null ? phone : "");
+        } catch (SQLException e) { 
+            student.setPhone(""); 
+        }
+        
+        try { 
+            String address = rs.getString("address");
+            student.setAddress(address != null ? address : "");
+        } catch (SQLException e) { 
+            student.setAddress(""); 
         }
         
         try {
-            student.setGuardianName(rs.getString("guardian_name"));
-            student.setGuardianPhone(rs.getString("guardian_phone"));
-            student.setGuardianEmail(rs.getString("guardian_email"));
+            java.sql.Date dob = rs.getDate("date_of_birth");
+            if (dob != null) {
+                student.setDateOfBirth(dob);
+            }
         } catch (SQLException e) {
-            // Columns not available, ignore
+            // Date of birth is optional
         }
         
-        student.setStatus(rs.getString("status"));
+        try {
+            java.sql.Date admissionDate = rs.getDate("admission_date");
+            if (admissionDate != null) {
+                student.setAdmissionDate(admissionDate);
+            }
+        } catch (SQLException e) {
+            // Admission date is optional
+        }
+        
+        try {
+            String grade = rs.getString("grade");
+            if (grade != null && !grade.isEmpty()) {
+                student.setClassName(grade);
+                student.setClassId(0); // Default class id
+            }
+        } catch (SQLException e) {
+            // Grade is optional
+        }
+        
+        try {
+            String regNumber = rs.getString("reg_number");
+            if (regNumber != null) {
+                student.setRegNumber(regNumber);
+            }
+        } catch (SQLException e) {
+            // Registration number is optional
+        }
+        
+        // IMPORTANT: Always set status to active if missing or null
+        try {
+            String status = rs.getString("status");
+            student.setStatus(status != null && !status.isEmpty() ? status : "active");
+        } catch (SQLException e) {
+            student.setStatus("active");
+        }
         
         return student;
     }

@@ -29,6 +29,13 @@ public class Student {
     private String guardianName;
     private String guardianPhone;
     private String guardianEmail;
+    private String guardianAddress;
+    private String guardianOccupation;
+    private String username;
+    private Integer courseId;
+
+    private String parentFirstName;
+    private String parentLastName;
 
     public Student() {
     }
@@ -192,6 +199,54 @@ public class Student {
 
     public void setGuardianEmail(String guardianEmail) {
         this.guardianEmail = guardianEmail;
+    }
+
+    public String getGuardianAddress() {
+        return guardianAddress;
+    }
+
+    public void setGuardianAddress(String guardianAddress) {
+        this.guardianAddress = guardianAddress;
+    }
+
+    public String getGuardianOccupation() {
+        return guardianOccupation;
+    }
+
+    public void setGuardianOccupation(String guardianOccupation) {
+        this.guardianOccupation = guardianOccupation;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Integer getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(Integer courseId) {
+        this.courseId = courseId;
+    }
+
+    public String getParentFirstName() {
+        return parentFirstName;
+    }
+
+    public void setParentFirstName(String parentFirstName) {
+        this.parentFirstName = parentFirstName;
+    }
+
+    public String getParentLastName() {
+        return parentLastName;
+    }
+
+    public void setParentLastName(String parentLastName) {
+        this.parentLastName = parentLastName;
     }
 
     @Override

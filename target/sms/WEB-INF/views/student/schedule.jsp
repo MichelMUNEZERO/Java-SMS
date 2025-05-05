@@ -96,6 +96,13 @@ Bootstrap danger (red) } else { return "#6c757d"; // Bootstrap secondary (gray)
         margin-right: 5px;
         border-radius: 3px;
       }
+      
+      .profile-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
     </style>
   </head>
   <body>
@@ -114,7 +121,9 @@ Bootstrap danger (red) } else { return "#6c757d"; // Bootstrap secondary (gray)
                 width="50"
                 class="me-2"
               />
-              <span class="fs-4 text-white">School MS</span>
+              <span class="fs-4 text-white"
+                ><i class="bi bi-building me-2"></i>School MS</span
+              >
             </div>
             <hr class="text-white" />
             <ul class="nav flex-column">
@@ -191,7 +200,22 @@ Bootstrap danger (red) } else { return "#6c757d"; // Bootstrap secondary (gray)
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  <i class="bi bi-person-circle me-1"></i> ${user.username}
+                  <c:choose>
+                    <c:when test="${not empty profileData.imageLink}">
+                      <img src="${profileData.imageLink}" alt="${user.username}" class="profile-img me-2">
+                    </c:when>
+                    <c:otherwise>
+                      <c:choose>
+                        <c:when test="${user.role eq 'student'}">
+                          <i class="bi bi-book me-1"></i>
+                        </c:when>
+                        <c:otherwise>
+                          <i class="bi bi-person-circle me-1"></i>
+                        </c:otherwise>
+                      </c:choose>
+                    </c:otherwise>
+                  </c:choose>
+                  ${user.username}
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                   <li>

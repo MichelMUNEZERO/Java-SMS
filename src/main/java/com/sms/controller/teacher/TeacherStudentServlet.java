@@ -2,9 +2,11 @@ package com.sms.controller.teacher;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -35,7 +37,9 @@ import com.sms.util.DBConnection;
     "/teacher/student/new",
     "/teacher/student/add",
     "/teacher/student/view",
-    "/teacher/student/enroll"
+    "/teacher/student/enroll",
+    "/teacher/student/edit",
+    "/teacher/student/update"
 })
 public class TeacherStudentServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -78,6 +82,8 @@ public class TeacherStudentServlet extends HttpServlet {
                 viewStudent(request, response, user.getUserId());
             } else if (path.equals("/teacher/student/enroll")) {
                 showEnrollStudentForm(request, response, user.getUserId());
+            } else if (path.equals("/teacher/student/edit")) {
+                showEditStudentForm(request, response);
             } else {
                 listStudents(request, response, user.getUserId());
             }
@@ -109,6 +115,8 @@ public class TeacherStudentServlet extends HttpServlet {
                 addStudent(request, response);
             } else if (path.equals("/teacher/student/enroll")) {
                 enrollStudent(request, response, user.getUserId());
+            } else if (path.equals("/teacher/student/update")) {
+                updateStudent(request, response);
             } else {
                 response.sendRedirect(request.getContextPath() + "/teacher/student");
             }
@@ -120,7 +128,11 @@ public class TeacherStudentServlet extends HttpServlet {
     }
     
     private void listStudents(HttpServletRequest request, HttpServletResponse response, int teacherId) throws ServletException, IOException {
-        List<Student> students = studentDAO.getStudentsByTeacherId(teacherId);
+        // Always show all students for now 
+        // This ensures all students in the database are visible
+        List<Student> students = studentDAO.getAllStudents();
+        LOGGER.info("Showing all " + students.size() + " students from database");
+        
         request.setAttribute("students", students);
         request.getRequestDispatcher("/WEB-INF/views/teacher/student-list.jsp").forward(request, response);
     }
@@ -156,6 +168,10 @@ public class TeacherStudentServlet extends HttpServlet {
         String grade = request.getParameter("grade");
         String courseId = request.getParameter("courseId");
         
+        // User account information (now required)
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        
         // Parent information
         String createNewParent = request.getParameter("createNewParent");
         String parentId = request.getParameter("parentId");
@@ -166,15 +182,12 @@ public class TeacherStudentServlet extends HttpServlet {
         String parentAddress = request.getParameter("parentAddress");
         String parentOccupation = request.getParameter("parentOccupation");
         
-        // User account information
-        String createUserAccount = request.getParameter("createUserAccount");
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        
         // Validate required inputs
         if (firstName == null || firstName.trim().isEmpty() || 
             lastName == null || lastName.trim().isEmpty() || 
-            regNumber == null || regNumber.trim().isEmpty()) {
+            regNumber == null || regNumber.trim().isEmpty() ||
+            username == null || username.trim().isEmpty() ||
+            password == null || password.trim().isEmpty()) {
             
             request.setAttribute("errorMessage", "Required fields cannot be empty");
             showNewStudentForm(request, response);
@@ -219,27 +232,23 @@ public class TeacherStudentServlet extends HttpServlet {
                     generatedParentId = Integer.parseInt(parentId);
                 }
                 
-                // Step 2: Create user account if selected
-                if ("true".equals(createUserAccount) && username != null && !username.trim().isEmpty() && 
-                    password != null && !password.trim().isEmpty()) {
-                    
-                    String userSql = "INSERT INTO users (username, password, role, email, active) VALUES (?, ?, ?, ?, ?)";
-                    pstmt = conn.prepareStatement(userSql, PreparedStatement.RETURN_GENERATED_KEYS);
-                    pstmt.setString(1, username);
-                    pstmt.setString(2, password); // In production, this should be hashed
-                    pstmt.setString(3, "student");
-                    pstmt.setString(4, email);
-                    pstmt.setBoolean(5, true);
-                    
-                    pstmt.executeUpdate();
-                    
-                    rs = pstmt.getGeneratedKeys();
-                    if (rs.next()) {
-                        generatedUserId = rs.getInt(1);
-                    }
-                    rs.close();
-                    pstmt.close();
+                // Step 2: Create user account (now required)
+                String userSql = "INSERT INTO users (username, password, role, email, active) VALUES (?, ?, ?, ?, ?)";
+                pstmt = conn.prepareStatement(userSql, PreparedStatement.RETURN_GENERATED_KEYS);
+                pstmt.setString(1, username);
+                pstmt.setString(2, password); // In production, this should be hashed
+                pstmt.setString(3, "student");
+                pstmt.setString(4, email);
+                pstmt.setBoolean(5, true);
+                
+                pstmt.executeUpdate();
+                
+                rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    generatedUserId = rs.getInt(1);
                 }
+                rs.close();
+                pstmt.close();
                 
                 // Step 3: Create student
                 String studentSql = "INSERT INTO students (first_name, last_name, email, phone, address, date_of_birth, " +
@@ -295,6 +304,31 @@ public class TeacherStudentServlet extends HttpServlet {
                 
                 // Step 4: Enroll student in course if selected
                 if (courseId != null && !courseId.trim().isEmpty() && generatedStudentId > 0) {
+                    // First check if student_courses table exists
+                    DatabaseMetaData dbMeta = conn.getMetaData();
+                    ResultSet tables = dbMeta.getTables(null, null, "student_courses", null);
+                    boolean tableExists = tables.next();
+                    tables.close();
+                    
+                    if (!tableExists) {
+                        // Create the student_courses table if it doesn't exist
+                        String createTableSql = "CREATE TABLE student_courses (" +
+                                              "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                                              "student_id INT NOT NULL, " +
+                                              "course_id INT NOT NULL, " +
+                                              "enrollment_date DATE DEFAULT CURRENT_DATE(), " +
+                                              "status VARCHAR(20) DEFAULT 'active', " +
+                                              "FOREIGN KEY (student_id) REFERENCES students(student_id), " +
+                                              "FOREIGN KEY (course_id) REFERENCES courses(course_id), " +
+                                              "UNIQUE (student_id, course_id)" +
+                                              ")";
+                        
+                        Statement stmt = conn.createStatement();
+                        stmt.executeUpdate(createTableSql);
+                        stmt.close();
+                        LOGGER.info("Created student_courses table");
+                    }
+                    
                     String enrollSql = "INSERT INTO student_courses (student_id, course_id, enrollment_date, status) VALUES (?, ?, ?, ?)";
                     pstmt = conn.prepareStatement(enrollSql);
                     pstmt.setInt(1, generatedStudentId);
@@ -304,6 +338,7 @@ public class TeacherStudentServlet extends HttpServlet {
                     
                     pstmt.executeUpdate();
                     pstmt.close();
+                    LOGGER.info("Enrolled student ID " + generatedStudentId + " in course ID " + courseId);
                 }
                 
                 // Commit transaction
@@ -341,31 +376,71 @@ public class TeacherStudentServlet extends HttpServlet {
     private void viewStudent(HttpServletRequest request, HttpServletResponse response, int teacherId) throws ServletException, IOException {
         String idParam = request.getParameter("id");
         if (idParam == null || idParam.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/teacher/student");
+            LOGGER.warning("Student ID parameter is missing");
+            request.setAttribute("error", "Student ID is required");
+            request.getRequestDispatcher("/WEB-INF/views/teacher/student-list.jsp").forward(request, response);
             return;
         }
         
         try {
-            int id = Integer.parseInt(idParam);
-            Student student = studentDAO.getStudentById(id);
+            int studentId = Integer.parseInt(idParam);
+            LOGGER.info("Attempting to view student with ID: " + studentId);
+            
+            Student student = studentDAO.getStudentById(studentId);
+            LOGGER.info("Retrieved student: " + (student != null ? student.getFirstName() + " " + student.getLastName() : "null"));
             
             if (student == null) {
-                response.sendRedirect(request.getContextPath() + "/teacher/student?error=notfound");
+                LOGGER.warning("No student found with ID: " + studentId);
+                request.setAttribute("error", "Student not found");
+                request.getRequestDispatcher("/WEB-INF/views/teacher/student-list.jsp").forward(request, response);
                 return;
             }
             
-            // Get courses this student is enrolled in
-            List<Course> enrolledCourses = getCoursesByStudentId(id);
+            // Ensure required fields have default values if null
+            if (student.getStatus() == null || student.getStatus().trim().isEmpty()) {
+                student.setStatus("active");
+            }
+            if (student.getEmail() == null) {
+                student.setEmail("");
+            }
+            if (student.getPhone() == null) {
+                student.setPhone("Not provided");
+            }
+            if (student.getAddress() == null) {
+                student.setAddress("Not provided");
+            }
+            if (student.getRegNumber() == null) {
+                student.setRegNumber("Not provided");
+            }
             
+            // Get courses this student is enrolled in
+            LOGGER.info("Getting enrolled courses for student ID: " + studentId);
+            List<Course> enrolledCourses = getCoursesByStudentId(studentId);
+            LOGGER.info("Found " + (enrolledCourses != null ? enrolledCourses.size() : 0) + " enrolled courses");
+            
+            if (enrolledCourses == null) {
+                enrolledCourses = new ArrayList<>();
+            }
+            
+            // Set attributes for the JSP
             request.setAttribute("student", student);
             request.setAttribute("enrolledCourses", enrolledCourses);
+            
+            // Forward to the view page
+            LOGGER.info("Forwarding to student-view.jsp");
             request.getRequestDispatcher("/WEB-INF/views/teacher/student-view.jsp").forward(request, response);
             
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/teacher/student?error=invalid");
+            LOGGER.log(Level.SEVERE, "Invalid student ID format: " + idParam, e);
+            request.setAttribute("error", "Invalid student ID format");
+            request.getRequestDispatcher("/WEB-INF/views/teacher/student-list.jsp").forward(request, response);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Database error while viewing student", e);
+            request.setAttribute("error", "Database error: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error viewing student", e);
-            request.setAttribute("errorMessage", "Error viewing student: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Unexpected error while viewing student", e);
+            request.setAttribute("error", "An unexpected error occurred: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         }
     }
@@ -437,16 +512,31 @@ public class TeacherStudentServlet extends HttpServlet {
      * Helper method to get courses a student is enrolled in
      */
     private List<Course> getCoursesByStudentId(int studentId) throws SQLException {
-        List<Course> courses = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+        List<Course> courses = new ArrayList<>();
         
         try {
+            LOGGER.info("Getting courses for student ID: " + studentId);
             conn = DBConnection.getConnection();
-            String sql = "SELECT c.* FROM courses c " +
-                         "JOIN student_courses sc ON c.course_id = sc.course_id " +
-                         "WHERE sc.student_id = ?";
+            
+            // First check if the student_courses table exists
+            DatabaseMetaData dbMeta = conn.getMetaData();
+            ResultSet tables = dbMeta.getTables(null, null, "student_courses", null);
+            boolean tableExists = tables.next();
+            tables.close();
+            
+            if (!tableExists) {
+                LOGGER.warning("student_courses table does not exist");
+                return courses;
+            }
+            
+            String sql = "SELECT c.*, t.first_name as teacher_first_name, t.last_name as teacher_last_name " +
+                        "FROM courses c " +
+                        "JOIN student_courses sc ON c.course_id = sc.course_id " +
+                        "JOIN teachers t ON c.teacher_id = t.teacher_id " +
+                        "WHERE sc.student_id = ?";
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, studentId);
@@ -455,27 +545,117 @@ public class TeacherStudentServlet extends HttpServlet {
             while (rs.next()) {
                 Course course = new Course();
                 course.setId(rs.getInt("course_id"));
-                course.setCourseName(rs.getString("course_name"));
                 course.setCourseCode(rs.getString("course_code"));
-                course.setDescription(rs.getString("description"));
+                course.setCourseName(rs.getString("course_name"));
                 course.setCredits(rs.getInt("credits"));
-                course.setTeacherId(rs.getInt("teacher_id"));
-                
-                // If teacher name is available in the result set
-                try {
-                    course.setTeacherName(rs.getString("teacher_name"));
-                } catch (SQLException e) {
-                    // Ignore if not available
-                }
-                
+                course.setTeacherName(rs.getString("teacher_first_name") + " " + rs.getString("teacher_last_name"));
                 courses.add(course);
             }
+            
+            LOGGER.info("Found " + courses.size() + " courses for student ID: " + studentId);
+            return courses;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting courses for student ID: " + studentId, e);
+            throw e;
         } finally {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (conn != null) conn.close();
+            if (rs != null) try { rs.close(); } catch (SQLException e) { /* ignored */ }
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) { /* ignored */ }
+            if (conn != null) try { conn.close(); } catch (SQLException e) { /* ignored */ }
         }
-        
-        return courses;
+    }
+    
+    private void showEditStudentForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            String studentId = request.getParameter("id");
+            if (studentId == null || studentId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Student ID is required");
+            }
+            
+            int id = Integer.parseInt(studentId);
+            Student student = studentDAO.getStudentById(id);
+            if (student == null) {
+                throw new IllegalArgumentException("Student not found");
+            }
+            
+            // Get all courses taught by this teacher to populate the dropdown
+            List<Course> courses = courseDAO.getCoursesByTeacherId(((User)request.getSession().getAttribute("user")).getUserId());
+            request.setAttribute("courses", courses);
+            
+            // Get all parents for the existing parent dropdown
+            List<Parent> parents = teacherDAO.getAllParents();
+            request.setAttribute("parents", parents);
+            
+            // Set the student object for the form
+            request.setAttribute("student", student);
+            request.setAttribute("isEdit", true);
+            
+            request.getRequestDispatcher("/WEB-INF/views/teacher/student-form.jsp").forward(request, response);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error preparing edit student form", e);
+            request.setAttribute("errorMessage", "Error loading edit form: " + e.getMessage());
+            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+    
+    private void updateStudent(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            String studentId = request.getParameter("studentId");
+            if (studentId == null || studentId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Student ID is required");
+            }
+            
+            int id = Integer.parseInt(studentId);
+            Student existingStudent = studentDAO.getStudentById(id);
+            if (existingStudent == null) {
+                throw new IllegalArgumentException("Student not found");
+            }
+            
+            // Get updated student information
+            String firstName = request.getParameter("firstName");
+            String lastName = request.getParameter("lastName");
+            String regNumber = request.getParameter("regNumber");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            String dateOfBirth = request.getParameter("dateOfBirth");
+            String admissionDate = request.getParameter("admissionDate");
+            String grade = request.getParameter("grade");
+            
+            // Validate required inputs
+            if (firstName == null || firstName.trim().isEmpty() || 
+                lastName == null || lastName.trim().isEmpty() || 
+                regNumber == null || regNumber.trim().isEmpty()) {
+                
+                request.setAttribute("errorMessage", "Required fields cannot be empty");
+                showEditStudentForm(request, response);
+                return;
+            }
+            
+            // Update student information
+            existingStudent.setFirstName(firstName);
+            existingStudent.setLastName(lastName);
+            existingStudent.setRegNumber(regNumber);
+            existingStudent.setEmail(email);
+            existingStudent.setPhone(phone);
+            existingStudent.setAddress(address);
+            if (dateOfBirth != null && !dateOfBirth.trim().isEmpty()) {
+                existingStudent.setDateOfBirth(java.sql.Date.valueOf(dateOfBirth));
+            }
+            if (admissionDate != null && !admissionDate.trim().isEmpty()) {
+                existingStudent.setAdmissionDate(java.sql.Date.valueOf(admissionDate));
+            }
+            existingStudent.setGrade(grade);
+            
+            // Update the student in the database
+            studentDAO.updateStudent(existingStudent);
+            
+            // Redirect to student view with success message
+            request.getSession().setAttribute("message", "Student information updated successfully");
+            response.sendRedirect(request.getContextPath() + "/teacher/student/view?id=" + id);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error updating student", e);
+            request.setAttribute("errorMessage", "Error updating student: " + e.getMessage());
+            showEditStudentForm(request, response);
+        }
     }
 }

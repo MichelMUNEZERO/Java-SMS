@@ -74,6 +74,7 @@ CREATE TABLE Courses (
     description TEXT,
     credits INT,
     teacher_id INT,
+    status VARCHAR(20) DEFAULT 'active',
     FOREIGN KEY (teacher_id) REFERENCES Teachers(teacher_id) ON DELETE SET NULL
 );
 

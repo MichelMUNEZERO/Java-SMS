@@ -17,50 +17,260 @@ uri="http://java.sun.com/jsp/jstl/core" %>
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
     />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link
       rel="stylesheet"
       href="${pageContext.request.contextPath}/css/style.css"
     />
     <style>
+      body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f7fa;
+        color: #343a40;
+      }
+      
+      .main-content {
+        padding-top: 1.5rem;
+        padding-bottom: 1.5rem;
+      }
+      
+      .page-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0;
+      }
+      
+      .header-container {
+        margin-bottom: 1.75rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+      }
+      
+      .user-dropdown .dropdown-toggle {
+        background-color: white;
+        border: 1px solid #e6e8ec;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        color: #495057;
+        transition: all 0.3s ease;
+      }
+      
+      .user-dropdown .dropdown-toggle:hover, 
+      .user-dropdown .dropdown-toggle:focus {
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      }
+      
       .dashboard-card {
-        transition: transform 0.3s;
-        border-radius: 10px;
         border: none;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
         height: 100%;
+        overflow: hidden;
       }
 
       .dashboard-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      }
+      
+      .card-gradient-blue {
+        background: linear-gradient(135deg, #3498db, #1a5fb4);
+      }
+      
+      .card-gradient-green {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+      }
+      
+      .card-gradient-orange {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+      }
+      
+      .card-gradient-red {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+      }
+      
+      .card-gradient-purple {
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      }
+      
+      .card-gradient-teal {
+        background: linear-gradient(135deg, #1abc9c, #16a085);
+      }
+      
+      .card-gradient-dark {
+        background: linear-gradient(135deg, #34495e, #2c3e50);
+      }
+
+      .dashboard-card .card-body {
+        padding: 1.75rem;
+        position: relative;
+        z-index: 1;
+      }
+      
+      .dashboard-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        transform: translate(30%, -30%);
+        z-index: 0;
       }
 
       .card-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
+        font-size: 2.25rem;
+        margin-bottom: 1.25rem;
+        opacity: 0.9;
+        display: inline-block;
+      }
+      
+      .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+      }
+      
+      .card-text {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        letter-spacing: -0.5px;
       }
 
       .card-link {
+        color: white;
         text-decoration: none;
-        color: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s;
+        opacity: 0.9;
+      }
+      
+      .card-link:hover {
+        opacity: 1;
+        transform: translateX(3px);
+      }
+      
+      .card-link i {
+        margin-left: 5px;
+        transition: all 0.2s;
+      }
+      
+      .card-link:hover i {
+        transform: translateX(2px);
       }
 
-      .chart-container {
-        height: 300px;
+      .content-card {
+        background: white;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+      }
+      
+      .content-card .card-header {
+        background: white;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+      }
+      
+      .content-card .card-header h5 {
+        margin-bottom: 0;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+      
+      .content-card .card-body {
+        padding: 1.5rem;
+      }
+      
+      .content-card .card-footer {
+        background: white;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding: 1rem 1.5rem;
+      }
+      
+      .announcement-item {
+        border-left: 3px solid #3498db;
+        padding-left: 1rem;
+        margin-bottom: 1.25rem;
+      }
+      
+      .announcement-item:last-child {
+        margin-bottom: 0;
+      }
+      
+      .announcement-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+      }
+      
+      .announcement-text {
+        color: #5a6268;
+        margin-bottom: 0.5rem;
+      }
+      
+      .announcement-meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      .quick-action-card {
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s;
+        height: 100%;
+      }
+      
+      .quick-action-card:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      }
+      
+      .quick-action-icon {
+        font-size: 2rem;
+        color: #3498db;
+        margin-bottom: 1rem;
+      }
+      
+      .quick-action-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #2c3e50;
+        margin-bottom: 0;
       }
       
       .profile-img {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         object-fit: cover;
       }
       
       .filter-section {
         background-color: #f8f9fa;
-        padding: 15px;
+        padding: 1.25rem;
         border-radius: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 1.5rem;
       }
       
       .report-table {
@@ -68,125 +278,30 @@ uri="http://java.sun.com/jsp/jstl/core" %>
       }
       
       .report-card {
-        margin-bottom: 30px;
+        margin-bottom: 1.75rem;
+      }
+      
+      @media (max-width: 768px) {
+        .dashboard-card {
+          margin-bottom: 1rem;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container-fluid">
       <div class="row">
-        <!-- Sidebar -->
-        <div
-          class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse"
-          style="min-height: 100vh"
-        >
-          <div class="position-sticky pt-3">
-            <div class="d-flex align-items-center justify-content-center mb-4">
-              <img
-                src="${pageContext.request.contextPath}/images/school-logo.png"
-                alt="School Logo"
-                width="50"
-                class="me-2"
-              />
-              <span class="fs-4 text-white">School MS</span>
-            </div>
-            <hr class="text-white" />
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a
-                  class="nav-link active text-white"
-                  href="${pageContext.request.contextPath}/admin/dashboard"
-                >
-                  <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/students"
-                >
-                  <i class="bi bi-person me-2"></i> Students
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/teachers"
-                >
-                  <i class="bi bi-person-badge me-2"></i> Teachers
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/parents"
-                >
-                  <i class="bi bi-people me-2"></i> Parents
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/courses"
-                >
-                  <i class="bi bi-book me-2"></i> Courses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/doctors"
-                >
-                  <i class="bi bi-heart-pulse me-2"></i> Doctors
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/nurses"
-                >
-                  <i class="bi bi-bandaid me-2"></i> Nurses
-                </a>
-              </li>
-
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/appointments"
-                >
-                  <i class="bi bi-calendar-check me-2"></i> Appointments
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/settings"
-                >
-                  <i class="bi bi-gear me-2"></i> Settings
-                </a>
-              </li>
-              <li class="nav-item mt-5">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/logout"
-                >
-                  <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <!-- Include Sidebar -->
+        <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp" />
 
         <!-- Main content -->
-        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
-          <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
-          >
-            <h1 class="h2">Admin Dashboard</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+          <div class="header-container d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+            <h1 class="page-title">Admin Dashboard</h1>
+            <div class="user-dropdown">
               <div class="dropdown">
                 <a
-                  class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center"
+                  class="btn dropdown-toggle d-flex align-items-center"
                   href="#"
                   role="button"
                   id="dropdownMenuLink"
@@ -198,29 +313,37 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                       <img src="${profileData.imageLink}" alt="${user.username}" class="profile-img me-2">
                     </c:when>
                     <c:otherwise>
-                      <i class="bi bi-person-circle me-1"></i>
+                      <c:choose>
+                        <c:when test="${user.role eq 'admin'}">
+                          <i class="bi bi-person-workspace me-2"></i>
+                        </c:when>
+                        <c:otherwise>
+                          <i class="bi bi-person-circle me-2"></i>
+                        </c:otherwise>
+                      </c:choose>
                     </c:otherwise>
                   </c:choose>
-                  ${user.username}
+                  <span>${user.username}</span>
                 </a>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                <ul class="dropdown-menu shadow-sm" aria-labelledby="dropdownMenuLink">
                   <li>
-                    <a class="dropdown-item" href="#"
-                      ><i class="bi bi-person me-2"></i> Profile</a
-                    >
+                    <a class="dropdown-item" href="#">
+                      <i class="bi bi-person me-2"></i> Profile
+                    </a>
                   </li>
                   <li>
-                    <a class="dropdown-item" href="#"
-                      ><i class="bi bi-gear me-2"></i> Settings</a
-                    >
+                    <a class="dropdown-item" href="#">
+                      <i class="bi bi-gear me-2"></i> Settings
+                    </a>
                   </li>
                   <li><hr class="dropdown-divider" /></li>
                   <li>
                     <a
-                      class="dropdown-item"
+                      class="dropdown-item text-danger"
                       href="${pageContext.request.contextPath}/logout"
-                      ><i class="bi bi-box-arrow-right me-2"></i> Logout</a
                     >
+                      <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </a>
                   </li>
                 </ul>
               </div>
@@ -229,101 +352,108 @@ uri="http://java.sun.com/jsp/jstl/core" %>
 
           <!-- Summary cards -->
           <div class="row mb-4">
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-primary text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-blue text-white">
+                <div class="card-body">
                   <i class="bi bi-people-fill card-icon"></i>
                   <h5 class="card-title">Total Students</h5>
                   <h2 class="card-text">${stats.students}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/students"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-success text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-green text-white">
+                <div class="card-body">
                   <i class="bi bi-person-badge-fill card-icon"></i>
                   <h5 class="card-title">Total Teachers</h5>
                   <h2 class="card-text">${stats.teachers}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/teachers"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-warning text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-orange text-white">
+                <div class="card-body">
                   <i class="bi bi-book-fill card-icon"></i>
                   <h5 class="card-title">Total Courses</h5>
                   <h2 class="card-text">${stats.courses}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/courses"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-danger text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-red text-white">
+                <div class="card-body">
                   <i class="bi bi-people card-icon"></i>
                   <h5 class="card-title">Total Parents</h5>
                   <h2 class="card-text">${stats.parents}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/parents"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-info text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-purple text-white">
+                <div class="card-body">
                   <i class="bi bi-heart-pulse card-icon"></i>
                   <h5 class="card-title">Total Doctors</h5>
                   <h2 class="card-text">${stats.doctors}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/doctors"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-secondary text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-teal text-white">
+                <div class="card-body">
                   <i class="bi bi-bandaid card-icon"></i>
                   <h5 class="card-title">Total Nurses</h5>
                   <h2 class="card-text">${stats.nurses}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/nurses"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
-            <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-dark text-white">
-                <div class="card-body text-center">
+            <div class="col-md-4 col-xl-3 mb-4">
+              <div class="card dashboard-card card-gradient-dark text-white">
+                <div class="card-body">
                   <i class="bi bi-calendar-check card-icon"></i>
                   <h5 class="card-title">Today's Appointments</h5>
                   <h2 class="card-text">${stats.todayAppointments}</h2>
                   <a
                     href="${pageContext.request.contextPath}/admin/appointments"
-                    class="text-white"
-                    >View Details <i class="bi bi-arrow-right-circle"></i
-                  ></a>
+                    class="card-link"
+                  >
+                    View Details <i class="bi bi-arrow-right-circle"></i>
+                  </a>
                 </div>
               </div>
             </div>
@@ -331,56 +461,10 @@ uri="http://java.sun.com/jsp/jstl/core" %>
 
           <!-- Recent Activity and Announcements -->
           <div class="row mb-4">
-            <div class="col-12 mb-4">
-              <div class="card dashboard-card">
-                <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Announcements</h5>
-                </div>
-                <div class="card-body">
-                  <ul class="list-group list-group-flush">
-                    <c:forEach
-                      var="announcement"
-                      items="${announcements}"
-                      varStatus="loop"
-                    >
-                      <li class="list-group-item pb-3">
-                        <h6 class="card-subtitle mb-1 text-primary">
-                          ${announcement.title}
-                        </h6>
-                        <p class="card-text small">${announcement.message}</p>
-                        <div class="d-flex justify-content-between mt-2">
-                          <small class="text-muted"
-                            >Target: ${announcement.targetGroup}</small
-                          >
-                          <small class="text-muted">
-                            <c:choose>
-                              <c:when test="${loop.index == 0}">Today</c:when>
-                              <c:when test="${loop.index == 1}"
-                                >Yesterday</c:when
-                              >
-                              <c:otherwise
-                                >${loop.index + 1} days ago</c:otherwise
-                              >
-                            </c:choose>
-                          </small>
-                        </div>
-                      </li>
-                    </c:forEach>
-                    
-                    <c:if test="${empty announcements}">
-                      <li class="list-group-item">
-                        <p class="text-center text-muted my-3">No announcements available</p>
-                      </li>
-                    </c:if>
-                  </ul>
-                </div>
-                <div class="card-footer bg-white">
-                  <div class="d-flex justify-content-between">
-                    <a
-                      href="${pageContext.request.contextPath}/admin/announcements"
-                      class="btn btn-sm btn-outline-primary"
-                      >View All</a
-                    >
+            <div class="col-12">
+              <div class="card content-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Recent Announcements</h5>
                     <button
                       type="button"
                       class="btn btn-sm btn-primary"
@@ -390,6 +474,39 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                       <i class="bi bi-plus-circle me-1"></i> New Announcement
                     </button>
                   </div>
+                <div class="card-body">
+                  <c:if test="${empty announcements}">
+                    <div class="text-center py-4">
+                      <i class="bi bi-megaphone text-muted" style="font-size: 2.5rem;"></i>
+                      <p class="text-muted mt-3 mb-0">No announcements available</p>
+                    </div>
+                  </c:if>
+                  
+                  <c:if test="${not empty announcements}">
+                    <div class="announcement-list">
+                      <c:forEach var="announcement" items="${announcements}" varStatus="loop">
+                        <div class="announcement-item">
+                          <h6 class="announcement-title">${announcement.title}</h6>
+                          <p class="announcement-text">${announcement.message}</p>
+                          <div class="announcement-meta">
+                            <span>Target: ${announcement.targetGroup}</span>
+                            <span>
+                              <c:choose>
+                                <c:when test="${loop.index == 0}">Today</c:when>
+                                <c:when test="${loop.index == 1}">Yesterday</c:when>
+                                <c:otherwise>${loop.index + 1} days ago</c:otherwise>
+                              </c:choose>
+                            </span>
+                          </div>
+                        </div>
+                      </c:forEach>
+                    </div>
+                  </c:if>
+                </div>
+                <div class="card-footer text-end">
+                  <a href="${pageContext.request.contextPath}/admin/announcements" class="btn btn-sm btn-outline-primary">
+                    View All Announcements
+                  </a>
                 </div>
               </div>
             </div>
@@ -398,22 +515,41 @@ uri="http://java.sun.com/jsp/jstl/core" %>
           <!-- Quick Actions -->
           <div class="row mb-4">
             <div class="col-12">
-              <div class="card dashboard-card">
-                <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Quick Actions</h5>
+              <div class="card content-card">
+                <div class="card-header">
+                  <h5 class="mb-0">Quick Actions</h5>
                 </div>
                 <div class="card-body">
                   <div class="row">
                     <div class="col-md-3 mb-3">
-                      <a
-                        href="${pageContext.request.contextPath}/admin/teachers/new"
-                        class="card-link"
-                      >
-                        <div class="card dashboard-card text-center py-3">
-                          <i
-                            class="bi bi-person-plus card-icon text-primary"
-                          ></i>
-                          <h6>Add Teacher</h6>
+                      <a href="${pageContext.request.contextPath}/admin/students/new" class="text-decoration-none">
+                        <div class="quick-action-card">
+                          <i class="bi bi-person-plus quick-action-icon"></i>
+                          <h6 class="quick-action-title">Add Student</h6>
+                        </div>
+                      </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <a href="${pageContext.request.contextPath}/admin/teachers/new" class="text-decoration-none">
+                        <div class="quick-action-card">
+                          <i class="bi bi-person-badge quick-action-icon"></i>
+                          <h6 class="quick-action-title">Add Teacher</h6>
+                        </div>
+                      </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <a href="${pageContext.request.contextPath}/admin/courses/new" class="text-decoration-none">
+                        <div class="quick-action-card">
+                          <i class="bi bi-journal-plus quick-action-icon"></i>
+                          <h6 class="quick-action-title">Add Course</h6>
+                        </div>
+                      </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                      <a href="${pageContext.request.contextPath}/admin/announcements/new" class="text-decoration-none">
+                        <div class="quick-action-card">
+                          <i class="bi bi-megaphone quick-action-icon"></i>
+                          <h6 class="quick-action-title">New Announcement</h6>
                         </div>
                       </a>
                     </div>
@@ -649,8 +785,10 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary"><i class="bi bi-megaphone me-1"></i> Post Announcement</button>
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-megaphone me-1"></i> Post Announcement
+              </button>
             </div>
           </form>
         </div>

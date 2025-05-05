@@ -17,6 +17,13 @@ uri="http://java.sun.com/jsp/jstl/core" %>
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
     />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <!-- DataTables CSS -->
     <link
       rel="stylesheet"
@@ -27,17 +34,27 @@ uri="http://java.sun.com/jsp/jstl/core" %>
       rel="stylesheet"
       href="${pageContext.request.contextPath}/css/style.css"
     />
+    <link
+      rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/admin-styles.css"
+    />
     <style>
-      .dashboard-card {
-        transition: transform 0.3s;
-        border-radius: 10px;
+      .stat-card {
+        transition: all var(--transition-speed);
+        border-radius: var(--border-radius);
         border: none;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        box-shadow: var(--card-shadow);
         height: 100%;
+        overflow: hidden;
       }
 
-      .dashboard-card:hover {
+      .stat-card:hover {
         transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+      }
+
+      .stat-card .card-body {
+        padding: 1.5rem;
       }
 
       .card-icon {
@@ -45,190 +62,120 @@ uri="http://java.sun.com/jsp/jstl/core" %>
         margin-bottom: 1rem;
       }
 
-      .class-table th,
-      .class-table td {
+      .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(13, 110, 253, 0.1);
+        color: var(--primary-color);
+        margin-right: 0.75rem;
+      }
+
+      .table > tbody > tr > td {
         vertical-align: middle;
       }
 
-      .teacher-profile {
-        display: flex;
+      .action-buttons .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
         align-items: center;
-        padding: 1rem;
-      }
-
-      .teacher-avatar {
-        width: 50px;
-        height: 50px;
+        justify-content: center;
         border-radius: 50%;
-        object-fit: cover;
-        margin-right: 10px;
+        margin-right: 0.25rem;
       }
 
-      .tab-content {
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+      .announcement-item {
+        border-left: 3px solid var(--primary-color);
+        background-color: rgba(13, 110, 253, 0.05);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .quick-actions-btn {
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: all 0.3s ease;
+      }
+
+      .quick-actions-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.1);
+        z-index: -1;
+        transition: width 0.3s ease;
+      }
+
+      .quick-actions-btn:hover::before {
+        width: 100%;
+      }
+
+      .quick-actions-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .behavior-badge {
+        padding: 0.35rem 0.65rem;
+        border-radius: 50rem;
+        font-weight: 500;
+        font-size: 0.75rem;
       }
     </style>
   </head>
   <body>
     <div class="container-fluid">
       <div class="row">
-        <!-- Sidebar -->
-        <div
-          class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse"
-          style="min-height: 100vh"
-        >
-          <div class="position-sticky pt-3">
-            <div class="d-flex align-items-center justify-content-center mb-4">
-              <img
-                src="${pageContext.request.contextPath}/images/school-logo.png"
-                alt="School Logo"
-                width="50"
-                class="me-2"
-              />
-              <span class="fs-4 text-white">School MS</span>
-            </div>
-
-            <!-- Teacher Profile Widget -->
-            <div class="teacher-profile bg-dark text-white mb-3 text-center">
-              <c:choose>
-                <c:when test="${not empty profileData.imageLink}">
-                  <img
-                    src="${profileData.imageLink}"
-                    alt="Teacher Avatar"
-                    class="teacher-avatar mx-auto d-block mb-2"
-                  />
-                </c:when>
-                <c:otherwise>
-                  <div
-                    class="bg-secondary rounded-circle mx-auto mb-2"
-                    style="
-                      width: 50px;
-                      height: 50px;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                    "
-                  >
-                    <i
-                      class="bi bi-person text-white"
-                      style="font-size: 1.5rem"
-                    ></i>
-                  </div>
-                </c:otherwise>
-              </c:choose>
-              <div>
-                <span class="d-block">${user.username}</span>
-                <small class="text-muted">${user.email}</small>
-              </div>
-            </div>
-
-            <hr class="text-white" />
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a class="nav-link active text-white" href="#">
-                  <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="#"
-                  data-bs-toggle="tab"
-                  data-bs-target="#courses-tab"
-                >
-                  <i class="bi bi-book me-2"></i> My Courses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/teacher/student"
-                >
-                  <i class="bi bi-people me-2"></i> My Students
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="#"
-                  data-bs-toggle="tab"
-                  data-bs-target="#marks-tab"
-                >
-                  <i class="bi bi-card-checklist me-2"></i> Marks & Grades
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="#"
-                  data-bs-toggle="tab"
-                  data-bs-target="#behavior-tab"
-                >
-                  <i class="bi bi-clipboard-check me-2"></i> Student Behavior
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="#"
-                  data-bs-toggle="tab"
-                  data-bs-target="#reports-tab"
-                >
-                  <i class="bi bi-file-earmark-text me-2"></i> Reports
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="#"
-                  data-bs-toggle="tab"
-                  data-bs-target="#appointments-tab"
-                >
-                  <i class="bi bi-calendar-event me-2"></i> Appointments
-                </a>
-              </li>
-              <li class="nav-item mt-5">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/logout"
-                >
-                  <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <!-- Include Teacher Sidebar -->
+        <jsp:include page="/WEB-INF/includes/teacher-sidebar.jsp" />
 
         <!-- Main content -->
-        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+          <!-- Breadcrumb -->
+          <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item active" aria-current="page">
+                Dashboard
+              </li>
+            </ol>
+          </nav>
+
           <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            class="page-header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center"
           >
-            <h1 class="h2">Teacher Dashboard</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
+            <h1 class="page-title">Teacher Dashboard</h1>
+            <div class="btn-toolbar">
               <div class="dropdown">
-                <a
-                  class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                  href="#"
-                  role="button"
-                  id="dropdownMenuLink"
+                <button
+                  class="btn btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  id="dropdownMenuButton"
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
                   <i class="bi bi-person-circle me-1"></i> ${user.username}
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                </button>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="dropdownMenuButton"
+                >
                   <li>
                     <a class="dropdown-item" href="#"
-                      ><i class="bi bi-person me-2"></i> Profile</a
-                    >
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="#"
-                      ><i class="bi bi-gear me-2"></i> Settings</a
+                      ><i class="bi bi-person me-2"></i> My Profile</a
                     >
                   </li>
                   <li><hr class="dropdown-divider" /></li>
@@ -244,12 +191,42 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             </div>
           </div>
 
-          <!-- Main dashboard content below -->
+          <!-- Alert for messages -->
+          <c:if test="${not empty successMessage}">
+            <div
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="bi bi-check-circle-fill me-2"></i> ${successMessage}
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+          </c:if>
+
+          <c:if test="${not empty errorMessage}">
+            <div
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              ${errorMessage}
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+          </c:if>
 
           <!-- Summary cards -->
           <div class="row mb-4">
             <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-primary text-white">
+              <div class="card stat-card bg-primary text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-people-fill card-icon"></i>
                   <h5 class="card-title">Total Students</h5>
@@ -259,7 +236,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               </div>
             </div>
             <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-success text-white">
+              <div class="card stat-card bg-success text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-book-fill card-icon"></i>
                   <h5 class="card-title">My Courses</h5>
@@ -269,7 +246,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               </div>
             </div>
             <div class="col-md-4 mb-4">
-              <div class="card dashboard-card bg-info text-white">
+              <div class="card stat-card bg-info text-white">
                 <div class="card-body text-center">
                   <i class="bi bi-calendar-event-fill card-icon"></i>
                   <h5 class="card-title">Today's Appointments</h5>
@@ -281,103 +258,126 @@ uri="http://java.sun.com/jsp/jstl/core" %>
           </div>
 
           <!-- Main Content -->
-          <div class="row mb-4">
+          <div class="row">
             <!-- Left Column -->
             <div class="col-md-8">
-              <div class="card dashboard-card mb-4">
-                <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">My Courses</h5>
-                </div>
-                <div class="card-body">
-                  <table class="table table-striped table-hover">
-                    <thead>
-                      <tr>
-                        <th>Course Code</th>
-                        <th>Course Name</th>
-                        <th>Students</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <c:forEach items="${teacherCourses}" var="course">
-                        <tr>
-                          <td>${course.courseCode}</td>
-                          <td>${course.courseName}</td>
-                          <td>${course.studentCount}</td>
-                          <td>
-                            <div class="btn-group">
-                              <button
-                                class="btn btn-sm btn-primary"
-                                onclick="viewCourse('${course.courseId}')"
-                              >
-                                <i class="bi bi-eye"></i>
-                              </button>
-                              <button
-                                class="btn btn-sm btn-success"
-                                onclick="manageStudents('${course.courseId}')"
-                              >
-                                <i class="bi bi-people"></i>
-                              </button>
-                              <button
-                                class="btn btn-sm btn-warning"
-                                onclick="manageMarks('${course.courseId}')"
-                              >
-                                <i class="bi bi-card-checklist"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      </c:forEach>
-                      <c:if test="${empty teacherCourses}">
-                        <tr>
-                          <td colspan="4" class="text-center">
-                            No courses available
-                          </td>
-                        </tr>
-                      </c:if>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="card-footer bg-white">
-                  <a
-                    href="#"
+              <div class="content-card mb-4">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h5 class="mb-0">My Courses</h5>
+                  <button
                     class="btn btn-sm btn-outline-primary"
                     onclick="viewAllCourses()"
                   >
-                    View All Courses
-                  </a>
+                    <i class="bi bi-grid-3x3-gap-fill me-1"></i> View All
+                  </button>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                      <thead>
+                        <tr>
+                          <th>Course Code</th>
+                          <th>Course Name</th>
+                          <th>Students</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <c:forEach items="${teacherCourses}" var="course">
+                          <tr>
+                            <td>
+                              <span class="fw-medium"
+                                >${course.courseCode}</span
+                              >
+                            </td>
+                            <td>${course.courseName}</td>
+                            <td>
+                              <span class="badge bg-primary"
+                                >${course.studentCount}</span
+                              >
+                            </td>
+                            <td>
+                              <div class="action-buttons">
+                                <button
+                                  class="btn btn-sm btn-primary"
+                                  onclick="viewCourse('${course.courseId}')"
+                                  title="View Course"
+                                >
+                                  <i class="bi bi-eye"></i>
+                                </button>
+                                <button
+                                  class="btn btn-sm btn-success"
+                                  onclick="manageStudents('${course.courseId}')"
+                                  title="Manage Students"
+                                >
+                                  <i class="bi bi-people"></i>
+                                </button>
+                                <button
+                                  class="btn btn-sm btn-warning"
+                                  onclick="manageMarks('${course.courseId}')"
+                                  title="Manage Marks"
+                                >
+                                  <i class="bi bi-card-checklist"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        </c:forEach>
+                        <c:if test="${empty teacherCourses}">
+                          <tr>
+                            <td colspan="4" class="text-center py-3">
+                              <div
+                                class="d-flex flex-column align-items-center"
+                              >
+                                <i
+                                  class="bi bi-info-circle text-muted mb-2"
+                                  style="font-size: 1.5rem"
+                                ></i>
+                                <p class="text-muted mb-0">
+                                  No courses available
+                                </p>
+                              </div>
+                            </td>
+                          </tr>
+                        </c:if>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
               <!-- Student Behavior Table -->
-              <div class="card dashboard-card">
-                <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Recent Student Behavior</h5>
-                </div>
-                <div class="card-body">
-                  <table class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th>Student</th>
-                        <th>Course</th>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th>Details</th>
-                      </tr>
-                    </thead>
-                    <tbody id="behaviorTableBody">
-                      <!-- This will be populated with AJAX -->
-                    </tbody>
-                  </table>
-                </div>
-                <div class="card-footer bg-white">
-                  <a
-                    href="#"
+              <div class="content-card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h5 class="mb-0">Recent Student Behavior</h5>
+                  <button
                     class="btn btn-sm btn-outline-primary"
                     onclick="viewAllBehaviorReports()"
                   >
-                    View All Behavior Reports
-                  </a>
+                    <i class="bi bi-list-ul me-1"></i> View All
+                  </button>
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="behaviorTable">
+                      <thead>
+                        <tr>
+                          <th>Student</th>
+                          <th>Course</th>
+                          <th>Type</th>
+                          <th>Date</th>
+                          <th>Details</th>
+                        </tr>
+                      </thead>
+                      <tbody id="behaviorTableBody">
+                        <!-- This will be populated with AJAX -->
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
@@ -385,36 +385,41 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             <!-- Right Column -->
             <div class="col-md-4">
               <!-- Announcements -->
-              <div class="card dashboard-card mb-4">
-                <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Announcements</h5>
+              <div class="content-card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">Announcements</h5>
                 </div>
                 <div class="card-body">
-                  <ul class="list-group list-group-flush">
-                    <c:forEach
-                      items="${announcements}"
-                      var="announcement"
-                      begin="0"
-                      end="2"
-                    >
-                      <li class="list-group-item">
-                        <h6 class="card-subtitle mb-1">
-                          ${announcement.title}
-                        </h6>
-                        <p class="card-text">${announcement.message}</p>
+                  <c:forEach
+                    items="${announcements}"
+                    var="announcement"
+                    begin="0"
+                    end="2"
+                  >
+                    <div class="announcement-item mb-3">
+                      <h6 class="mb-1">${announcement.title}</h6>
+                      <p class="mb-1 text-muted small">
+                        ${announcement.message}
+                      </p>
+                      <div class="d-flex align-items-center mt-2">
+                        <i class="bi bi-calendar-event text-muted me-1"></i>
                         <small class="text-muted"
                           >Posted on ${announcement.date}</small
                         >
-                      </li>
-                    </c:forEach>
-                    <c:if test="${empty announcements}">
-                      <li class="list-group-item">
-                        <p class="text-muted">No announcements available</p>
-                      </li>
-                    </c:if>
-                  </ul>
+                      </div>
+                    </div>
+                  </c:forEach>
+                  <c:if test="${empty announcements}">
+                    <div class="text-center py-4">
+                      <i
+                        class="bi bi-megaphone text-muted mb-3"
+                        style="font-size: 2rem"
+                      ></i>
+                      <p class="text-muted mb-0">No announcements available</p>
+                    </div>
+                  </c:if>
                 </div>
-                <div class="card-footer bg-white">
+                <div class="card-footer text-center">
                   <a href="#" class="btn btn-sm btn-outline-primary"
                     >View All Announcements</a
                   >
@@ -422,21 +427,21 @@ uri="http://java.sun.com/jsp/jstl/core" %>
               </div>
 
               <!-- Quick Actions -->
-              <div class="card dashboard-card mb-4">
-                <div class="card-header bg-white">
-                  <h5 class="card-title mb-0">Quick Actions</h5>
+              <div class="content-card">
+                <div class="card-header">
+                  <h5 class="mb-0">Quick Actions</h5>
                 </div>
                 <div class="card-body">
                   <div class="d-grid gap-2">
                     <button
-                      class="btn btn-primary"
+                      class="btn btn-primary quick-actions-btn"
                       type="button"
                       onclick="enterMarks()"
                     >
                       <i class="bi bi-calculator me-2"></i> Enter Marks
                     </button>
                     <button
-                      class="btn btn-success"
+                      class="btn btn-success quick-actions-btn"
                       type="button"
                       onclick="generateReports()"
                     >
@@ -444,14 +449,14 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                       Reports
                     </button>
                     <button
-                      class="btn btn-warning"
+                      class="btn btn-warning quick-actions-btn text-white"
                       type="button"
                       onclick="bookAppointment()"
                     >
                       <i class="bi bi-calendar-plus me-2"></i> Book Appointment
                     </button>
                     <button
-                      class="btn btn-info"
+                      class="btn btn-info quick-actions-btn text-white"
                       type="button"
                       onclick="addBehaviorNote()"
                     >
@@ -486,9 +491,15 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                   ></button>
                 </div>
                 <div class="modal-body">
-                  <form id="appointmentForm">
+                  <form
+                    id="appointmentForm"
+                    class="needs-validation"
+                    novalidate
+                  >
                     <div class="mb-3">
-                      <label for="appointmentTitle" class="form-label"
+                      <label
+                        for="appointmentTitle"
+                        class="form-label required-field"
                         >Title</label
                       >
                       <input
@@ -497,9 +508,14 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                         id="appointmentTitle"
                         required
                       />
+                      <div class="invalid-feedback">
+                        Please enter an appointment title.
+                      </div>
                     </div>
                     <div class="mb-3">
-                      <label for="appointmentDate" class="form-label"
+                      <label
+                        for="appointmentDate"
+                        class="form-label required-field"
                         >Date</label
                       >
                       <input
@@ -508,9 +524,12 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                         id="appointmentDate"
                         required
                       />
+                      <div class="invalid-feedback">Please select a date.</div>
                     </div>
                     <div class="mb-3">
-                      <label for="appointmentTime" class="form-label"
+                      <label
+                        for="appointmentTime"
+                        class="form-label required-field"
                         >Time</label
                       >
                       <input
@@ -519,6 +538,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                         id="appointmentTime"
                         required
                       />
+                      <div class="invalid-feedback">Please select a time.</div>
                     </div>
                     <div class="mb-3">
                       <label for="appointmentNotes" class="form-label"
@@ -535,17 +555,17 @@ uri="http://java.sun.com/jsp/jstl/core" %>
                 <div class="modal-footer">
                   <button
                     type="button"
-                    class="btn btn-secondary"
+                    class="btn btn-outline-secondary"
                     data-bs-dismiss="modal"
                   >
-                    Close
+                    <i class="bi bi-x-circle me-1"></i> Cancel
                   </button>
                   <button
                     type="button"
                     class="btn btn-primary"
                     id="saveAppointment"
                   >
-                    Save
+                    <i class="bi bi-calendar-check me-1"></i> Save Appointment
                   </button>
                 </div>
               </div>
@@ -568,6 +588,29 @@ uri="http://java.sun.com/jsp/jstl/core" %>
       $(document).ready(function () {
         // Load behavior data
         loadBehaviorData();
+
+        // Form validation
+        (function () {
+          "use strict";
+
+          // Fetch all forms we want to apply validation styles to
+          var forms = document.querySelectorAll(".needs-validation");
+
+          // Loop over them and prevent submission
+          Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener(
+              "submit",
+              function (event) {
+                if (!form.checkValidity()) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }
+                form.classList.add("was-validated");
+              },
+              false
+            );
+          });
+        })();
       });
 
       // Function to load behavior data via AJAX
@@ -608,7 +651,7 @@ uri="http://java.sun.com/jsp/jstl/core" %>
             "<td>" +
             item.course +
             "</td>" +
-            '<td><span class="badge ' +
+            '<td><span class="behavior-badge ' +
             (item.type === "Achievement" ? "bg-success" : "bg-warning") +
             '">' +
             item.type +
@@ -683,9 +726,14 @@ uri="http://java.sun.com/jsp/jstl/core" %>
 
       // Save appointment
       $("#saveAppointment").click(function () {
-        // In a real application, this would submit the form via AJAX
-        alert("Appointment saved successfully!");
-        $("#appointmentModal").modal("hide");
+        const form = document.getElementById("appointmentForm");
+        if (form.checkValidity()) {
+          // In a real application, this would submit the form via AJAX
+          alert("Appointment saved successfully!");
+          $("#appointmentModal").modal("hide");
+        } else {
+          form.classList.add("was-validated");
+        }
       });
     </script>
   </body>

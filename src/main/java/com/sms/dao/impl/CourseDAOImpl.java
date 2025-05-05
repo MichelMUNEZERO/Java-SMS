@@ -28,8 +28,8 @@ public class CourseDAOImpl implements CourseDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO courses (course_name, course_code, description, teacher_id, credits) " +
-                         "VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO courses (course_name, course_code, description, teacher_id, credits, status) " +
+                         "VALUES (?, ?, ?, ?, ?, ?)";
             
             pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, course.getCourseName());
@@ -37,6 +37,7 @@ public class CourseDAOImpl implements CourseDAO {
             pstmt.setString(3, course.getDescription());
             pstmt.setInt(4, course.getTeacherId());
             pstmt.setInt(5, course.getCredits());
+            pstmt.setString(6, course.getStatus() != null ? course.getStatus() : "active");
             
             int affectedRows = pstmt.executeUpdate();
             
@@ -71,7 +72,7 @@ public class CourseDAOImpl implements CourseDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT c.*, t.name as teacher_name " +
+            String sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name " +
                          "FROM courses c " +
                          "LEFT JOIN teachers t ON c.teacher_id = t.teacher_id " +
                          "WHERE c.course_id = ?";
@@ -109,7 +110,7 @@ public class CourseDAOImpl implements CourseDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT c.*, t.name as teacher_name " +
+            String sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name " +
                          "FROM courses c " +
                          "LEFT JOIN teachers t ON c.teacher_id = t.teacher_id " +
                          "ORDER BY c.course_name";
@@ -145,7 +146,7 @@ public class CourseDAOImpl implements CourseDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT c.*, t.name as teacher_name " +
+            String sql = "SELECT c.*, CONCAT(t.first_name, ' ', t.last_name) as teacher_name " +
                          "FROM courses c " +
                          "LEFT JOIN teachers t ON c.teacher_id = t.teacher_id " +
                          "WHERE c.teacher_id = ? " +
@@ -184,7 +185,7 @@ public class CourseDAOImpl implements CourseDAO {
         try {
             conn = DBConnection.getConnection();
             String sql = "UPDATE courses SET course_name = ?, course_code = ?, description = ?, " +
-                         "teacher_id = ?, credits = ? WHERE course_id = ?";
+                         "teacher_id = ?, credits = ?, status = ? WHERE course_id = ?";
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, course.getCourseName());
@@ -192,7 +193,8 @@ public class CourseDAOImpl implements CourseDAO {
             pstmt.setString(3, course.getDescription());
             pstmt.setInt(4, course.getTeacherId());
             pstmt.setInt(5, course.getCredits());
-            pstmt.setInt(6, course.getId());
+            pstmt.setString(6, course.getStatus() != null ? course.getStatus() : "active");
+            pstmt.setInt(7, course.getId());
             
             int affectedRows = pstmt.executeUpdate();
             success = affectedRows > 0;
@@ -255,6 +257,14 @@ public class CourseDAOImpl implements CourseDAO {
             course.setTeacherName(rs.getString("teacher_name"));
         } catch (SQLException e) {
             // Column not available, ignore
+        }
+        
+        // Set status if available
+        try {
+            course.setStatus(rs.getString("status"));
+        } catch (SQLException e) {
+            // Status column not available, set a default value
+            course.setStatus("active");
         }
         
         return course;

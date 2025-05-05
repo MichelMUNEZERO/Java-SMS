@@ -98,7 +98,7 @@
             <!-- Main content -->
             <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Add New Student</h1>
+                    <h1 class="h2">${isEdit ? 'Edit' : 'Add New'} Student</h1>
                     <a href="${pageContext.request.contextPath}/teacher/student" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Back to Students
                     </a>
@@ -114,7 +114,11 @@
                 <!-- Student Form -->
                 <div class="card mb-4">
                     <div class="card-body">
-                        <form action="${pageContext.request.contextPath}/teacher/student/add" method="post" class="row g-3">
+                        <form action="${pageContext.request.contextPath}/teacher/student/${isEdit ? 'update' : 'add'}" method="post" class="row g-3">
+                            <c:if test="${isEdit}">
+                                <input type="hidden" name="studentId" value="${student.id}">
+                            </c:if>
+                            
                             <!-- Course Selection (Optional) -->
                             <div class="col-12 mb-3">
                                 <h5 class="border-bottom pb-2">Course Enrollment (Optional)</h5>
@@ -122,7 +126,9 @@
                                 <select class="form-select" id="courseId" name="courseId">
                                     <option value="">Select Course (Optional)</option>
                                     <c:forEach var="course" items="${courses}">
-                                        <option value="${course.id}">${course.courseName} (${course.courseCode})</option>
+                                        <option value="${course.id}" ${student.courseId eq course.id ? 'selected' : ''}>
+                                            ${course.courseName} (${course.courseCode})
+                                        </option>
                                     </c:forEach>
                                 </select>
                                 <div class="form-text">You can enroll the student in a course later if needed.</div>
@@ -133,38 +139,44 @@
                             
                             <div class="col-md-6">
                                 <label for="firstName" class="form-label">First Name *</label>
-                                <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                <input type="text" class="form-control" id="firstName" name="firstName" 
+                                    value="${isEdit ? student.firstName : ''}" required>
                             </div>
                             
                             <div class="col-md-6">
                                 <label for="lastName" class="form-label">Last Name *</label>
-                                <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                <input type="text" class="form-control" id="lastName" name="lastName" 
+                                    value="${isEdit ? student.lastName : ''}" required>
                             </div>
                             
                             <div class="col-md-6">
                                 <label for="regNumber" class="form-label">Registration Number *</label>
-                                <input type="text" class="form-control" id="regNumber" name="regNumber" required>
+                                <input type="text" class="form-control" id="regNumber" name="regNumber" 
+                                    value="${isEdit ? student.regNumber : ''}" required>
                                 <div class="form-text">Unique registration number for the student</div>
                             </div>
                             
                             <div class="col-md-6">
                                 <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth">
+                                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" 
+                                    value="${isEdit && student.dateOfBirth != null ? student.dateOfBirth : ''}">
                             </div>
                             
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email">
+                                <input type="email" class="form-control" id="email" name="email" 
+                                    value="${isEdit ? student.email : ''}">
                             </div>
                             
                             <div class="col-md-6">
                                 <label for="phone" class="form-label">Phone</label>
-                                <input type="tel" class="form-control" id="phone" name="phone">
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                    value="${isEdit ? student.phone : ''}">
                             </div>
                             
                             <div class="col-12">
                                 <label for="address" class="form-label">Address</label>
-                                <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                                <textarea class="form-control" id="address" name="address" rows="2">${isEdit ? student.address : ''}</textarea>
                             </div>
                             
                             <!-- Academic Information -->
@@ -172,7 +184,8 @@
                             
                             <div class="col-md-6">
                                 <label for="admissionDate" class="form-label">Admission Date</label>
-                                <input type="date" class="form-control" id="admissionDate" name="admissionDate" value="<%= new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) %>">
+                                <input type="date" class="form-control" id="admissionDate" name="admissionDate" 
+                                    value="${isEdit && student.admissionDate != null ? student.admissionDate : ''}">
                             </div>
                             
                             <div class="col-md-6">
@@ -180,7 +193,9 @@
                                 <select class="form-select" id="grade" name="grade">
                                     <option value="">Select Grade</option>
                                     <c:forEach var="i" begin="1" end="12">
-                                        <option value="Grade ${i}">Grade ${i}</option>
+                                        <option value="Grade ${i}" ${isEdit && student.grade eq 'Grade ' += i ? 'selected' : ''}>
+                                            Grade ${i}
+                                        </option>
                                     </c:forEach>
                                 </select>
                             </div>
@@ -190,12 +205,12 @@
                             
                             <div class="col-12 mb-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="createNewParent" name="createNewParent" value="true" checked>
+                                    <input class="form-check-input" type="checkbox" id="createNewParent" name="createNewParent" value="true" ${isEdit ? 'disabled' : 'checked'}>
                                     <label class="form-check-label" for="createNewParent">
                                         Create New Parent/Guardian
                                     </label>
                                 </div>
-                                <div class="form-text">Uncheck if you want to assign to an existing parent</div>
+                                <div class="form-text">${isEdit ? 'Parent information cannot be changed here. Please contact the administrator for parent information updates.' : 'Uncheck if you want to assign to an existing parent'}</div>
                             </div>
                             
                             <!-- Existing Parent Selection (Hidden initially) -->
@@ -204,75 +219,72 @@
                                 <select class="form-select" id="parentId" name="parentId">
                                     <option value="">Choose a parent</option>
                                     <c:forEach var="parent" items="${parents}">
-                                        <option value="${parent.id}">${parent.firstName} ${parent.lastName} (${parent.email})</option>
+                                        <option value="${parent.id}" ${isEdit && student.parentId eq parent.id ? 'selected' : ''}>
+                                            ${parent.firstName} ${parent.lastName} (${parent.email})
+                                        </option>
                                     </c:forEach>
                                 </select>
                             </div>
                             
                             <!-- New Parent Information -->
-                            <div id="newParentSection">
+                            <div id="newParentSection" ${isEdit ? 'style="display: none;"' : ''}>
                                 <div class="col-md-6">
                                     <label for="parentFirstName" class="form-label">Parent First Name</label>
-                                    <input type="text" class="form-control" id="parentFirstName" name="parentFirstName">
+                                    <input type="text" class="form-control" id="parentFirstName" name="parentFirstName" 
+                                        value="${isEdit ? student.parentFirstName : ''}">
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <label for="parentLastName" class="form-label">Parent Last Name</label>
-                                    <input type="text" class="form-control" id="parentLastName" name="parentLastName">
+                                    <input type="text" class="form-control" id="parentLastName" name="parentLastName" 
+                                        value="${isEdit ? student.parentLastName : ''}">
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <label for="parentEmail" class="form-label">Parent Email</label>
-                                    <input type="email" class="form-control" id="parentEmail" name="parentEmail">
+                                    <input type="email" class="form-control" id="parentEmail" name="parentEmail" 
+                                        value="${isEdit ? student.guardianEmail : ''}">
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <label for="parentPhone" class="form-label">Parent Phone</label>
-                                    <input type="tel" class="form-control" id="parentPhone" name="parentPhone">
+                                    <input type="tel" class="form-control" id="parentPhone" name="parentPhone" 
+                                        value="${isEdit ? student.guardianPhone : ''}">
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <label for="parentAddress" class="form-label">Parent Address</label>
-                                    <textarea class="form-control" id="parentAddress" name="parentAddress" rows="2"></textarea>
+                                    <textarea class="form-control" id="parentAddress" name="parentAddress" rows="2">${isEdit ? student.guardianAddress : ''}</textarea>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <label for="parentOccupation" class="form-label">Parent Occupation</label>
-                                    <input type="text" class="form-control" id="parentOccupation" name="parentOccupation">
+                                    <input type="text" class="form-control" id="parentOccupation" name="parentOccupation" 
+                                        value="${isEdit ? student.guardianOccupation : ''}">
                                 </div>
                             </div>
                             
                             <!-- User Account Information -->
                             <h5 class="mt-4 mb-3 border-bottom pb-2">User Account Information</h5>
                             
-                            <div class="col-12 mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="createUserAccount" name="createUserAccount" value="true">
-                                    <label class="form-check-label" for="createUserAccount">
-                                        Create User Account for Student
-                                    </label>
-                                </div>
-                                <div class="form-text">This will create a login account for the student</div>
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username *</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                    value="${isEdit ? student.username : ''}" ${isEdit ? 'readonly' : 'required'}>
+                                <div class="form-text">${isEdit ? 'Username cannot be changed' : 'Required for login'}</div>
                             </div>
                             
-                            <div id="userAccountSection" style="display: none;">
-                                <div class="col-md-6">
-                                    <label for="username" class="form-label">Username</label>
-                                    <input type="text" class="form-control" id="username" name="username">
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password">
-                                </div>
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">Password ${isEdit ? '(Leave blank to keep current)' : '*'}</label>
+                                <input type="password" class="form-control" id="password" name="password" ${isEdit ? '' : 'required'}>
                             </div>
                             
                             <div class="col-12 mt-4">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-person-plus-fill me-1"></i> Add Student
+                                    <i class="bi bi-${isEdit ? 'check' : 'plus'}-circle me-1"></i> ${isEdit ? 'Update' : 'Add'} Student
                                 </button>
-                                <a href="${pageContext.request.contextPath}/teacher/student" class="btn btn-outline-secondary ms-2">
-                                    Cancel
+                                <a href="${pageContext.request.contextPath}/teacher/student" class="btn btn-secondary ms-2">
+                                    <i class="bi bi-x-circle me-1"></i> Cancel
                                 </a>
                             </div>
                         </form>

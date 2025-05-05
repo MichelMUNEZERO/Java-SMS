@@ -61,11 +61,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-white" href="${pageContext.request.contextPath}/admin/schedule">
-                                <i class="bi bi-calendar-event me-2"></i> Schedule
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link text-white" href="${pageContext.request.contextPath}/admin/announcements">
                                 <i class="bi bi-megaphone me-2"></i> Announcements
                             </a>

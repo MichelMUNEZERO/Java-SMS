@@ -18,6 +18,13 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
     />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <!-- DataTables CSS -->
     <link
       rel="stylesheet"
@@ -27,6 +34,10 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
     <link
       rel="stylesheet"
       href="${pageContext.request.contextPath}/css/style.css"
+    />
+    <link
+      rel="stylesheet"
+      href="${pageContext.request.contextPath}/css/admin-styles.css"
     />
     <style>
       .card {
@@ -45,117 +56,19 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
   <body>
     <div class="container-fluid">
       <div class="row">
-        <!-- Sidebar -->
-        <div
-          class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse"
-          style="min-height: 100vh"
-        >
-          <div class="position-sticky pt-3">
-            <div class="d-flex align-items-center justify-content-center mb-4">
-              <img
-                src="${pageContext.request.contextPath}/images/school-logo.png"
-                alt="School Logo"
-                width="50"
-                class="me-2"
-              />
-              <span class="fs-4 text-white">School MS</span>
-            </div>
-            <hr class="text-white" />
-            <ul class="nav flex-column">
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/dashboard"
-                >
-                  <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/students"
-                >
-                  <i class="bi bi-person me-2"></i> Students
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link active text-white"
-                  href="${pageContext.request.contextPath}/admin/parents"
-                >
-                  <i class="bi bi-people me-2"></i> Parents
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/teachers"
-                >
-                  <i class="bi bi-person-badge me-2"></i> Teachers
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/courses"
-                >
-                  <i class="bi bi-book me-2"></i> Courses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/schedule"
-                >
-                  <i class="bi bi-calendar-event me-2"></i> Schedule
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/announcements"
-                >
-                  <i class="bi bi-megaphone me-2"></i> Announcements
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/appointments"
-                >
-                  <i class="bi bi-calendar-check me-2"></i> Appointments
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/settings"
-                >
-                  <i class="bi bi-gear me-2"></i> Settings
-                </a>
-              </li>
-              <li class="nav-item mt-5">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/logout"
-                >
-                  <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <!-- Include Sidebar -->
+        <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp" />
 
         <!-- Main content -->
-        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
           <div
-            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom"
+            class="page-header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center"
           >
-            <h1 class="h2">Parent Management</h1>
-            <div class="btn-toolbar mb-2 mb-md-0">
+            <h1 class="page-title">Parent Management</h1>
+            <div class="btn-toolbar">
               <a
                 href="${pageContext.request.contextPath}/admin/parents/new"
-                class="btn btn-sm btn-primary"
+                class="btn btn-primary"
               >
                 <i class="bi bi-person-plus me-1"></i> Add New Parent
               </a>
@@ -193,10 +106,10 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
           </c:if>
 
           <!-- Parents Table -->
-          <div class="card mb-4">
+          <div class="content-card">
             <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-striped table-hover" id="parentTable">
+              <div class="table-container">
+                <table class="table table-striped data-table" id="parentTable">
                   <thead>
                     <tr>
                       <th>ID</th>
@@ -212,7 +125,25 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                     <c:forEach var="parent" items="${parents}">
                       <tr>
                         <td>${parent.id}</td>
-                        <td>${parent.firstName} ${parent.lastName}</td>
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <div
+                              class="avatar-circle me-2 d-flex align-items-center justify-content-center bg-light"
+                              style="
+                                width: 35px;
+                                height: 35px;
+                                border-radius: 50%;
+                              "
+                            >
+                              <i class="bi bi-people text-secondary"></i>
+                            </div>
+                            <div>
+                              <span class="fw-medium"
+                                >${parent.firstName} ${parent.lastName}</span
+                              >
+                            </div>
+                          </div>
+                        </td>
                         <td>${parent.email}</td>
                         <td>${parent.phone}</td>
                         <td>
@@ -228,23 +159,23 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                         </td>
                         <td>
                           <span
-                            class="badge ${parent.status eq 'active' ? 'bg-success' : 'bg-danger'}"
+                            class="badge ${parent.status eq 'active' ? 'badge-active' : 'badge-inactive'}"
                           >
                             ${parent.status}
                           </span>
                         </td>
                         <td>
-                          <div class="btn-group">
+                          <div class="d-flex">
                             <a
                               href="${pageContext.request.contextPath}/admin/parents/view/${parent.id}"
-                              class="btn btn-sm btn-outline-primary action-btn me-1"
+                              class="btn btn-sm btn-outline-primary action-btn"
                               title="View"
                             >
                               <i class="bi bi-eye"></i>
                             </a>
                             <a
                               href="${pageContext.request.contextPath}/admin/parents/edit/${parent.id}"
-                              class="btn btn-sm btn-outline-secondary action-btn me-1"
+                              class="btn btn-sm btn-outline-secondary action-btn"
                               title="Edit"
                             >
                               <i class="bi bi-pencil"></i>
@@ -294,7 +225,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                                 <div class="modal-footer">
                                   <button
                                     type="button"
-                                    class="btn btn-secondary"
+                                    class="btn btn-outline-secondary"
                                     data-bs-dismiss="modal"
                                   >
                                     Cancel

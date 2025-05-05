@@ -48,6 +48,11 @@
         <servlet-class>com.sms.controller.teacher.TeacherMarksServlet</servlet-class>
     </servlet>
     
+    <servlet>
+        <servlet-name>TeacherReportsServlet</servlet-name>
+        <servlet-class>com.sms.controller.teacher.TeacherReportsServlet</servlet-class>
+    </servlet>
+    
     <!-- Servlet Mappings -->
     <servlet-mapping>
         <servlet-name>TeacherCoursesServlet</servlet-name>
@@ -87,6 +92,11 @@
     <servlet-mapping>
         <servlet-name>TeacherMarksServlet</servlet-name>
         <url-pattern>/teacher/marks</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>TeacherReportsServlet</servlet-name>
+        <url-pattern>/teacher/reports</url-pattern>
     </servlet-mapping>
     
     <!-- Session Configuration -->

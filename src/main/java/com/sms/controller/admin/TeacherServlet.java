@@ -129,7 +129,7 @@ public class TeacherServlet extends HttpServlet {
         }
         
         request.setAttribute("teachers", teachers);
-        request.getRequestDispatcher("/admin/teachers/list_teachers.jsp").forward(request, response);
+        request.getRequestDispatcher("/admin/teachers.jsp").forward(request, response);
     }
     
     /**

@@ -60,6 +60,10 @@ public class LoginServlet extends HttpServlet {
             return;
         }
         
+        // Trim the inputs to handle any whitespace
+        username = username.trim();
+        password = password.trim();
+        
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
@@ -76,7 +80,7 @@ public class LoginServlet extends HttpServlet {
                 User user = new User();
                 user.setUserId(rs.getInt("user_id"));
                 user.setUsername(rs.getString("username"));
-                user.setPassword(rs.getString("password"));
+                user.setPassword(rs.getString("password").trim()); // Trim stored password
                 user.setRole(rs.getString("role"));
                 user.setEmail(rs.getString("email"));
                 user.setImageLink(rs.getString("image_link"));

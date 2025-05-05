@@ -102,15 +102,10 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
           class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse"
         >
           <div class="position-sticky">
-            <div class="text-center mb-4">
-              <img
-                src="${pageContext.request.contextPath}/images/logo.png"
-                alt="School Logo"
-                class="img-fluid rounded-circle mb-3"
-                style="max-width: 100px"
-              />
-              <h5 class="text-white">School Management System</h5>
-              <div class="text-white-50 mb-2">Nurse Dashboard</div>
+            <div class="d-flex justify-content-center mb-4">
+              <span class="fs-4 text-white"
+                ><i class="bi bi-building me-2"></i>School MS</span
+              >
             </div>
 
             <ul class="nav flex-column">
@@ -187,7 +182,10 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
               >
                 <i class="bi bi-list"></i>
               </button>
-              <span class="d-none d-md-inline">School Management System</span>
+              <span class="d-none d-md-inline"
+                ><i class="bi bi-building me-2"></i>School Management
+                System</span
+              >
             </a>
 
             <ul class="navbar-nav ms-auto">
