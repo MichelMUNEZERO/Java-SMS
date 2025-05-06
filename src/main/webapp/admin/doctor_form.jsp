@@ -284,6 +284,44 @@ prefix="c" %> <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
                       </div>
                     </div>
 
+                    <!-- Login Credentials -->
+                    <div class="row mb-3">
+                      <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3">
+                          Login Credentials
+                        </h5>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="username" class="form-label">
+                          Username
+                          <span class="text-danger"
+                            >${empty doctor ? '*' : ''}</span
+                          >
+                        </label>
+                        <input type="text" class="form-control" id="username"
+                        name="username" ${empty doctor ? 'required' : ''} />
+                        <div class="form-text">
+                          ${empty doctor ? 'Username for doctor to login to the
+                          system' : 'Leave blank to keep existing username'}
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="password" class="form-label">
+                          Password
+                          <span class="text-danger"
+                            >${empty doctor ? '*' : ''}</span
+                          >
+                        </label>
+                        <input type="password" class="form-control"
+                        id="password" name="password" ${empty doctor ?
+                        'required' : ''} />
+                        <div class="form-text">
+                          ${empty doctor ? 'Initial password for doctor account'
+                          : 'Leave blank to keep existing password'}
+                        </div>
+                      </div>
+                    </div>
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                       <a
                         href="${pageContext.request.contextPath}/admin/doctors"

@@ -68,7 +68,7 @@ public class TeacherDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM teachers WHERE id = ?";
+            String sql = "SELECT * FROM teachers WHERE teacher_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, id);
             rs = pstmt.executeQuery();
@@ -152,7 +152,7 @@ public class TeacherDAO {
             String sql = "UPDATE teachers SET first_name = ?, last_name = ?, email = ?, phone = ?, " +
                          "specialization = ?, qualification = ?, experience = ?, join_date = ?, " +
                          "address = ?, image_link = ?, status = ? " +
-                         "WHERE id = ?";
+                         "WHERE teacher_id = ?";
             
             pstmt = conn.prepareStatement(sql);
             setTeacherParameters(pstmt, teacher);
@@ -400,84 +400,86 @@ public class TeacherDAO {
             LOGGER.info("Executing getCoursesByTeacherId with ID: " + teacherId);
             conn = DBConnection.getConnection();
             
-            // Get course columns first
-            DatabaseMetaData meta = conn.getMetaData();
-            ResultSet columnsRS = meta.getColumns(null, null, "courses", null);
-            StringBuilder columns = new StringBuilder("Columns in courses table: ");
-            while (columnsRS.next()) {
-                columns.append(columnsRS.getString("COLUMN_NAME")).append(", ");
-            }
-            LOGGER.info(columns.toString());
-            columnsRS.close();
+            // Add debugging info
+            LOGGER.info("Teacher ID passed to getCoursesByTeacherId: " + teacherId);
             
-            // Select all courses for this teacher
-            String sql = "SELECT * FROM courses WHERE teacher_id = ?";
+            // Select all courses for this teacher - use a more direct query
+            String sql = "SELECT course_id, course_name, course_code, description, credits, teacher_id FROM courses WHERE teacher_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, teacherId);
             LOGGER.info("Executing SQL: " + sql.replace("?", String.valueOf(teacherId)));
+            
             rs = pstmt.executeQuery();
             
+            // Count the courses
+            int courseCount = 0;
             while (rs.next()) {
+                courseCount++;
+                
+                // Create a new map for this course
                 Map<String, Object> course = new HashMap<>();
                 
-                // Get the course ID (try common column naming patterns)
-                int courseId = -1;
                 try {
-                    courseId = rs.getInt("course_id");
-                } catch (SQLException e) {
-                    try {
-                        courseId = rs.getInt("id");
-                    } catch (SQLException e2) {
-                        LOGGER.warning("Could not find course ID column");
-                    }
-                }
-                course.put("courseId", courseId);
-                
-                // Get other course fields
-                try { course.put("courseCode", rs.getString("course_code")); } 
-                catch (SQLException e) { 
-                    try { course.put("courseCode", rs.getString("code")); }
-                    catch (SQLException e2) { course.put("courseCode", "N/A"); }
-                }
-                
-                try { course.put("courseName", rs.getString("course_name")); } 
-                catch (SQLException e) { 
-                    try { course.put("courseName", rs.getString("name")); }
-                    catch (SQLException e2) { course.put("courseName", "Unnamed Course"); }
-                }
-                
-                try { course.put("description", rs.getString("description")); } 
-                catch (SQLException e) { course.put("description", ""); }
-                
-                // Get student count for this course
-                if (courseId != -1) {
-                    int studentCount = 0;
-                    PreparedStatement countStmt = null;
-                    ResultSet countRs = null;
+                    // Get course details from ResultSet
+                    int courseId = rs.getInt("course_id");
+                    String courseName = rs.getString("course_name");
+                    String courseCode = rs.getString("course_code");
+                    String description = rs.getString("description");
+                    int credits = rs.getInt("credits");
+                    int teacherIdFromDb = rs.getInt("teacher_id");
+                    
+                    // Log the data for debugging
+                    LOGGER.info("Retrieved course: ID=" + courseId + 
+                               ", Name='" + courseName + 
+                               "', Code='" + courseCode + 
+                               "', Description='" + description + 
+                               "', Credits=" + credits + 
+                               "', TeacherID=" + teacherIdFromDb);
+                    
+                    // Add the course data to the map
+                    course.put("courseId", courseId);
+                    course.put("courseName", courseName);
+                    course.put("courseCode", courseCode);
+                    course.put("description", description);
+                    course.put("credits", credits);
+                    course.put("teacherId", teacherIdFromDb);
+                    
+                    // Set a default student count of 0
+                    course.put("studentCount", 0);
+                    
+                    // Try to get student count if possible
                     try {
                         String countSql = "SELECT COUNT(*) FROM student_courses WHERE course_id = ?";
-                        countStmt = conn.prepareStatement(countSql);
+                        PreparedStatement countStmt = conn.prepareStatement(countSql);
                         countStmt.setInt(1, courseId);
-                        countRs = countStmt.executeQuery();
+                        ResultSet countRs = countStmt.executeQuery();
                         if (countRs.next()) {
-                            studentCount = countRs.getInt(1);
+                            int studentCount = countRs.getInt(1);
+                            course.put("studentCount", studentCount);
+                            LOGGER.info("Course ID " + courseId + " has " + studentCount + " enrolled students");
                         }
+                        countRs.close();
+                        countStmt.close();
                     } catch (SQLException e) {
-                        LOGGER.warning("Error getting student count for course ID " + courseId + ": " + e.getMessage());
-                    } finally {
-                        if (countRs != null) try { countRs.close(); } catch (SQLException e) {}
-                        if (countStmt != null) try { countStmt.close(); } catch (SQLException e) {}
+                        LOGGER.warning("Could not get student count for course ID " + courseId + ": " + e.getMessage());
                     }
-                    course.put("studentCount", studentCount);
-                } else {
-                    course.put("studentCount", 0);
+                    
+                    // Add this course to the list
+                    courses.add(course);
+                    LOGGER.info("Added course to result list: " + courseName);
+                    
+                } catch (SQLException e) {
+                    LOGGER.warning("Error processing course: " + e.getMessage());
                 }
-                
-                courses.add(course);
-                LOGGER.info("Found course: " + course.get("courseName"));
             }
+            
+            LOGGER.info("Total courses found for teacher ID " + teacherId + ": " + courseCount);
+            LOGGER.info("Courses list size: " + courses.size());
+            
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error getting courses for teacher ID: " + teacherId, e);
+            LOGGER.log(Level.SEVERE, "SQL Error getting courses for teacher ID " + teacherId + ": " + e.getMessage(), e);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Unexpected error getting courses for teacher ID " + teacherId + ": " + e.getMessage(), e);
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -554,12 +556,12 @@ public class TeacherDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT s.student_id, s.first_name, s.last_name, c.course_name, " +
-                         "sb.behavior_date, sb.behavior_type, sb.description " +
+            // Modified query to not use the course_id column since it doesn't exist in the studentbehavior table
+            // Instead, return all behavior records with teacher matches the reported_by field
+            String sql = "SELECT sb.*, s.first_name, s.last_name " +
                          "FROM studentbehavior sb " +
                          "JOIN students s ON sb.student_id = s.student_id " +
-                         "JOIN courses c ON sb.course_id = c.course_id " +
-                         "WHERE c.teacher_id = ? " +
+                         "WHERE sb.reported_by = ? " +
                          "ORDER BY sb.behavior_date DESC";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, teacherId);
@@ -567,12 +569,14 @@ public class TeacherDAO {
             
             while (rs.next()) {
                 Map<String, Object> note = new HashMap<>();
+                note.put("behaviorId", rs.getInt("behavior_id"));
                 note.put("studentId", rs.getInt("student_id"));
                 note.put("studentName", rs.getString("first_name") + " " + rs.getString("last_name"));
-                note.put("courseName", rs.getString("course_name"));
-                note.put("date", rs.getDate("behavior_date"));
                 note.put("behaviorType", rs.getString("behavior_type"));
                 note.put("description", rs.getString("description"));
+                note.put("behaviorDate", rs.getDate("behavior_date"));
+                note.put("reportedBy", rs.getInt("reported_by"));
+                note.put("actionTaken", rs.getString("action_taken"));
                 behaviorNotes.add(note);
             }
         } catch (SQLException e) {
@@ -1104,5 +1108,150 @@ public class TeacherDAO {
         }
         
         return count;
+    }
+    
+    /**
+     * Adds a new teacher to the database and creates a user account
+     * 
+     * @param teacher The teacher object to add
+     * @param username Username for the new user account
+     * @param password Password for the new user account 
+     * @param role Role for the new user account (usually "teacher")
+     * @return The ID of the newly added teacher, or -1 if operation failed
+     */
+    public int addTeacherWithUserAccount(Teacher teacher, String username, String password, String role) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int generatedTeacherId = -1;
+        
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Begin transaction
+            
+            // Step 1: Create user account first
+            String createUserSql = "INSERT INTO users (username, password, role, email, active, created_at) " +
+                                 "VALUES (?, ?, ?, ?, ?, NOW())";
+            
+            pstmt = conn.prepareStatement(createUserSql, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.setString(3, role);
+            pstmt.setString(4, teacher.getEmail());
+            pstmt.setBoolean(5, true); // Set account as active
+            
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user account failed, no rows affected.");
+            }
+            
+            // Get the generated user ID
+            rs = pstmt.getGeneratedKeys();
+            int userId = -1;
+            if (rs.next()) {
+                userId = rs.getInt(1);
+            } else {
+                throw new SQLException("Creating user account failed, no ID obtained.");
+            }
+            
+            // Close resources before reusing
+            rs.close();
+            pstmt.close();
+            
+            // Step 2: Create teacher with reference to user ID
+            String createTeacherSql = "INSERT INTO teachers (first_name, last_name, email, phone, specialization, " +
+                                    "qualification, experience, join_date, address, image_link, status, user_id) " +
+                                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            pstmt = conn.prepareStatement(createTeacherSql, Statement.RETURN_GENERATED_KEYS);
+            setTeacherParameters(pstmt, teacher);
+            pstmt.setInt(12, userId); // Set the user_id foreign key
+            
+            affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating teacher record failed, no rows affected.");
+            }
+            
+            // Get the generated teacher ID
+            rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                generatedTeacherId = rs.getInt(1);
+                teacher.setId(generatedTeacherId);
+            } else {
+                throw new SQLException("Creating teacher record failed, no ID obtained.");
+            }
+            
+            // Commit the transaction
+            conn.commit();
+            LOGGER.info("Successfully added teacher with ID: " + generatedTeacherId + " and user account with ID: " + userId);
+            
+        } catch (SQLException e) {
+            // Roll back the transaction if something goes wrong
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
+            
+            LOGGER.log(Level.SEVERE, "Error adding teacher with user account: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true); // Reset auto-commit mode
+                }
+                
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return generatedTeacherId;
+    }
+    
+    /**
+     * Gets teacher ID by user ID
+     * 
+     * @param userId The user ID
+     * @return Teacher ID if found, -1 otherwise
+     */
+    public int getTeacherIdByUserId(int userId) {
+        int teacherId = -1;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT teacher_id FROM teachers WHERE user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                teacherId = rs.getInt("teacher_id");
+                LOGGER.info("Found teacher ID: " + teacherId + " for user ID: " + userId);
+            } else {
+                LOGGER.warning("No teacher found with user ID: " + userId);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error retrieving teacher ID for user ID: " + userId, e);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return teacherId;
     }
 } 

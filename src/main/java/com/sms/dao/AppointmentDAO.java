@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -342,6 +343,208 @@ public class AppointmentDAO {
             success = (affectedRows > 0);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating appointment status for ID: " + appointmentId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, null);
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Get appointments for a specific nurse
+     * 
+     * @param nurseId The nurse ID
+     * @return List of appointments as maps
+     */
+    public List<Map<String, Object>> getNurseAppointments(int nurseId) {
+        List<Map<String, Object>> appointments = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT a.*, s.first_name AS student_first_name, s.last_name AS student_last_name, " +
+                         "d.first_name AS doctor_first_name, d.last_name AS doctor_last_name, " +
+                         "n.first_name AS nurse_first_name, n.last_name AS nurse_last_name " +
+                         "FROM appointments a " +
+                         "JOIN students s ON a.student_id = s.student_id " +
+                         "LEFT JOIN doctors d ON a.doctor_id = d.doctor_id " +
+                         "LEFT JOIN nurses n ON a.nurse_id = n.nurse_id " +
+                         "WHERE a.nurse_id = ? " +
+                         "ORDER BY a.appointment_date DESC, a.appointment_time ASC";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, nurseId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> appointment = new HashMap<>();
+                appointment.put("appointmentId", rs.getInt("appointment_id"));
+                appointment.put("studentId", rs.getInt("student_id"));
+                appointment.put("studentName", rs.getString("student_first_name") + " " + rs.getString("student_last_name"));
+                appointment.put("appointmentDate", rs.getDate("appointment_date"));
+                appointment.put("appointmentTime", rs.getTime("appointment_time"));
+                appointment.put("purpose", rs.getString("purpose"));
+                appointment.put("status", rs.getString("status"));
+                
+                Integer doctorId = rs.getInt("doctor_id");
+                if (!rs.wasNull()) {
+                    appointment.put("doctorId", doctorId);
+                    appointment.put("doctorName", rs.getString("doctor_first_name") + " " + rs.getString("doctor_last_name"));
+                }
+                
+                appointments.add(appointment);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting nurse appointments for nurse ID: " + nurseId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return appointments;
+    }
+    
+    /**
+     * Get today's appointments for a specific nurse
+     * 
+     * @param nurseId The nurse ID
+     * @return List of today's appointments as maps
+     */
+    public List<Map<String, Object>> getTodayAppointmentsForNurse(int nurseId) {
+        List<Map<String, Object>> appointments = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT a.*, s.first_name AS student_first_name, s.last_name AS student_last_name, " +
+                         "d.first_name AS doctor_first_name, d.last_name AS doctor_last_name " +
+                         "FROM appointments a " +
+                         "JOIN students s ON a.student_id = s.student_id " +
+                         "LEFT JOIN doctors d ON a.doctor_id = d.doctor_id " +
+                         "WHERE a.nurse_id = ? AND a.appointment_date = CURRENT_DATE " +
+                         "ORDER BY a.appointment_time ASC";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, nurseId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> appointment = new HashMap<>();
+                appointment.put("appointmentId", rs.getInt("appointment_id"));
+                appointment.put("studentId", rs.getInt("student_id"));
+                appointment.put("studentName", rs.getString("student_first_name") + " " + rs.getString("student_last_name"));
+                appointment.put("appointmentTime", rs.getTime("appointment_time"));
+                appointment.put("purpose", rs.getString("purpose"));
+                appointment.put("status", rs.getString("status"));
+                
+                Integer doctorId = rs.getInt("doctor_id");
+                if (!rs.wasNull()) {
+                    appointment.put("doctorId", doctorId);
+                    appointment.put("doctorName", rs.getString("doctor_first_name") + " " + rs.getString("doctor_last_name"));
+                }
+                
+                appointments.add(appointment);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting today's appointments for nurse ID: " + nurseId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return appointments;
+    }
+    
+    /**
+     * Get appointments for a specific doctor
+     * 
+     * @param doctorId The doctor ID
+     * @return List of appointments for the doctor
+     */
+    public List<Map<String, Object>> getDoctorAppointments(int doctorId) {
+        List<Map<String, Object>> appointments = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT a.*, s.first_name AS student_first_name, s.last_name AS student_last_name " +
+                         "FROM appointments a " +
+                         "JOIN students s ON a.student_id = s.student_id " +
+                         "WHERE a.teacher_id = ? " +  // Changed from doctor_id to teacher_id since doctor uses the teacher table
+                         "ORDER BY a.appointment_date DESC";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, doctorId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Map<String, Object> appointment = new HashMap<>();
+                appointment.put("id", rs.getInt("appointment_id"));
+                appointment.put("studentId", rs.getInt("student_id"));
+                appointment.put("studentName", rs.getString("student_first_name") + " " + rs.getString("student_last_name"));
+                appointment.put("date", rs.getTimestamp("appointment_date"));
+                // The time is now part of the datetime field
+                appointment.put("time", rs.getTimestamp("appointment_date"));
+                appointment.put("purpose", rs.getString("title"));  // Use title as purpose
+                appointment.put("status", rs.getString("status"));
+                appointment.put("notes", rs.getString("description")); // Use description as notes
+                
+                appointments.add(appointment);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting doctor appointments for doctor ID: " + doctorId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return appointments;
+    }
+    
+    /**
+     * Create a new doctor appointment
+     * 
+     * @param doctorId The doctor ID
+     * @param studentId The student ID
+     * @param appointmentDate The date of the appointment
+     * @param appointmentTime The time of the appointment
+     * @param appointmentType The type/purpose of the appointment
+     * @param notes Additional notes for the appointment
+     * @return true if successful, false otherwise
+     */
+    public boolean createDoctorAppointment(int doctorId, int studentId, Date appointmentDate, 
+                                         Time appointmentTime, String appointmentType, String notes) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            
+            // Convert separate date and time to a timestamp
+            String dateTimeStr = appointmentDate.toString() + " " + appointmentTime.toString();
+            java.sql.Timestamp appointmentDateTime = java.sql.Timestamp.valueOf(dateTimeStr);
+            
+            String sql = "INSERT INTO appointments (teacher_id, student_id, appointment_date, " +
+                        "title, description, status, created_by) " +
+                        "VALUES (?, ?, ?, ?, ?, 'Scheduled', ?)";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, doctorId);  // Use teacher_id field for doctor
+            pstmt.setInt(2, studentId);
+            pstmt.setTimestamp(3, appointmentDateTime);
+            pstmt.setString(4, appointmentType);  // Use appointmentType as title
+            pstmt.setString(5, notes);  // Use notes as description
+            pstmt.setInt(6, doctorId);  // Set the doctor as the creator
+            
+            int affectedRows = pstmt.executeUpdate();
+            success = (affectedRows > 0);
+            
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error creating doctor appointment", e);
         } finally {
             DBConnection.closeAll(conn, pstmt, null);
         }

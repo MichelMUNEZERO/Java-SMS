@@ -209,6 +209,113 @@ public class NurseDAO {
     }
     
     /**
+     * Add a new nurse to the database with a user account
+     * 
+     * @param nurse The nurse to add
+     * @param username Username for the new user account
+     * @param password Password for the new user account
+     * @param role Role for the new user account (usually "nurse")
+     * @return true if successful, false otherwise
+     */
+    public boolean addNurseWithUserAccount(Nurse nurse, String username, String password, String role) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            // Step 1: Create user account
+            String createUserSql = "INSERT INTO users (username, password, role, email, active, created_at) " +
+                                 "VALUES (?, ?, ?, ?, ?, NOW())";
+            
+            pstmt = conn.prepareStatement(createUserSql, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.setString(3, role);
+            pstmt.setString(4, nurse.getEmail());
+            pstmt.setBoolean(5, true); // Set account as active
+            
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user account failed, no rows affected.");
+            }
+            
+            // Get the generated user ID
+            rs = pstmt.getGeneratedKeys();
+            int userId = -1;
+            if (rs.next()) {
+                userId = rs.getInt(1);
+            } else {
+                throw new SQLException("Creating user account failed, no ID obtained.");
+            }
+            
+            // Clean up resources
+            rs.close();
+            pstmt.close();
+            
+            // Step 2: Create nurse with reference to user ID
+            nurse.setUserId(userId);
+            String createNurseSql = "INSERT INTO nurses (first_name, last_name, email, phone, qualification, user_id) " +
+                                  "VALUES (?, ?, ?, ?, ?, ?)";
+            
+            pstmt = conn.prepareStatement(createNurseSql, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, nurse.getFirstName());
+            pstmt.setString(2, nurse.getLastName());
+            pstmt.setString(3, nurse.getEmail());
+            pstmt.setString(4, nurse.getPhone());
+            pstmt.setString(5, nurse.getQualification());
+            pstmt.setInt(6, userId);
+            
+            affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating nurse record failed, no rows affected.");
+            }
+            
+            // Get the generated nurse ID
+            rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                nurse.setNurseId(rs.getInt(1));
+            } else {
+                throw new SQLException("Creating nurse record failed, no ID obtained.");
+            }
+            
+            // Commit transaction
+            conn.commit();
+            success = true;
+            LOGGER.info("Successfully added nurse with ID: " + nurse.getNurseId() + " and user account with ID: " + userId);
+            
+        } catch (SQLException e) {
+            // Roll back the transaction if something goes wrong
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
+            
+            LOGGER.log(Level.SEVERE, "Error adding nurse with user account: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true); // Reset auto-commit mode
+                }
+                
+                DBConnection.closeAll(conn, pstmt, rs);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error resetting auto-commit", e);
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
      * Map a ResultSet row to a Nurse object
      * 
      * @param rs The ResultSet to map
@@ -227,6 +334,144 @@ public class NurseDAO {
         int userId = rs.getInt("user_id");
         if (!rs.wasNull()) {
             nurse.setUserId(userId);
+        }
+        
+        return nurse;
+    }
+    
+    /**
+     * Update nurse information and user credentials
+     * 
+     * @param nurse The nurse to update
+     * @param username New username (if not empty)
+     * @param password New password (if not empty)
+     * @return true if successful, false otherwise
+     */
+    public boolean updateNurseWithCredentials(Nurse nurse, String username, String password) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            // First update the nurse information
+            String sql = "UPDATE nurses SET first_name = ?, last_name = ?, email = ?, " +
+                       "phone = ?, qualification = ? WHERE nurse_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, nurse.getFirstName());
+            pstmt.setString(2, nurse.getLastName());
+            pstmt.setString(3, nurse.getEmail());
+            pstmt.setString(4, nurse.getPhone());
+            pstmt.setString(5, nurse.getQualification());
+            pstmt.setInt(6, nurse.getNurseId());
+            
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Updating nurse failed, no rows affected.");
+            }
+            
+            // Close the statement before reusing
+            pstmt.close();
+            
+            // Now update the user credentials if user_id exists
+            if (nurse.getUserId() != null) {
+                StringBuilder userSql = new StringBuilder("UPDATE users SET email = ?");
+                
+                // Add username update if provided
+                if (username != null && !username.trim().isEmpty()) {
+                    userSql.append(", username = ?");
+                }
+                
+                // Add password update if provided
+                if (password != null && !password.trim().isEmpty()) {
+                    userSql.append(", password = ?");
+                }
+                
+                userSql.append(" WHERE user_id = ?");
+                
+                pstmt = conn.prepareStatement(userSql.toString());
+                
+                int paramIndex = 1;
+                pstmt.setString(paramIndex++, nurse.getEmail());
+                
+                if (username != null && !username.trim().isEmpty()) {
+                    pstmt.setString(paramIndex++, username);
+                }
+                
+                if (password != null && !password.trim().isEmpty()) {
+                    pstmt.setString(paramIndex++, password);
+                }
+                
+                pstmt.setInt(paramIndex, nurse.getUserId());
+                
+                affectedRows = pstmt.executeUpdate();
+                
+                if (affectedRows == 0) {
+                    throw new SQLException("Updating user failed, no rows affected.");
+                }
+            }
+            
+            // Commit the transaction
+            conn.commit();
+            success = true;
+            LOGGER.info("Successfully updated nurse with ID: " + nurse.getNurseId());
+            
+        } catch (SQLException e) {
+            // Roll back the transaction if something goes wrong
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
+            
+            LOGGER.log(Level.SEVERE, "Error updating nurse with credentials: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true); // Reset auto-commit mode
+                }
+                
+                DBConnection.closeStatement(pstmt);
+                DBConnection.closeConnection(conn);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Get a nurse by user ID
+     * 
+     * @param userId The user ID
+     * @return Nurse object if found, null otherwise
+     */
+    public Nurse getNurseByUserId(int userId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Nurse nurse = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM nurses WHERE user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                nurse = mapResultSetToNurse(rs);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting nurse by user ID: " + userId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
         }
         
         return nurse;

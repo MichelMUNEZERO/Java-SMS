@@ -63,12 +63,22 @@ public class CourseDetailsServlet extends HttpServlet {
                 return;
             }
             
-            // Get teacher ID from the user object
-            int teacherId = user.getUserId();
-            LOGGER.info("Loading course details for teacher ID: " + teacherId + ", course ID: " + courseId);
+            // Get user ID from the user object
+            int userId = user.getUserId();
             
             // Initialize DAOs
             TeacherDAO teacherDAO = new TeacherDAO();
+            
+            // Get the teacher ID from the database based on user ID
+            int teacherId = teacherDAO.getTeacherIdByUserId(userId);
+            
+            if (teacherId <= 0) {
+                // Fallback to user ID if teacher ID not found
+                teacherId = userId;
+                LOGGER.warning("Could not find teacher ID for user ID: " + userId + ". Using user ID as fallback.");
+            }
+            
+            LOGGER.info("Loading course details for teacher ID: " + teacherId + ", course ID: " + courseId);
             
             // Get course details
             Map<String, Object> courseDetails = teacherDAO.getCourseDetailsById(courseId, teacherId);

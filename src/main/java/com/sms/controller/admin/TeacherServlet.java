@@ -3,6 +3,7 @@ package com.sms.controller.admin;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -155,12 +156,14 @@ public class TeacherServlet extends HttpServlet {
                 request.getRequestDispatcher("/admin/teachers/edit_teacher.jsp").forward(request, response);
             } else {
                 // Teacher not found
-                request.setAttribute("errorMessage", "Teacher not found with ID: " + id);
-                request.getRequestDispatcher("/admin/teachers").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/admin/teachers?error=Teacher+not+found+with+ID:+" + id);
             }
         } catch (NumberFormatException e) {
             // Invalid ID format
-            response.sendRedirect(request.getContextPath() + "/admin/teachers");
+            response.sendRedirect(request.getContextPath() + "/admin/teachers?error=Invalid+ID+format");
+        } catch (Exception e) {
+            // Other errors
+            response.sendRedirect(request.getContextPath() + "/admin/teachers?error=Error+loading+teacher");
         }
     }
     
@@ -175,16 +178,42 @@ public class TeacherServlet extends HttpServlet {
             Teacher teacher = teacherDAO.getTeacherById(id);
             
             if (teacher != null) {
-                request.setAttribute("teacher", teacher);
-                request.getRequestDispatcher("/admin/teachers/view_teacher.jsp").forward(request, response);
+                // Log successful teacher retrieval
+                System.out.println("Successfully retrieved teacher with ID: " + id);
+                
+                try {
+                    // Get courses for this teacher
+                    List<Map<String, Object>> courses = teacherDAO.getCoursesByTeacherId(id);
+                    System.out.println("Retrieved " + courses.size() + " courses for teacher ID: " + id);
+                    
+                    // Add teacher and courses to the request
+                    request.setAttribute("teacher", teacher);
+                    request.setAttribute("courses", courses); // Add courses to request attributes
+                    
+                    request.getRequestDispatcher("/admin/teachers/view_teacher.jsp").forward(request, response);
+                } catch (Exception e) {
+                    // If there's an error getting courses, we can still show the teacher details
+                    System.err.println("Error getting courses for teacher ID " + id + ": " + e.getMessage());
+                    e.printStackTrace();
+                    
+                    request.setAttribute("teacher", teacher);
+                    request.setAttribute("courseError", "Unable to load courses: " + e.getMessage());
+                    request.getRequestDispatcher("/admin/teachers/view_teacher.jsp").forward(request, response);
+                }
             } else {
                 // Teacher not found
-                request.setAttribute("errorMessage", "Teacher not found with ID: " + id);
-                request.getRequestDispatcher("/admin/teachers").forward(request, response);
+                System.err.println("Teacher not found with ID: " + id);
+                response.sendRedirect(request.getContextPath() + "/admin/teachers?error=Teacher+not+found+with+ID:+" + id);
             }
         } catch (NumberFormatException e) {
             // Invalid ID format
-            response.sendRedirect(request.getContextPath() + "/admin/teachers");
+            System.err.println("Invalid teacher ID format: " + idStr);
+            response.sendRedirect(request.getContextPath() + "/admin/teachers?error=Invalid+ID+format");
+        } catch (Exception e) {
+            // Other errors
+            System.err.println("Error viewing teacher: " + e.getMessage());
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/admin/teachers?error=Error+loading+teacher");
         }
     }
     
@@ -202,11 +231,18 @@ public class TeacherServlet extends HttpServlet {
         String address = request.getParameter("address");
         String specialization = request.getParameter("specialization");
         
+        // Get username and password for account creation
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        
         // Validate required fields
         if (firstName == null || firstName.trim().isEmpty() ||
             lastName == null || lastName.trim().isEmpty() ||
-            email == null || email.trim().isEmpty()) {
-            request.setAttribute("errorMessage", "First name, last name, and email are required");
+            email == null || email.trim().isEmpty() ||
+            username == null || username.trim().isEmpty() ||
+            password == null || password.trim().isEmpty()) {
+            
+            request.setAttribute("errorMessage", "First name, last name, email, username, and password are required");
             request.getRequestDispatcher("/admin/teachers/add_teacher.jsp").forward(request, response);
             return;
         }
@@ -237,20 +273,17 @@ public class TeacherServlet extends HttpServlet {
         teacher.setStatus("Active");
         teacher.setJoinDate(new Date(System.currentTimeMillis()));
         
-        // For now, we're not handling user account creation or image upload
-        // These would typically be handled in a more complex implementation
-        
-        // Add teacher to database
-        int teacherId = teacherDAO.addTeacher(teacher);
+        // Create user account and add teacher to database
+        int teacherId = teacherDAO.addTeacherWithUserAccount(teacher, username, password, "teacher");
         
         if (teacherId > 0) {
             // Success - redirect to teacher list with success message
-            request.getSession().setAttribute("successMessage", "Teacher added successfully!");
+            request.getSession().setAttribute("successMessage", "Teacher added successfully with login credentials!");
             response.sendRedirect(request.getContextPath() + "/admin/teachers");
         } else {
             // Error - show form again with error message
-            request.setAttribute("errorMessage", "Failed to add teacher. Please try again.");
-            request.setAttribute("teacher", teacher); // Keep form values
+            request.setAttribute("errorMessage", "Error adding teacher. Please try again.");
+            request.setAttribute("teacher", teacher);
             request.getRequestDispatcher("/admin/teachers/add_teacher.jsp").forward(request, response);
         }
     }

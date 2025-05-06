@@ -33,17 +33,40 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Announcements ORDER BY created_at DESC";
+            String sql = "SELECT a.*, u.username FROM Announcements a LEFT JOIN users u ON a.created_by = u.user_id ORDER BY created_at DESC";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
                 Announcement announcement = new Announcement();
                 announcement.setAnnouncementId(rs.getInt("announcement_id"));
-                announcement.setTitle(rs.getString("content"));
-                announcement.setMessage(rs.getString("content"));
+                
+                // Extract title from content (first line)
+                String content = rs.getString("content");
+                if (content != null && content.contains("\n\n")) {
+                    String[] parts = content.split("\n\n", 2);
+                    announcement.setTitle(parts[0]);
+                    announcement.setMessage(parts[1]);
+                } else {
+                    announcement.setTitle("Announcement");
+                    announcement.setMessage(content);
+                }
+                
                 announcement.setDate(rs.getTimestamp("created_at"));
-                announcement.setPostedBy(rs.getString("created_by"));
+                
+                // Get username if available, otherwise use user ID as string
+                String username = rs.getString("username");
+                if (username != null) {
+                    announcement.setPostedBy(username);
+                } else {
+                    int createdBy = rs.getInt("created_by");
+                    if (!rs.wasNull()) {
+                        announcement.setPostedBy(String.valueOf(createdBy));
+                    } else {
+                        announcement.setPostedBy("Unknown");
+                    }
+                }
+                
                 announcement.setTargetGroup(rs.getString("target_audience"));
                 
                 announcements.add(announcement);
@@ -146,7 +169,7 @@ public class AnnouncementDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT * FROM Announcements WHERE announcement_id = ?";
+            String sql = "SELECT a.*, u.username FROM Announcements a LEFT JOIN users u ON a.created_by = u.user_id WHERE announcement_id = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, announcementId);
             rs = pstmt.executeQuery();
@@ -154,10 +177,33 @@ public class AnnouncementDAO {
             if (rs.next()) {
                 announcement = new Announcement();
                 announcement.setAnnouncementId(rs.getInt("announcement_id"));
-                announcement.setTitle(rs.getString("content"));
-                announcement.setMessage(rs.getString("content"));
+                
+                // Extract title from content (first line)
+                String content = rs.getString("content");
+                if (content != null && content.contains("\n\n")) {
+                    String[] parts = content.split("\n\n", 2);
+                    announcement.setTitle(parts[0]);
+                    announcement.setMessage(parts[1]);
+                } else {
+                    announcement.setTitle("Announcement");
+                    announcement.setMessage(content);
+                }
+                
                 announcement.setDate(rs.getTimestamp("created_at"));
-                announcement.setPostedBy(rs.getString("created_by"));
+                
+                // Get username if available, otherwise use user ID as string
+                String username = rs.getString("username");
+                if (username != null) {
+                    announcement.setPostedBy(username);
+                } else {
+                    int createdBy = rs.getInt("created_by");
+                    if (!rs.wasNull()) {
+                        announcement.setPostedBy(String.valueOf(createdBy));
+                    } else {
+                        announcement.setPostedBy("Unknown");
+                    }
+                }
+                
                 announcement.setTargetGroup(rs.getString("target_audience"));
             }
         } catch (SQLException e) {
@@ -183,10 +229,20 @@ public class AnnouncementDAO {
             conn = DBConnection.getConnection();
             String sql = "INSERT INTO Announcements (content, created_at, target_audience, created_by) VALUES (?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, announcement.getMessage());
+            
+            // Combine title and message for the content field
+            String fullContent = announcement.getTitle() + "\n\n" + announcement.getMessage();
+            pstmt.setString(1, fullContent);
             pstmt.setTimestamp(2, announcement.getDate());
             pstmt.setString(3, announcement.getTargetGroup());
-            pstmt.setString(4, announcement.getPostedBy());
+            
+            // Handle created_by as an integer (user ID)
+            if (announcement.getPostedBy() != null && announcement.getPostedBy().matches("\\d+")) {
+                pstmt.setInt(4, Integer.parseInt(announcement.getPostedBy()));
+            } else {
+                // If not a valid integer, set to NULL
+                pstmt.setNull(4, java.sql.Types.INTEGER);
+            }
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -213,7 +269,10 @@ public class AnnouncementDAO {
             conn = DBConnection.getConnection();
             String sql = "UPDATE Announcements SET content = ?, target_audience = ? WHERE announcement_id = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, announcement.getMessage());
+            
+            // Combine title and message for the content field
+            String fullContent = announcement.getTitle() + "\n\n" + announcement.getMessage();
+            pstmt.setString(1, fullContent);
             pstmt.setString(2, announcement.getTargetGroup());
             pstmt.setInt(3, announcement.getAnnouncementId());
             

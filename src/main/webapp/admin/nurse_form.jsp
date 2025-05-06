@@ -302,6 +302,44 @@ prefix="c" %>
                       </div>
                     </div>
 
+                    <!-- Login Credentials -->
+                    <div class="row mb-3">
+                      <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3">
+                          Login Credentials
+                        </h5>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="username" class="form-label"
+                          >Username
+                          <span class="text-danger"
+                            >${nurse == null ? '*' : ''}</span
+                          ></label
+                        >
+                        <input type="text" class="form-control" id="username"
+                        name="username" ${nurse == null ? 'required' : ''} />
+                        <div class="form-text">
+                          ${nurse == null ? 'Username for nurse to login to the
+                          system' : 'Leave blank to keep existing username'}
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <label for="password" class="form-label"
+                          >Password
+                          <span class="text-danger"
+                            >${nurse == null ? '*' : ''}</span
+                          ></label
+                        >
+                        <input type="password" class="form-control"
+                        id="password" name="password" ${nurse == null ?
+                        'required' : ''} />
+                        <div class="form-text">
+                          ${nurse == null ? 'Initial password for nurse account'
+                          : 'Leave blank to keep existing password'}
+                        </div>
+                      </div>
+                    </div>
+
                     <div class="d-flex justify-content-end mt-4">
                       <a
                         href="${pageContext.request.contextPath}/admin/nurses"

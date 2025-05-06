@@ -202,6 +202,254 @@ public class DoctorDAO {
     }
     
     /**
+     * Get a doctor by user ID
+     * 
+     * @param userId The user ID
+     * @return Doctor object if found, null otherwise
+     */
+    public Doctor getDoctorByUserId(int userId) {
+        Doctor doctor = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT * FROM doctors WHERE user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                doctor = mapResultSetToDoctor(rs);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting doctor by user ID: " + userId, e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return doctor;
+    }
+    
+    /**
+     * Add a new doctor to the database with a user account
+     * 
+     * @param doctor The doctor to add
+     * @param username Username for the new user account
+     * @param password Password for the new user account
+     * @param role Role for the new user account (usually "doctor")
+     * @return true if successful, false otherwise
+     */
+    public boolean addDoctorWithUserAccount(Doctor doctor, String username, String password, String role) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            // Step 1: Create user account
+            String createUserSql = "INSERT INTO users (username, password, role, email, active, created_at) " +
+                                 "VALUES (?, ?, ?, ?, ?, NOW())";
+            
+            pstmt = conn.prepareStatement(createUserSql, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.setString(3, role);
+            pstmt.setString(4, doctor.getEmail());
+            pstmt.setBoolean(5, true); // Set account as active
+            
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating user account failed, no rows affected.");
+            }
+            
+            // Get the generated user ID
+            rs = pstmt.getGeneratedKeys();
+            int userId = -1;
+            if (rs.next()) {
+                userId = rs.getInt(1);
+            } else {
+                throw new SQLException("Creating user account failed, no ID obtained.");
+            }
+            
+            // Clean up resources
+            rs.close();
+            pstmt.close();
+            
+            // Step 2: Create doctor with reference to user ID
+            doctor.setUserId(userId);
+            String createDoctorSql = "INSERT INTO doctors (first_name, last_name, email, phone, specialization, hospital, user_id) " +
+                                  "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            
+            pstmt = conn.prepareStatement(createDoctorSql, Statement.RETURN_GENERATED_KEYS);
+            pstmt.setString(1, doctor.getFirstName());
+            pstmt.setString(2, doctor.getLastName());
+            pstmt.setString(3, doctor.getEmail());
+            pstmt.setString(4, doctor.getPhone());
+            pstmt.setString(5, doctor.getSpecialization());
+            pstmt.setString(6, doctor.getHospital());
+            pstmt.setInt(7, userId);
+            
+            affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Creating doctor record failed, no rows affected.");
+            }
+            
+            // Get the generated doctor ID
+            rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                doctor.setDoctorId(rs.getInt(1));
+            } else {
+                throw new SQLException("Creating doctor record failed, no ID obtained.");
+            }
+            
+            // Commit transaction
+            conn.commit();
+            success = true;
+            LOGGER.info("Successfully added doctor with ID: " + doctor.getDoctorId() + " and user account with ID: " + userId);
+            
+        } catch (SQLException e) {
+            // Roll back the transaction if something goes wrong
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
+            
+            LOGGER.log(Level.SEVERE, "Error adding doctor with user account: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true); // Reset auto-commit mode
+                }
+                
+                DBConnection.closeAll(conn, pstmt, rs);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error resetting auto-commit", e);
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
+     * Update doctor information and user credentials
+     * 
+     * @param doctor The doctor to update
+     * @param username New username (if not empty)
+     * @param password New password (if not empty)
+     * @return true if successful, false otherwise
+     */
+    public boolean updateDoctorWithCredentials(Doctor doctor, String username, String password) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+        
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false); // Start transaction
+            
+            // First update the doctor information
+            String sql = "UPDATE doctors SET first_name = ?, last_name = ?, email = ?, " +
+                        "phone = ?, specialization = ?, hospital = ? " +
+                        "WHERE doctor_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, doctor.getFirstName());
+            pstmt.setString(2, doctor.getLastName());
+            pstmt.setString(3, doctor.getEmail());
+            pstmt.setString(4, doctor.getPhone());
+            pstmt.setString(5, doctor.getSpecialization());
+            pstmt.setString(6, doctor.getHospital());
+            pstmt.setInt(7, doctor.getDoctorId());
+            
+            int affectedRows = pstmt.executeUpdate();
+            
+            if (affectedRows == 0) {
+                throw new SQLException("Updating doctor failed, no rows affected.");
+            }
+            
+            // Close the statement before reusing
+            pstmt.close();
+            
+            // Now update the user credentials if user_id exists
+            if (doctor.getUserId() != null) {
+                StringBuilder userSql = new StringBuilder("UPDATE users SET email = ?");
+                
+                // Add username update if provided
+                if (username != null && !username.trim().isEmpty()) {
+                    userSql.append(", username = ?");
+                }
+                
+                // Add password update if provided
+                if (password != null && !password.trim().isEmpty()) {
+                    userSql.append(", password = ?");
+                }
+                
+                userSql.append(" WHERE user_id = ?");
+                
+                pstmt = conn.prepareStatement(userSql.toString());
+                
+                int paramIndex = 1;
+                pstmt.setString(paramIndex++, doctor.getEmail());
+                
+                if (username != null && !username.trim().isEmpty()) {
+                    pstmt.setString(paramIndex++, username);
+                }
+                
+                if (password != null && !password.trim().isEmpty()) {
+                    pstmt.setString(paramIndex++, password);
+                }
+                
+                pstmt.setInt(paramIndex, doctor.getUserId());
+                
+                affectedRows = pstmt.executeUpdate();
+                
+                if (affectedRows == 0) {
+                    throw new SQLException("Updating user failed, no rows affected.");
+                }
+            }
+            
+            // Commit the transaction
+            conn.commit();
+            success = true;
+            LOGGER.info("Successfully updated doctor with ID: " + doctor.getDoctorId());
+            
+        } catch (SQLException e) {
+            // Roll back the transaction if something goes wrong
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Error rolling back transaction", ex);
+            }
+            
+            LOGGER.log(Level.SEVERE, "Error updating doctor with credentials: " + e.getMessage(), e);
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true); // Reset auto-commit mode
+                }
+                
+                DBConnection.closeStatement(pstmt);
+                DBConnection.closeConnection(conn);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Error closing resources", e);
+            }
+        }
+        
+        return success;
+    }
+    
+    /**
      * Helper method to map a ResultSet row to a Doctor object
      * 
      * @param rs The ResultSet containing doctor data

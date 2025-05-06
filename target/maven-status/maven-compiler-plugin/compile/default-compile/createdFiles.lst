@@ -1,3 +1,4 @@
+com\sms\controller\admin\AdminCourseEditServlet.class
 com\sms\util\DBConnection.class
 com\school\dao\AppointmentDAO.class
 com\sms\controller\nurse\DashboardServlet.class
@@ -7,6 +8,7 @@ com\sms\dao\DashboardDAO.class
 com\sms\controller\teacher\TeacherMarksServlet.class
 com\sms\dao\CourseMaterialDAO.class
 com\sms\controller\student\GradesServlet.class
+com\sms\controller\doctor\DoctorAppointmentServlet.class
 com\sms\controller\admin\CoursesServlet.class
 com\sms\model\Course.class
 com\sms\controller\teacher\CoursesServlet.class
@@ -34,12 +36,14 @@ com\sms\model\CourseMaterial.class
 com\sms\model\Student.class
 com\sms\controller\student\DashboardServlet.class
 com\sms\controller\teacher\TeacherReportsServlet.class
+com\sms\controller\nurse\AppointmentsServlet.class
 com\sms\controller\teacher\DashboardServlet.class
 com\sms\controller\teacher\AppointmentsServlet.class
 com\sms\dao\BehaviorDAO.class
 com\sms\dao\AppointmentDAO.class
 com\sms\controller\teacher\TeacherStudentServlet.class
 com\sms\model\User.class
+com\sms\controller\admin\AdminCourseDeleteServlet.class
 com\sms\dao\DoctorDAO.class
 com\sms\model\Teacher.class
 com\sms\model\HealthRecord.class
@@ -50,10 +54,13 @@ com\sms\controller\LoginServlet.class
 com\sms\controller\BehaviorController.class
 com\sms\controller\student\AssignmentsServlet.class
 com\sms\model\Doctor.class
+com\sms\controller\nurse\DiagnosedStudentsServlet.class
 com\sms\controller\student\CourseDetailsServlet.class
+com\sms\controller\nurse\NewDiagnosisServlet.class
 com\sms\controller\parent\AppointmentServlet.class
 com\sms\controller\doctor\StudentHealthServlet.class
 com\sms\controller\teacher\TeacherStudentsServlet.class
+com\sms\controller\admin\AdminCourseDetailsServlet.class
 com\sms\controller\teacher\CourseMaterialsServlet.class
 com\sms\dao\impl\CourseMaterialDAOImpl.class
 com\sms\model\Nurse.class

@@ -3,6 +3,8 @@ package com.sms.controller.admin;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -28,6 +30,7 @@ import com.sms.model.User;
 public class AnnouncementServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private AnnouncementDAO announcementDAO;
+    private static final Logger LOGGER = Logger.getLogger(AnnouncementServlet.class.getName());
     
     @Override
     public void init() throws ServletException {
@@ -39,6 +42,11 @@ public class AnnouncementServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        // Debug information
+        LOGGER.info("Servlet Path: " + request.getServletPath());
+        LOGGER.info("Path Info: " + request.getPathInfo());
+        LOGGER.info("Request URI: " + request.getRequestURI());
         
         // Check authentication
         HttpSession session = request.getSession(false);
@@ -54,6 +62,15 @@ public class AnnouncementServlet extends HttpServlet {
         }
         
         String action = request.getServletPath();
+        String pathInfo = request.getPathInfo();
+        
+        // For URLs with path parameters (like /view/1, /edit/1, /delete/1)
+        if (pathInfo != null) {
+            action = action + pathInfo.substring(0, pathInfo.lastIndexOf('/') + 1);
+            LOGGER.info("Modified action for path parameter URL: " + action);
+        }
+        
+        LOGGER.info("Processing action: " + action);
         
         if (action.equals("/admin/announcements")) {
             // Show all announcements
@@ -72,6 +89,7 @@ public class AnnouncementServlet extends HttpServlet {
             viewAnnouncement(request, response);
         } else {
             // Default to announcement listing
+            LOGGER.warning("Unrecognized action: " + action);
             response.sendRedirect(request.getContextPath() + "/admin/announcements");
         }
     }
@@ -130,11 +148,29 @@ public class AnnouncementServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("Edit Form - Path Info: " + pathInfo);
         
-        Announcement announcement = announcementDAO.getAnnouncementById(announcementId);
-        request.setAttribute("announcement", announcement);
-        request.getRequestDispatcher("/admin/announcement_form.jsp").forward(request, response);
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID");
+            return;
+        }
+        
+        try {
+            int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("Edit Form - Announcement ID: " + announcementId);
+            
+            Announcement announcement = announcementDAO.getAnnouncementById(announcementId);
+            if (announcement == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Announcement not found");
+                return;
+            }
+            
+            request.setAttribute("announcement", announcement);
+            request.getRequestDispatcher("/admin/announcement_form.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid announcement ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID format");
+        }
     }
     
     /**
@@ -149,7 +185,8 @@ public class AnnouncementServlet extends HttpServlet {
         
         // Get current user as the poster
         User user = (User) request.getSession().getAttribute("user");
-        String postedBy = user.getUsername();
+        // Use user ID instead of username
+        String postedBy = String.valueOf(user.getUserId());
         
         // Create announcement object
         Announcement announcement = new Announcement();
@@ -180,36 +217,54 @@ public class AnnouncementServlet extends HttpServlet {
             throws ServletException, IOException {
         // Get announcement ID from path
         String pathInfo = request.getPathInfo();
-        int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("Update Announcement - Path Info: " + pathInfo);
         
-        // Collect form data
-        String title = request.getParameter("title");
-        String message = request.getParameter("message");
-        String targetGroup = request.getParameter("targetGroup");
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID");
+            return;
+        }
         
-        // Get original announcement to preserve some fields
-        Announcement originalAnnouncement = announcementDAO.getAnnouncementById(announcementId);
-        
-        // Create announcement object
-        Announcement announcement = new Announcement();
-        announcement.setAnnouncementId(announcementId);
-        announcement.setTitle(title);
-        announcement.setMessage(message);
-        announcement.setTargetGroup(targetGroup);
-        announcement.setPostedBy(originalAnnouncement.getPostedBy());
-        announcement.setDate(originalAnnouncement.getDate());
-        
-        // Update in database
-        boolean success = announcementDAO.updateAnnouncement(announcement);
-        
-        if (success) {
-            // Redirect to announcement list with success message
-            response.sendRedirect(request.getContextPath() + "/admin/announcements?message=Announcement updated successfully");
-        } else {
-            // Redirect back to form with error message
-            request.setAttribute("error", "Failed to update announcement. Please try again.");
-            request.setAttribute("announcement", announcement);
-            request.getRequestDispatcher("/admin/announcement_form.jsp").forward(request, response);
+        try {
+            int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("Update Announcement - Announcement ID: " + announcementId);
+            
+            // Collect form data
+            String title = request.getParameter("title");
+            String message = request.getParameter("message");
+            String targetGroup = request.getParameter("targetGroup");
+            
+            // Get original announcement to preserve some fields
+            Announcement originalAnnouncement = announcementDAO.getAnnouncementById(announcementId);
+            
+            if (originalAnnouncement == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Announcement not found");
+                return;
+            }
+            
+            // Create announcement object
+            Announcement announcement = new Announcement();
+            announcement.setAnnouncementId(announcementId);
+            announcement.setTitle(title);
+            announcement.setMessage(message);
+            announcement.setTargetGroup(targetGroup);
+            announcement.setPostedBy(originalAnnouncement.getPostedBy());
+            announcement.setDate(originalAnnouncement.getDate());
+            
+            // Update in database
+            boolean success = announcementDAO.updateAnnouncement(announcement);
+            
+            if (success) {
+                // Redirect to announcement list with success message
+                response.sendRedirect(request.getContextPath() + "/admin/announcements?message=Announcement updated successfully");
+            } else {
+                // Redirect back to form with error message
+                request.setAttribute("error", "Failed to update announcement. Please try again.");
+                request.setAttribute("announcement", announcement);
+                request.getRequestDispatcher("/admin/announcement_form.jsp").forward(request, response);
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid announcement ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID format");
         }
     }
     
@@ -219,14 +274,27 @@ public class AnnouncementServlet extends HttpServlet {
     private void deleteAnnouncement(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("Delete Announcement - Path Info: " + pathInfo);
         
-        boolean success = announcementDAO.deleteAnnouncement(announcementId);
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID");
+            return;
+        }
         
-        if (success) {
-            response.sendRedirect(request.getContextPath() + "/admin/announcements?message=Announcement deleted successfully");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Failed to delete announcement");
+        try {
+            int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("Delete Announcement - Announcement ID: " + announcementId);
+            
+            boolean success = announcementDAO.deleteAnnouncement(announcementId);
+            
+            if (success) {
+                response.sendRedirect(request.getContextPath() + "/admin/announcements?message=Announcement deleted successfully");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Failed to delete announcement");
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid announcement ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID format");
         }
     }
     
@@ -236,10 +304,28 @@ public class AnnouncementServlet extends HttpServlet {
     private void viewAnnouncement(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("View Announcement - Path Info: " + pathInfo);
         
-        Announcement announcement = announcementDAO.getAnnouncementById(announcementId);
-        request.setAttribute("announcement", announcement);
-        request.getRequestDispatcher("/admin/announcement_details.jsp").forward(request, response);
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID");
+            return;
+        }
+        
+        try {
+            int announcementId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("View Announcement - Announcement ID: " + announcementId);
+            
+            Announcement announcement = announcementDAO.getAnnouncementById(announcementId);
+            if (announcement == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Announcement not found");
+                return;
+            }
+            
+            request.setAttribute("announcement", announcement);
+            request.getRequestDispatcher("/admin/announcement_details.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid announcement ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/announcements?error=Invalid announcement ID format");
+        }
     }
 } 

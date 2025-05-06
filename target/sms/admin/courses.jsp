@@ -110,14 +110,6 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
             class="page-header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center"
           >
             <h1 class="page-title">Courses Management</h1>
-            <div class="btn-toolbar">
-              <a
-                href="${pageContext.request.contextPath}/admin/courses/new"
-                class="btn btn-primary"
-              >
-                <i class="bi bi-journal-plus me-1"></i> Add New Course
-              </a>
-            </div>
           </div>
 
           <!-- Alerts for success or error messages -->

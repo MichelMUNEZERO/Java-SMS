@@ -9,6 +9,7 @@ public class Course {
     private String teacherName;
     private int credits;
     private String status;
+    private int studentCount;
 
     public Course() {
     }
@@ -22,6 +23,7 @@ public class Course {
         this.teacherId = teacherId;
         this.credits = credits;
         this.status = "active"; // Default status
+        this.studentCount = 0; // Default student count
     }
     
     public Course(int id, String courseName, String courseCode, String description, int teacherId,
@@ -33,6 +35,7 @@ public class Course {
         this.teacherId = teacherId;
         this.credits = credits;
         this.status = status;
+        this.studentCount = 0; // Default student count
     }
 
     public int getId() {
@@ -101,5 +104,13 @@ public class Course {
     
     public void setStatus(String status) {
         this.status = status;
+    }
+    
+    public int getStudentCount() {
+        return studentCount;
+    }
+    
+    public void setStudentCount(int studentCount) {
+        this.studentCount = studentCount;
     }
 } 

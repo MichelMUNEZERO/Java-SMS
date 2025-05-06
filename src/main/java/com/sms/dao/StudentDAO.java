@@ -357,7 +357,8 @@ public class StudentDAO {
             LOGGER.info("Getting all students for enrollment");
             conn = DBConnection.getConnection();
             
-            String sql = "SELECT student_id, first_name, last_name, email FROM students WHERE status = 'Active' ORDER BY last_name, first_name";
+            // Removed status filter since the column doesn't exist in the database
+            String sql = "SELECT student_id, first_name, last_name, email FROM students ORDER BY last_name, first_name";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             

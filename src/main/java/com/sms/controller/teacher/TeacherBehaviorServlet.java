@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.sms.dao.BehaviorDAO;
+import com.sms.dao.StudentDAO;
 import com.sms.dao.TeacherDAO;
 import com.sms.model.User;
 
@@ -27,11 +28,13 @@ public class TeacherBehaviorServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(TeacherBehaviorServlet.class.getName());
     private TeacherDAO teacherDAO;
     private BehaviorDAO behaviorDAO;
+    private StudentDAO studentDAO;
     
     @Override
     public void init() throws ServletException {
         teacherDAO = new TeacherDAO();
         behaviorDAO = new BehaviorDAO();
+        studentDAO = new StudentDAO();
     }
     
     /**
@@ -59,13 +62,50 @@ public class TeacherBehaviorServlet extends HttpServlet {
             int teacherId = user.getUserId();
             LOGGER.info("Loading behavior records for teacher ID: " + teacherId);
             
+            // Get the teacher ID from the database based on user ID
+            int dbTeacherId = teacherDAO.getTeacherIdByUserId(teacherId);
+            
+            if (dbTeacherId > 0) {
+                teacherId = dbTeacherId;
+            } else {
+                // Fallback to user ID if teacher ID not found
+                LOGGER.warning("Could not find teacher ID for user ID: " + teacherId + ". Using user ID as fallback.");
+            }
+            
+            LOGGER.info("Loading behavior records for updated teacher ID: " + teacherId);
+            
             // Get all courses taught by this teacher
             List<Map<String, Object>> teacherCourses = teacherDAO.getCoursesByTeacherId(teacherId);
             request.setAttribute("teacherCourses", teacherCourses);
             
+            // Get all students instead of just those taught by this teacher
+            // This ensures all students are available in the dropdown
+            List<Map<String, Object>> allStudents = studentDAO.getAllStudentsForEnrollment();
+            request.setAttribute("teacherStudents", allStudents);
+            
             // Get student behavior records
             List<Map<String, Object>> behaviorRecords = teacherDAO.getStudentBehaviorByTeacherId(teacherId);
             request.setAttribute("behaviorRecords", behaviorRecords);
+            
+            // Calculate behavior statistics
+            int totalCount = behaviorRecords.size();
+            int positiveCount = 0;
+            int negativeCount = 0;
+            
+            for (Map<String, Object> record : behaviorRecords) {
+                String behaviorType = (String) record.get("behaviorType");
+                if (behaviorType != null) {
+                    if (behaviorType.toLowerCase().contains("positive")) {
+                        positiveCount++;
+                    } else if (behaviorType.toLowerCase().contains("negative")) {
+                        negativeCount++;
+                    }
+                }
+            }
+            
+            request.setAttribute("totalCount", totalCount);
+            request.setAttribute("positiveCount", positiveCount);
+            request.setAttribute("negativeCount", negativeCount);
             
             // Get behavior types for dropdown
             List<String> behaviorTypes = behaviorDAO.getAllBehaviorTypes();
@@ -105,18 +145,30 @@ public class TeacherBehaviorServlet extends HttpServlet {
             // Get teacher ID from the user object
             int teacherId = user.getUserId();
             
+            // Get the teacher ID from the database based on user ID
+            int dbTeacherId = teacherDAO.getTeacherIdByUserId(teacherId);
+            
+            if (dbTeacherId > 0) {
+                teacherId = dbTeacherId;
+            } else {
+                // Fallback to user ID if teacher ID not found
+                LOGGER.warning("Could not find teacher ID for user ID: " + teacherId + ". Using user ID as fallback.");
+            }
+            
+            LOGGER.info("Processing behavior action for teacher ID: " + teacherId);
+            
             // Process the form submission based on the action
             String action = request.getParameter("action");
             
             if ("addBehavior".equals(action)) {
                 // Get form parameters
                 int studentId = Integer.parseInt(request.getParameter("studentId"));
-                int courseId = Integer.parseInt(request.getParameter("courseId"));
+                // courseId parameter is not used in BehaviorDAO.addBehaviorRecord
                 String behaviorType = request.getParameter("behaviorType");
                 String description = request.getParameter("description");
                 String actionTaken = request.getParameter("actionTaken");
                 
-                // Add the behavior record
+                // Add the behavior record - pass only the parameters that BehaviorDAO.addBehaviorRecord accepts
                 boolean success = behaviorDAO.addBehaviorRecord(studentId, teacherId, behaviorType, description, actionTaken);
                 
                 if (success) {

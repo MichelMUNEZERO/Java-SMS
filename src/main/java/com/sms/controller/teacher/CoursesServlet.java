@@ -1,6 +1,8 @@
 package com.sms.controller.teacher;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -47,25 +49,83 @@ public class CoursesServlet extends HttpServlet {
                 return;
             }
             
-            // Get teacher ID from the user object
-            int teacherId = user.getUserId();
+            // Get user ID from the user object
+            int userId = user.getUserId();
+            
+            // Get the teacher ID from the database based on user ID
+            TeacherDAO teacherDAO = new TeacherDAO();
+            int teacherId = teacherDAO.getTeacherIdByUserId(userId);
+            
+            if (teacherId <= 0) {
+                // Fallback to user ID if teacher ID not found
+                teacherId = userId;
+                LOGGER.warning("Could not find teacher ID for user ID: " + userId + ". Using user ID as fallback.");
+            }
+            
             LOGGER.info("Loading courses for teacher ID: " + teacherId);
             
-            // Initialize DAOs
-            TeacherDAO teacherDAO = new TeacherDAO();
+            // Use CourseDAOImpl to get courses
+            CourseDAO courseDAO = new CourseDAOImpl();
+            List<Course> coursesList = courseDAO.getCoursesByTeacherId(teacherId);
             
-            // Get courses taught by this teacher
-            List<Map<String, Object>> teacherCourses = teacherDAO.getCoursesByTeacherId(teacherId);
+            // Convert the List<Course> to List<Map<String,Object>> format for consistency
+            List<Map<String, Object>> teacherCourses = new ArrayList<>();
+            for (Course course : coursesList) {
+                Map<String, Object> courseMap = new HashMap<>();
+                courseMap.put("courseId", course.getId());
+                courseMap.put("courseName", course.getCourseName());
+                courseMap.put("courseCode", course.getCourseCode());
+                courseMap.put("description", course.getDescription());
+                courseMap.put("credits", course.getCredits());
+                courseMap.put("teacherId", course.getTeacherId());
+                courseMap.put("teacherName", course.getTeacherName());
+                // Default student count to 0
+                courseMap.put("studentCount", 0);
+                teacherCourses.add(courseMap);
+            }
+            
             request.setAttribute("teacherCourses", teacherCourses);
-            LOGGER.info("Courses retrieved: " + (teacherCourses != null ? teacherCourses.size() : 0));
+            LOGGER.info("Courses retrieved from CourseDAOImpl: " + (teacherCourses != null ? teacherCourses.size() : 0));
+            
+            // Check if there's a success message or error message in the request parameters
+            String successMsg = request.getParameter("success");
+            if (successMsg != null) {
+                String message = "";
+                if ("added".equals(successMsg)) {
+                    message = "Course added successfully.";
+                } else if ("updated".equals(successMsg)) {
+                    message = "Course updated successfully.";
+                } else if ("deleted".equals(successMsg)) {
+                    message = "Course deleted successfully.";
+                }
+                
+                if (!message.isEmpty()) {
+                    request.setAttribute("successMessage", message);
+                }
+            }
+            
+            String errorMsg = request.getParameter("error");
+            if (errorMsg != null) {
+                String message = "";
+                if ("add_failed".equals(errorMsg)) {
+                    message = "Failed to add course.";
+                } else if ("update_failed".equals(errorMsg)) {
+                    message = "Failed to update course.";
+                } else if ("delete_failed".equals(errorMsg)) {
+                    message = "Failed to delete course.";
+                }
+                
+                if (!message.isEmpty()) {
+                    request.setAttribute("errorMessage", message);
+                }
+            }
             
             // Forward to teacher courses page
             request.getRequestDispatcher("/WEB-INF/views/teacher/courses.jsp").forward(request, response);
             
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error loading teacher courses", e);
-            request.setAttribute("errorMessage", "An error occurred: " + e.getMessage());
-            request.getRequestDispatcher("/error.jsp").forward(request, response);
+            LOGGER.log(Level.SEVERE, "Error in CoursesServlet.doGet", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred: " + e.getMessage());
         }
     }
     
@@ -74,27 +134,18 @@ public class CoursesServlet extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Check if user is logged in and has teacher role
-        HttpSession session = request.getSession(false);
+        // Get action parameter
+        String action = request.getParameter("action");
         
+        // Get user ID from session (teacher ID)
+        HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
-            // Not logged in, redirect to login page
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
         
         User user = (User) session.getAttribute("user");
-        if (!"teacher".equals(user.getRole().toLowerCase())) {
-            // Not a teacher, redirect to appropriate dashboard
-            response.sendRedirect(request.getContextPath() + "/" + user.getRole().toLowerCase() + "/dashboard");
-            return;
-        }
-        
-        // Get teacher ID from the user object
         int teacherId = user.getUserId();
-        
-        // Get form parameters
-        String action = request.getParameter("action");
         
         if ("add".equals(action)) {
             // Add new course
@@ -120,6 +171,11 @@ public class CoursesServlet extends HttpServlet {
                 if (courseId > 0) {
                     // Course added successfully
                     LOGGER.info("Course added successfully with ID: " + courseId);
+                    
+                    // Explicitly clear any cached data from the session
+                    session.removeAttribute("teacherCourses");
+                    
+                    // Redirect to courses page with success message
                     response.sendRedirect(request.getContextPath() + "/teacher/courses?success=added");
                 } else {
                     // Error adding course

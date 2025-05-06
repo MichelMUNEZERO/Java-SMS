@@ -244,12 +244,8 @@
                                         <label for="studentId" class="form-label required-field">Student</label>
                                         <select class="form-select" id="studentId" name="studentId" required>
                                             <option value="">Select Student</option>
-                                            <c:forEach var="course" items="${teacherCourses}">
-                                                <optgroup label="${course.courseName}">
-                                                <c:forEach var="student" items="${course.students}">
-                                                    <option value="${student.studentId}">${student.firstName} ${student.lastName}</option>
-                                                </c:forEach>
-                                                </optgroup>
+                                            <c:forEach var="student" items="${teacherStudents}">
+                                                <option value="${student.studentId}">${student.firstName} ${student.lastName}</option>
                                             </c:forEach>
                                         </select>
                                         <div class="invalid-feedback">

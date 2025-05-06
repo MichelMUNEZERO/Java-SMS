@@ -28,8 +28,10 @@ public class CourseDAOImpl implements CourseDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO courses (course_name, course_code, description, teacher_id, credits, status) " +
-                         "VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO courses (course_name, course_code, description, teacher_id, credits) " +
+                         "VALUES (?, ?, ?, ?, ?)";
+            
+            LOGGER.info("Creating new course: " + course.getCourseName() + " (" + course.getCourseCode() + ")");
             
             pstmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, course.getCourseName());
@@ -37,7 +39,13 @@ public class CourseDAOImpl implements CourseDAO {
             pstmt.setString(3, course.getDescription());
             pstmt.setInt(4, course.getTeacherId());
             pstmt.setInt(5, course.getCredits());
-            pstmt.setString(6, course.getStatus() != null ? course.getStatus() : "active");
+            
+            LOGGER.info("Executing SQL: " + sql + " with values: " + 
+                course.getCourseName() + ", " + 
+                course.getCourseCode() + ", " + 
+                course.getDescription() + ", " + 
+                course.getTeacherId() + ", " + 
+                course.getCredits());
             
             int affectedRows = pstmt.executeUpdate();
             
@@ -45,11 +53,14 @@ public class CourseDAOImpl implements CourseDAO {
                 rs = pstmt.getGeneratedKeys();
                 if (rs.next()) {
                     generatedId = rs.getInt(1);
+                    LOGGER.info("Course created successfully with ID: " + generatedId);
                 }
+            } else {
+                LOGGER.warning("Failed to create course: No rows affected");
             }
             
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error creating course", e);
+            LOGGER.log(Level.SEVERE, "Error creating course: " + e.getMessage(), e);
         } finally {
             try {
                 if (rs != null) rs.close();
@@ -185,7 +196,7 @@ public class CourseDAOImpl implements CourseDAO {
         try {
             conn = DBConnection.getConnection();
             String sql = "UPDATE courses SET course_name = ?, course_code = ?, description = ?, " +
-                         "teacher_id = ?, credits = ?, status = ? WHERE course_id = ?";
+                         "teacher_id = ?, credits = ? WHERE course_id = ?";
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, course.getCourseName());
@@ -193,11 +204,20 @@ public class CourseDAOImpl implements CourseDAO {
             pstmt.setString(3, course.getDescription());
             pstmt.setInt(4, course.getTeacherId());
             pstmt.setInt(5, course.getCredits());
-            pstmt.setString(6, course.getStatus() != null ? course.getStatus() : "active");
-            pstmt.setInt(7, course.getId());
+            pstmt.setInt(6, course.getId());
+            
+            LOGGER.info("Updating course ID: " + course.getId() +
+                       ", Name: " + course.getCourseName() +
+                       ", Code: " + course.getCourseCode());
             
             int affectedRows = pstmt.executeUpdate();
             success = affectedRows > 0;
+            
+            if (success) {
+                LOGGER.info("Course updated successfully: ID=" + course.getId());
+            } else {
+                LOGGER.warning("Failed to update course: No matching course with ID=" + course.getId());
+            }
             
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error updating course with ID: " + course.getId(), e);
@@ -259,13 +279,8 @@ public class CourseDAOImpl implements CourseDAO {
             // Column not available, ignore
         }
         
-        // Set status if available
-        try {
-            course.setStatus(rs.getString("status"));
-        } catch (SQLException e) {
-            // Status column not available, set a default value
-            course.setStatus("active");
-        }
+        // Set a default active status since the column doesn't exist in the database
+        course.setStatus("active");
         
         return course;
     }

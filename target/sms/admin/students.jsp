@@ -54,11 +54,6 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
         <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
           <div class="page-header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
             <h1 class="page-title">Student Management</h1>
-            <div class="btn-toolbar">
-              <a href="${pageContext.request.contextPath}/admin/students/new" class="btn btn-primary">
-                <i class="bi bi-person-plus me-1"></i> Add New Student
-              </a>
-            </div>
           </div>
 
           <!-- Filters -->
@@ -148,7 +143,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                   <tbody>
                     <c:forEach var="student" items="${students}">
                       <tr>
-                        <td>${student.id}</td>
+                        <td>${student.getId()}</td>
                         <td>
                           <div class="d-flex align-items-center">
                             <div class="avatar-circle me-2 d-flex align-items-center justify-content-center bg-light" style="width: 35px; height: 35px; border-radius: 50%;">
@@ -173,14 +168,14 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                         <td>
                           <div class="d-flex">
                             <a
-                              href="${pageContext.request.contextPath}/admin/students/view/${student.id}"
+                              href="${pageContext.request.contextPath}/admin/students/view/${student.getId()}"
                               class="btn btn-sm btn-outline-primary action-btn"
                               title="View"
                             >
                               <i class="bi bi-eye"></i>
                             </a>
                             <a
-                              href="${pageContext.request.contextPath}/admin/students/edit/${student.id}"
+                              href="${pageContext.request.contextPath}/admin/students/edit/${student.getId()}"
                               class="btn btn-sm btn-outline-secondary action-btn"
                               title="Edit"
                             >
@@ -190,7 +185,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                               type="button"
                               class="btn btn-sm btn-outline-danger action-btn"
                               data-bs-toggle="modal"
-                              data-bs-target="#deleteModal${student.id}"
+                              data-bs-target="#deleteModal${student.getId()}"
                               title="Delete"
                             >
                               <i class="bi bi-trash"></i>
@@ -200,7 +195,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                           <!-- Delete Confirmation Modal -->
                           <div
                             class="modal fade"
-                            id="deleteModal${student.id}"
+                            id="deleteModal${student.getId()}"
                             tabindex="-1"
                             aria-hidden="true"
                           >
@@ -236,7 +231,7 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
                                     Cancel
                                   </button>
                                   <a
-                                    href="${pageContext.request.contextPath}/admin/students/delete/${student.id}"
+                                    href="${pageContext.request.contextPath}/admin/students/delete/${student.getId()}"
                                     class="btn btn-danger"
                                   >
                                     <i class="bi bi-trash me-1"></i> Delete

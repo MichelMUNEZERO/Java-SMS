@@ -41,6 +41,11 @@ public class Announcement {
     public void setAnnouncementId(int announcementId) {
         this.announcementId = announcementId;
     }
+
+    // Alias for ID to maintain JSP compatibility
+    public int getId() {
+        return announcementId;
+    }
     
     public String getTitle() {
         return title;
@@ -64,6 +69,11 @@ public class Announcement {
     
     public void setDate(Timestamp date) {
         this.date = date;
+    }
+    
+    // Alias for date to maintain JSP compatibility
+    public Timestamp getCreatedAt() {
+        return date;
     }
     
     public String getPostedBy() {

@@ -2,6 +2,8 @@ package com.sms.controller.admin;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -27,6 +29,7 @@ import com.sms.model.User;
 public class StudentServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private StudentDAO studentDAO;
+    private static final Logger LOGGER = Logger.getLogger(StudentServlet.class.getName());
     
     @Override
     public void init() throws ServletException {
@@ -38,6 +41,11 @@ public class StudentServlet extends HttpServlet {
      */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        // Debug information
+        LOGGER.info("Servlet Path: " + request.getServletPath());
+        LOGGER.info("Path Info: " + request.getPathInfo());
+        LOGGER.info("Request URI: " + request.getRequestURI());
         
         // Check authentication
         HttpSession session = request.getSession(false);
@@ -60,17 +68,18 @@ public class StudentServlet extends HttpServlet {
         } else if (action.equals("/admin/students/new")) {
             // Show form to add a new student
             showNewForm(request, response);
-        } else if (action.startsWith("/admin/students/edit/")) {
+        } else if (action.startsWith("/admin/students/edit")) {
             // Show form to edit an existing student
             showEditForm(request, response);
-        } else if (action.startsWith("/admin/students/delete/")) {
+        } else if (action.startsWith("/admin/students/delete")) {
             // Delete a student
             deleteStudent(request, response);
-        } else if (action.startsWith("/admin/students/view/")) {
+        } else if (action.startsWith("/admin/students/view")) {
             // View student details
             viewStudent(request, response);
         } else {
             // Default to student listing
+            LOGGER.warning("Unrecognized action: " + action + ", pathInfo: " + request.getPathInfo());
             response.sendRedirect(request.getContextPath() + "/admin/students");
         }
     }
@@ -129,11 +138,38 @@ public class StudentServlet extends HttpServlet {
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("Edit Form - Path Info: " + pathInfo);
         
-        Student student = studentDAO.getStudentById(studentId);
-        request.setAttribute("student", student);
-        request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID");
+            return;
+        }
+        
+        try {
+            int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("Edit Form - Student ID: " + studentId);
+            
+            Student student = studentDAO.getStudentById(studentId);
+            if (student == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/students?error=Student+not+found");
+                return;
+            }
+            
+            request.setAttribute("student", student);
+            
+            try {
+                request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error forwarding to JSP", e);
+                response.sendRedirect(request.getContextPath() + "/admin/students?error=Error+loading+edit+form");
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid student ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID+format");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error getting student for edit form", e);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Error+processing+request");
+        }
     }
     
     /**
@@ -195,7 +231,7 @@ public class StudentServlet extends HttpServlet {
             
             if (success) {
                 // Redirect to student list with success message
-                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student added successfully");
+                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student+added+successfully");
             } else {
                 // Show form again with error message
                 request.setAttribute("error", "Failed to add student. Please try again.");
@@ -204,7 +240,7 @@ public class StudentServlet extends HttpServlet {
             }
         } catch (Exception e) {
             // Log the error
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error adding student", e);
             
             // Show form with error message
             request.setAttribute("error", "Error: " + e.getMessage());
@@ -217,10 +253,17 @@ public class StudentServlet extends HttpServlet {
      */
     private void updateStudent(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        String pathInfo = request.getPathInfo();
+        LOGGER.info("Update Student - Path Info: " + pathInfo);
+        
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID");
+            return;
+        }
+        
         try {
-            // Get student ID from path
-            String pathInfo = request.getPathInfo();
             int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("Update Student - Student ID: " + studentId);
             
             // Collect form data
             String firstName = request.getParameter("firstName");
@@ -276,20 +319,19 @@ public class StudentServlet extends HttpServlet {
             
             if (success) {
                 // Redirect to student list with success message
-                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student updated successfully");
+                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student+updated+successfully");
             } else {
                 // Show form again with error message
                 request.setAttribute("error", "Failed to update student. Please try again.");
                 request.setAttribute("student", student);
                 request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
             }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid student ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID+format");
         } catch (Exception e) {
-            // Log the error
-            e.printStackTrace();
-            
-            // Show form with error message
-            request.setAttribute("error", "Error: " + e.getMessage());
-            request.getRequestDispatcher("/admin/student_form.jsp").forward(request, response);
+            LOGGER.log(Level.SEVERE, "Error updating student", e);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Error+updating+student");
         }
     }
     
@@ -299,14 +341,30 @@ public class StudentServlet extends HttpServlet {
     private void deleteStudent(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("Delete Student - Path Info: " + pathInfo);
         
-        boolean success = studentDAO.deleteStudent(studentId);
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID");
+            return;
+        }
         
-        if (success) {
-            response.sendRedirect(request.getContextPath() + "/admin/students?message=Student deleted successfully");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/admin/students?error=Failed to delete student");
+        try {
+            int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("Delete Student - Student ID: " + studentId);
+            
+            boolean success = studentDAO.deleteStudent(studentId);
+            
+            if (success) {
+                response.sendRedirect(request.getContextPath() + "/admin/students?message=Student+deleted+successfully");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/students?error=Failed+to+delete+student");
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid student ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID+format");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error deleting student", e);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Error+deleting+student");
         }
     }
     
@@ -316,10 +374,37 @@ public class StudentServlet extends HttpServlet {
     private void viewStudent(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+        LOGGER.info("View Student - Path Info: " + pathInfo);
         
-        Student student = studentDAO.getStudentById(studentId);
-        request.setAttribute("student", student);
-        request.getRequestDispatcher("/admin/student_details.jsp").forward(request, response);
+        if (pathInfo == null || pathInfo.equals("/")) {
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID");
+            return;
+        }
+        
+        try {
+            int studentId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
+            LOGGER.info("View Student - Student ID: " + studentId);
+            
+            Student student = studentDAO.getStudentById(studentId);
+            if (student == null) {
+                response.sendRedirect(request.getContextPath() + "/admin/students?error=Student+not+found");
+                return;
+            }
+            
+            request.setAttribute("student", student);
+            
+            try {
+                request.getRequestDispatcher("/admin/student_details.jsp").forward(request, response);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error forwarding to JSP", e);
+                response.sendRedirect(request.getContextPath() + "/admin/students?error=Error+loading+student+details");
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.warning("Invalid student ID format: " + pathInfo);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Invalid+student+ID+format");
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error getting student details", e);
+            response.sendRedirect(request.getContextPath() + "/admin/students?error=Error+processing+request");
+        }
     }
 } 

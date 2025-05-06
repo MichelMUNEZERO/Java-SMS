@@ -163,6 +163,23 @@ public class DoctorServlet extends HttpServlet {
         String specialization = request.getParameter("specialization");
         String hospital = request.getParameter("hospital");
         
+        // Get username and password for account creation
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        
+        // Validate required fields
+        if (firstName == null || firstName.trim().isEmpty() ||
+            lastName == null || lastName.trim().isEmpty() ||
+            email == null || email.trim().isEmpty() ||
+            username == null || username.trim().isEmpty() ||
+            password == null || password.trim().isEmpty()) {
+            
+            // Return to form with error message
+            request.setAttribute("error", "First name, last name, email, username, and password are required fields.");
+            request.getRequestDispatcher("/admin/doctor_form.jsp").forward(request, response);
+            return;
+        }
+        
         // Create doctor object
         Doctor doctor = new Doctor();
         doctor.setFirstName(firstName);
@@ -172,12 +189,12 @@ public class DoctorServlet extends HttpServlet {
         doctor.setSpecialization(specialization);
         doctor.setHospital(hospital);
         
-        // Save to database
-        boolean success = doctorDAO.addDoctor(doctor);
+        // Save to database with user account
+        boolean success = doctorDAO.addDoctorWithUserAccount(doctor, username, password, "doctor");
         
         if (success) {
             // Redirect to doctor list with success message
-            response.sendRedirect(request.getContextPath() + "/admin/doctors?success=Doctor added successfully");
+            response.sendRedirect(request.getContextPath() + "/admin/doctors?success=Doctor added successfully with login credentials");
         } else {
             // Redirect back to form with error message
             request.setAttribute("error", "Failed to add doctor. Please try again.");
@@ -204,6 +221,10 @@ public class DoctorServlet extends HttpServlet {
             String specialization = request.getParameter("specialization");
             String hospital = request.getParameter("hospital");
             
+            // Get username and password (might be empty for existing records)
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            
             // Get original doctor to preserve any fields not in the form
             Doctor originalDoctor = doctorDAO.getDoctorById(doctorId);
             
@@ -219,8 +240,17 @@ public class DoctorServlet extends HttpServlet {
                 doctor.setHospital(hospital);
                 doctor.setUserId(originalDoctor.getUserId()); // Preserve the user ID
                 
-                // Update in database
-                boolean success = doctorDAO.updateDoctor(doctor);
+                boolean success;
+                
+                // Check if username and password were provided for updating
+                if ((username != null && !username.trim().isEmpty()) || 
+                    (password != null && !password.trim().isEmpty())) {
+                    // Update doctor and credentials
+                    success = doctorDAO.updateDoctorWithCredentials(doctor, username, password);
+                } else {
+                    // Update only doctor information
+                    success = doctorDAO.updateDoctor(doctor);
+                }
                 
                 if (success) {
                     // Redirect to doctor list with success message
@@ -270,15 +300,19 @@ public class DoctorServlet extends HttpServlet {
             int doctorId = Integer.parseInt(pathInfo.substring(1)); // Remove the '/' from the path info
             
             Doctor doctor = doctorDAO.getDoctorById(doctorId);
-            
             if (doctor != null) {
                 request.setAttribute("doctor", doctor);
                 request.getRequestDispatcher("/admin/doctor_details.jsp").forward(request, response);
             } else {
-                response.sendRedirect(request.getContextPath() + "/admin/doctors?error=Doctor not found");
+                request.setAttribute("errorMessage", "Doctor not found with ID: " + doctorId);
+                request.getRequestDispatcher("/error.jsp").forward(request, response);
             }
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/doctors?error=Invalid doctor ID");
+            request.setAttribute("errorMessage", "Invalid doctor ID format");
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
+        } catch (Exception e) {
+            request.setAttribute("errorMessage", "Error viewing doctor details: " + e.getMessage());
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
         }
     }
 } 

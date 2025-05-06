@@ -33,20 +33,47 @@ public class HealthRecordDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "SELECT hr.*, d.first_name AS doctor_first_name, d.last_name AS doctor_last_name, " +
+            String sql = "SELECT d.*, doc.first_name AS doctor_first_name, doc.last_name AS doctor_last_name, " +
                          "n.first_name AS nurse_first_name, n.last_name AS nurse_last_name " +
-                         "FROM health_records hr " +
-                         "LEFT JOIN doctors d ON hr.doctor_id = d.doctor_id " +
-                         "LEFT JOIN nurses n ON hr.nurse_id = n.nurse_id " +
-                         "WHERE hr.student_id = ? " +
-                         "ORDER BY hr.record_date DESC";
+                         "FROM Diagnosis d " +
+                         "LEFT JOIN Doctors doc ON d.doctor_id = doc.doctor_id " +
+                         "LEFT JOIN Nurses n ON d.nurse_id = n.nurse_id " +
+                         "WHERE d.student_id = ? " +
+                         "ORDER BY d.diagnosis_date DESC";
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, studentId);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
-                HealthRecord record = mapResultSetToHealthRecord(rs);
+                HealthRecord record = new HealthRecord();
+                record.setRecordId(rs.getInt("diagnosis_id"));
+                record.setStudentId(rs.getInt("student_id"));
+                record.setRecordDate(rs.getDate("diagnosis_date"));
+                record.setRecordType("diagnosis");
+                record.setDescription(rs.getString("diagnosis"));
+                record.setTreatment(rs.getString("treatment"));
+                record.setMedication(""); // No separate medication field in Diagnosis table
+                
+                Integer doctorId = rs.getInt("doctor_id");
+                if (!rs.wasNull()) {
+                    record.setDoctorId(doctorId);
+                    record.setDoctorName(rs.getString("doctor_first_name") + " " + rs.getString("doctor_last_name"));
+                }
+                
+                Integer nurseId = rs.getInt("nurse_id");
+                if (!rs.wasNull()) {
+                    record.setNurseId(nurseId);
+                    record.setNurseName(rs.getString("nurse_first_name") + " " + rs.getString("nurse_last_name"));
+                }
+                
+                java.sql.Date nextAppointment = rs.getDate("follow_up_date");
+                if (nextAppointment != null) {
+                    record.setNextAppointment(new Date(nextAppointment.getTime()));
+                }
+                
+                record.setNotes(rs.getString("symptoms"));
+                
                 healthRecords.add(record);
             }
         } catch (SQLException e) {
@@ -70,37 +97,33 @@ public class HealthRecordDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "INSERT INTO health_records (student_id, record_date, record_type, " +
-                         "description, treatment, medication, doctor_id, nurse_id, next_appointment, " +
-                         "notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO Diagnosis (student_id, diagnosis_date, symptoms, diagnosis, treatment, doctor_id, nurse_id, follow_up_date) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, record.getStudentId());
             pstmt.setDate(2, new java.sql.Date(record.getRecordDate().getTime()));
-            pstmt.setString(3, record.getRecordType());
-            pstmt.setString(4, record.getDescription());
-            pstmt.setString(5, record.getTreatment());
-            pstmt.setString(6, record.getMedication());
+            pstmt.setString(3, record.getNotes()); // Use notes as symptoms
+            pstmt.setString(4, record.getDescription()); // Use description as diagnosis
+            pstmt.setString(5, record.getTreatment() + (record.getMedication() != null ? " Medication: " + record.getMedication() : ""));
             
             if (record.getDoctorId() != null) {
-                pstmt.setInt(7, record.getDoctorId());
+                pstmt.setInt(6, record.getDoctorId());
+            } else {
+                pstmt.setNull(6, java.sql.Types.INTEGER);
+            }
+            
+            if (record.getNurseId() != null) {
+                pstmt.setInt(7, record.getNurseId());
             } else {
                 pstmt.setNull(7, java.sql.Types.INTEGER);
             }
             
-            if (record.getNurseId() != null) {
-                pstmt.setInt(8, record.getNurseId());
-            } else {
-                pstmt.setNull(8, java.sql.Types.INTEGER);
-            }
-            
             if (record.getNextAppointment() != null) {
-                pstmt.setDate(9, new java.sql.Date(record.getNextAppointment().getTime()));
+                pstmt.setDate(8, new java.sql.Date(record.getNextAppointment().getTime()));
             } else {
-                pstmt.setNull(9, java.sql.Types.DATE);
+                pstmt.setNull(8, java.sql.Types.DATE);
             }
-            
-            pstmt.setString(10, record.getNotes());
             
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -124,38 +147,36 @@ public class HealthRecordDAO {
         
         try {
             conn = DBConnection.getConnection();
-            String sql = "UPDATE health_records SET record_date = ?, record_type = ?, " +
-                         "description = ?, treatment = ?, medication = ?, doctor_id = ?, " +
-                         "nurse_id = ?, next_appointment = ?, notes = ? " +
-                         "WHERE record_id = ?";
+            String sql = "UPDATE Diagnosis SET diagnosis_date = ?, diagnosis = ?, " +
+                         "treatment = ?, symptoms = ?, doctor_id = ?, " +
+                         "nurse_id = ?, follow_up_date = ? " +
+                         "WHERE diagnosis_id = ?";
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setDate(1, new java.sql.Date(record.getRecordDate().getTime()));
-            pstmt.setString(2, record.getRecordType());
-            pstmt.setString(3, record.getDescription());
-            pstmt.setString(4, record.getTreatment());
-            pstmt.setString(5, record.getMedication());
+            pstmt.setString(2, record.getDescription());
+            pstmt.setString(3, record.getTreatment());
+            pstmt.setString(4, record.getNotes()); // Use notes as symptoms
             
             if (record.getDoctorId() != null) {
-                pstmt.setInt(6, record.getDoctorId());
+                pstmt.setInt(5, record.getDoctorId());
+            } else {
+                pstmt.setNull(5, java.sql.Types.INTEGER);
+            }
+            
+            if (record.getNurseId() != null) {
+                pstmt.setInt(6, record.getNurseId());
             } else {
                 pstmt.setNull(6, java.sql.Types.INTEGER);
             }
             
-            if (record.getNurseId() != null) {
-                pstmt.setInt(7, record.getNurseId());
-            } else {
-                pstmt.setNull(7, java.sql.Types.INTEGER);
-            }
-            
             if (record.getNextAppointment() != null) {
-                pstmt.setDate(8, new java.sql.Date(record.getNextAppointment().getTime()));
+                pstmt.setDate(7, new java.sql.Date(record.getNextAppointment().getTime()));
             } else {
-                pstmt.setNull(8, java.sql.Types.DATE);
+                pstmt.setNull(7, java.sql.Types.DATE);
             }
             
-            pstmt.setString(9, record.getNotes());
-            pstmt.setInt(10, record.getRecordId());
+            pstmt.setInt(8, record.getRecordId());
             
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -165,6 +186,74 @@ public class HealthRecordDAO {
         } finally {
             DBConnection.closeAll(conn, pstmt, null);
         }
+    }
+    
+    /**
+     * Get all diagnosed students with their health records
+     * 
+     * @return List of health records with diagnosis
+     */
+    public List<HealthRecord> getDiagnosedStudents() {
+        List<HealthRecord> diagnosedRecords = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBConnection.getConnection();
+            String sql = "SELECT d.*, s.first_name AS student_first_name, s.last_name AS student_last_name, " +
+                         "doc.first_name AS doctor_first_name, doc.last_name AS doctor_last_name, " +
+                         "n.first_name AS nurse_first_name, n.last_name AS nurse_last_name " +
+                         "FROM Diagnosis d " +
+                         "JOIN Students s ON d.student_id = s.student_id " +
+                         "LEFT JOIN Doctors doc ON d.doctor_id = doc.doctor_id " +
+                         "LEFT JOIN Nurses n ON d.nurse_id = n.nurse_id " +
+                         "ORDER BY d.diagnosis_date DESC";
+            
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                HealthRecord record = new HealthRecord();
+                record.setRecordId(rs.getInt("diagnosis_id"));
+                record.setStudentId(rs.getInt("student_id"));
+                record.setRecordDate(rs.getDate("diagnosis_date"));
+                record.setRecordType("diagnosis");
+                record.setDescription(rs.getString("diagnosis"));
+                record.setTreatment(rs.getString("treatment"));
+                
+                // Add student name to the record
+                String studentFullName = rs.getString("student_first_name") + " " + rs.getString("student_last_name");
+                
+                Integer doctorId = rs.getInt("doctor_id");
+                if (!rs.wasNull()) {
+                    record.setDoctorId(doctorId);
+                    record.setDoctorName(rs.getString("doctor_first_name") + " " + rs.getString("doctor_last_name"));
+                }
+                
+                Integer nurseId = rs.getInt("nurse_id");
+                if (!rs.wasNull()) {
+                    record.setNurseId(nurseId);
+                    record.setNurseName(rs.getString("nurse_first_name") + " " + rs.getString("nurse_last_name"));
+                }
+                
+                java.sql.Date nextAppointment = rs.getDate("follow_up_date");
+                if (nextAppointment != null) {
+                    record.setNextAppointment(new Date(nextAppointment.getTime()));
+                }
+                
+                record.setNotes(rs.getString("symptoms"));
+                record.setMedication(""); // No separate medication field in Diagnosis table
+                
+                diagnosedRecords.add(record);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting diagnosed students", e);
+        } finally {
+            DBConnection.closeAll(conn, pstmt, rs);
+        }
+        
+        return diagnosedRecords;
     }
     
     /**

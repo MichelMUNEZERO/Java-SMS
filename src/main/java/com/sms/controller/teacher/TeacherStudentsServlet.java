@@ -109,12 +109,12 @@ public class TeacherStudentsServlet extends HttpServlet {
      */
     private void listStudents(HttpServletRequest request, HttpServletResponse response, int teacherId) 
             throws ServletException, IOException {
-        // Get all courses taught by this teacher
-        List<Student> enrolledStudents = studentDAO.getStudentsByTeacherId(teacherId);
+        // Get all students instead of just those enrolled in this teacher's courses
+        List<Student> allStudents = studentDAO.getAllStudents();
         List<Student> availableStudents = studentDAO.getAllAvailableStudents();
         
-        // Use students attribute instead of separate enrolled/available lists to match student-list.jsp
-        request.setAttribute("students", enrolledStudents);
+        // Use all students instead of just enrolled students
+        request.setAttribute("students", allStudents);
         request.setAttribute("availableStudents", availableStudents);
         request.setAttribute("courses", teacherDAO.getCoursesByTeacherId(teacherId));
         

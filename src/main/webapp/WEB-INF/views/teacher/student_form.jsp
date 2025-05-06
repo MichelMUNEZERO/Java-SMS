@@ -240,6 +240,18 @@
                                     <label for="parentOccupation" class="form-label">Parent Occupation</label>
                                     <input type="text" class="form-control" id="parentOccupation" name="parentOccupation">
                                 </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="parentUsername" class="form-label">Parent Username</label>
+                                    <input type="text" class="form-control" id="parentUsername" name="parentUsername">
+                                    <div class="form-text">Username for parent login</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="parentPassword" class="form-label">Parent Password</label>
+                                    <input type="password" class="form-control" id="parentPassword" name="parentPassword">
+                                    <div class="form-text">Password for parent login</div>
+                                </div>
                             </div>
                             
                             <!-- User Account Information -->
@@ -319,6 +331,20 @@
                         let suggestedUsername = firstName.charAt(0) + lastName;
                         suggestedUsername = suggestedUsername.replace(/[^a-z0-9]/g, '');
                         $('#username').val(suggestedUsername);
+                    }
+                }
+            });
+            
+            // Auto-generate parent username based on parent first and last name
+            $('#parentFirstName, #parentLastName').on('blur', function() {
+                if ($('#parentUsername').val() === '') {
+                    let parentFirstName = $('#parentFirstName').val().toLowerCase();
+                    let parentLastName = $('#parentLastName').val().toLowerCase();
+                    
+                    if (parentFirstName && parentLastName) {
+                        let suggestedUsername = 'p_' + parentFirstName.charAt(0) + parentLastName;
+                        suggestedUsername = suggestedUsername.replace(/[^a-z0-9_]/g, '');
+                        $('#parentUsername').val(suggestedUsername);
                     }
                 }
             });

@@ -59,22 +59,42 @@ public class AssignmentsServlet extends HttpServlet {
             // Get student ID from user ID
             try {
                 studentId = getStudentIdFromUserId(user.getUserId());
+                if (studentId == 0) {
+                    LOGGER.warning("Student ID not found for user ID: " + user.getUserId());
+                    request.setAttribute("error", "Unable to find your student record. Please contact the administrator.");
+                    request.getRequestDispatcher("/WEB-INF/views/student/assignments.jsp").forward(request, response);
+                    return;
+                }
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Error getting student ID", e);
-                request.setAttribute("error", "Error loading assignments: " + e.getMessage());
-                request.getRequestDispatcher("/error.jsp").forward(request, response);
+                LOGGER.log(Level.SEVERE, "Error getting student ID from user ID: " + user.getUserId(), e);
+                request.setAttribute("error", "Error loading student data: " + e.getMessage());
+                
+                // Initialize empty lists as fallback
+                request.setAttribute("pendingAssignments", new ArrayList<>());
+                request.setAttribute("completedAssignments", new ArrayList<>());
+                request.setAttribute("upcomingAssignments", new ArrayList<>());
+                request.setAttribute("user", user);
+                
+                request.getRequestDispatcher("/WEB-INF/views/student/assignments.jsp").forward(request, response);
                 return;
             }
         }
         
         try {
+            LOGGER.info("Loading assignments for student ID: " + studentId);
+            
             // Get pending, completed, and upcoming assignments for this student
             List<Map<String, Object>> pendingAssignments = getAssignments(studentId, "pending");
             List<Map<String, Object>> completedAssignments = getAssignments(studentId, "completed");
             List<Map<String, Object>> upcomingAssignments = getAssignments(studentId, "upcoming");
             
+            LOGGER.info("Found assignments: pending=" + pendingAssignments.size() + 
+                        ", completed=" + completedAssignments.size() + 
+                        ", upcoming=" + upcomingAssignments.size());
+            
             // Set attributes for the JSP
             request.setAttribute("user", user);
+            request.setAttribute("studentId", studentId);
             request.setAttribute("pendingAssignments", pendingAssignments);
             request.setAttribute("completedAssignments", completedAssignments);
             request.setAttribute("upcomingAssignments", upcomingAssignments);
@@ -82,9 +102,16 @@ public class AssignmentsServlet extends HttpServlet {
             // Forward to the assignments JSP
             request.getRequestDispatcher("/WEB-INF/views/student/assignments.jsp").forward(request, response);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error loading assignments", e);
+            LOGGER.log(Level.SEVERE, "Error loading assignments for student ID: " + studentId, e);
             request.setAttribute("error", "Error loading assignments: " + e.getMessage());
-            request.getRequestDispatcher("/error.jsp").forward(request, response);
+            
+            // Initialize empty lists as fallback
+            request.setAttribute("pendingAssignments", new ArrayList<>());
+            request.setAttribute("completedAssignments", new ArrayList<>());
+            request.setAttribute("upcomingAssignments", new ArrayList<>());
+            request.setAttribute("user", user);
+            
+            request.getRequestDispatcher("/WEB-INF/views/student/assignments.jsp").forward(request, response);
         }
     }
     
@@ -131,7 +158,8 @@ public class AssignmentsServlet extends HttpServlet {
                       "JOIN Student_Courses sc ON c.course_id = sc.course_id " +
                       "LEFT JOIN Assignment_Submissions s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
                       "WHERE sc.student_id = ? " +
-                      "AND a.due_date > NOW() " +
+                      "AND a.due_date > CURDATE() " +
+                      "AND a.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) " +
                       "AND (s.status IS NULL OR s.status <> 'graded') " +
                       "ORDER BY a.due_date ASC";
             } else if ("completed".equals(status)) {
@@ -154,7 +182,7 @@ public class AssignmentsServlet extends HttpServlet {
                       "JOIN Student_Courses sc ON c.course_id = sc.course_id " +
                       "LEFT JOIN Assignment_Submissions s ON a.assignment_id = s.assignment_id AND s.student_id = ? " +
                       "WHERE sc.student_id = ? " +
-                      "AND a.due_date > DATE_ADD(NOW(), INTERVAL 7 DAY) " +
+                      "AND a.due_date > DATE_ADD(CURDATE(), INTERVAL 7 DAY) " +
                       "AND (s.status IS NULL OR s.status <> 'graded') " +
                       "ORDER BY a.due_date ASC";
             }
@@ -189,6 +217,9 @@ public class AssignmentsServlet extends HttpServlet {
                 
                 assignmentsList.add(assignment);
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting assignments: " + e.getMessage(), e);
+            throw e;
         } finally {
             DBConnection.closeAll(conn, pstmt, rs);
         }

@@ -65,14 +65,6 @@ uri="http://java.sun.com/jsp/jstl/fmt" %>
             class="page-header d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center"
           >
             <h1 class="page-title">Parent Management</h1>
-            <div class="btn-toolbar">
-              <a
-                href="${pageContext.request.contextPath}/admin/parents/new"
-                class="btn btn-primary"
-              >
-                <i class="bi bi-person-plus me-1"></i> Add New Parent
-              </a>
-            </div>
           </div>
 
           <!-- Alert for success/error messages -->

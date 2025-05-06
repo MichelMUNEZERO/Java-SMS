@@ -214,68 +214,53 @@ public class NurseServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            // Log input parameters for debugging
-            LOGGER.info("Creating nurse with parameters: " + request.getParameterMap());
-            
+            // Collect form data
             String firstName = request.getParameter("firstName");
             String lastName = request.getParameter("lastName");
             String email = request.getParameter("email");
             String phone = request.getParameter("phone");
             String qualification = request.getParameter("qualification");
-            String userIdStr = request.getParameter("userId");
             
-            // Check if email already exists
-            List<Nurse> existingNurses = nurseDAO.getAllNurses();
-            for (Nurse existingNurse : existingNurses) {
-                if (existingNurse.getEmail().equalsIgnoreCase(email)) {
-                    Nurse nurse = new Nurse();
-                    nurse.setFirstName(firstName);
-                    nurse.setLastName(lastName);
-                    nurse.setEmail(email);
-                    nurse.setPhone(phone);
-                    nurse.setQualification(qualification);
-                    
-                    if (userIdStr != null && !userIdStr.isEmpty()) {
-                        nurse.setUserId(Integer.parseInt(userIdStr));
-                    }
-                    
-                    request.setAttribute("nurse", nurse);
-                    request.setAttribute("errorMessage", "A nurse with this email already exists. Please use a different email.");
-                    request.getRequestDispatcher("/admin/nurse_form.jsp").forward(request, response);
-                    return;
-                }
+            // Get username and password for account creation
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            
+            // Validate required fields
+            if (firstName == null || firstName.trim().isEmpty() ||
+                lastName == null || lastName.trim().isEmpty() ||
+                email == null || email.trim().isEmpty() ||
+                username == null || username.trim().isEmpty() ||
+                password == null || password.trim().isEmpty()) {
+                
+                request.setAttribute("errorMessage", "First name, last name, email, username, and password are required fields.");
+                request.getRequestDispatcher("/admin/nurse_form.jsp").forward(request, response);
+                return;
             }
             
+            // Create nurse object
             Nurse nurse = new Nurse();
             nurse.setFirstName(firstName);
             nurse.setLastName(lastName);
             nurse.setEmail(email);
-            nurse.setPhone(phone);
-            nurse.setQualification(qualification);
+            nurse.setPhone(phone != null ? phone : "");
+            nurse.setQualification(qualification != null ? qualification : "");
             
-            if (userIdStr != null && !userIdStr.isEmpty()) {
-                try {
-                    nurse.setUserId(Integer.parseInt(userIdStr));
-                } catch (NumberFormatException e) {
-                    LOGGER.warning("Invalid user ID format: " + userIdStr);
-                    // Continue without setting userId
-                }
-            }
+            // Create user account and add nurse to database
+            boolean success = nurseDAO.addNurseWithUserAccount(nurse, username, password, "nurse");
             
-            Nurse createdNurse = nurseDAO.createNurse(nurse);
-            
-            if (createdNurse != null) {
-                LOGGER.info("Successfully created nurse with ID: " + createdNurse.getNurseId());
+            if (success) {
+                // Redirect to nurse list with success message
+                request.getSession().setAttribute("successMessage", "Nurse added successfully with login credentials!");
                 response.sendRedirect(request.getContextPath() + "/admin/nurses");
             } else {
-                LOGGER.warning("Failed to create nurse: " + nurse.getEmail());
-                request.setAttribute("nurse", nurse); // Return the form data
-                request.setAttribute("errorMessage", "Failed to create nurse. Please verify all fields and try again.");
+                request.setAttribute("errorMessage", "Failed to create nurse. Please try again.");
+                request.setAttribute("nurse", nurse);
                 request.getRequestDispatcher("/admin/nurse_form.jsp").forward(request, response);
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Exception creating nurse", e);
-            throw new ServletException("Error creating nurse", e);
+            LOGGER.log(Level.SEVERE, "Error creating nurse", e);
+            request.setAttribute("errorMessage", "Error: " + e.getMessage());
+            request.getRequestDispatcher("/admin/nurse_form.jsp").forward(request, response);
         }
     }
     
@@ -292,12 +277,23 @@ public class NurseServlet extends HttpServlet {
             String email = request.getParameter("email");
             String phone = request.getParameter("phone");
             String qualification = request.getParameter("qualification");
-            String userIdStr = request.getParameter("userId");
+            
+            // Get username and password (might be empty for existing records)
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            
+            // Get existing nurse to validate and preserve data
+            Nurse existingNurse = nurseDAO.getNurseById(nurseId);
+            if (existingNurse == null) {
+                request.setAttribute("errorMessage", "Nurse not found with ID: " + nurseId);
+                response.sendRedirect(request.getContextPath() + "/admin/nurses");
+                return;
+            }
             
             // Check if email already exists with different nurse
-            List<Nurse> existingNurses = nurseDAO.getAllNurses();
-            for (Nurse existingNurse : existingNurses) {
-                if (existingNurse.getEmail().equalsIgnoreCase(email) && existingNurse.getNurseId() != nurseId) {
+            List<Nurse> allNurses = nurseDAO.getAllNurses();
+            for (Nurse otherNurse : allNurses) {
+                if (otherNurse.getEmail().equalsIgnoreCase(email) && otherNurse.getNurseId() != nurseId) {
                     Nurse nurse = new Nurse();
                     nurse.setNurseId(nurseId);
                     nurse.setFirstName(firstName);
@@ -305,10 +301,7 @@ public class NurseServlet extends HttpServlet {
                     nurse.setEmail(email);
                     nurse.setPhone(phone);
                     nurse.setQualification(qualification);
-                    
-                    if (userIdStr != null && !userIdStr.isEmpty()) {
-                        nurse.setUserId(Integer.parseInt(userIdStr));
-                    }
+                    nurse.setUserId(existingNurse.getUserId());
                     
                     request.setAttribute("nurse", nurse);
                     request.setAttribute("errorMessage", "A different nurse with this email already exists. Please use a different email.");
@@ -317,6 +310,7 @@ public class NurseServlet extends HttpServlet {
                 }
             }
             
+            // Create nurse object with updated data
             Nurse nurse = new Nurse();
             nurse.setNurseId(nurseId);
             nurse.setFirstName(firstName);
@@ -324,22 +318,25 @@ public class NurseServlet extends HttpServlet {
             nurse.setEmail(email);
             nurse.setPhone(phone);
             nurse.setQualification(qualification);
+            nurse.setUserId(existingNurse.getUserId());
             
-            if (userIdStr != null && !userIdStr.isEmpty()) {
-                try {
-                    nurse.setUserId(Integer.parseInt(userIdStr));
-                } catch (NumberFormatException e) {
-                    LOGGER.warning("Invalid user ID format: " + userIdStr);
-                    // Continue without setting userId
-                }
+            boolean success;
+            
+            // Check if username and password were provided for updating
+            if ((username != null && !username.trim().isEmpty()) || 
+                (password != null && !password.trim().isEmpty())) {
+                // Update nurse and credentials
+                success = nurseDAO.updateNurseWithCredentials(nurse, username, password);
+            } else {
+                // Update only nurse information
+                success = nurseDAO.updateNurse(nurse);
             }
             
-            boolean success = nurseDAO.updateNurse(nurse);
-            
             if (success) {
+                request.getSession().setAttribute("successMessage", "Nurse updated successfully");
                 response.sendRedirect(request.getContextPath() + "/admin/nurses");
             } else {
-                request.setAttribute("nurse", nurse); // Return the form data
+                request.setAttribute("nurse", nurse);
                 request.setAttribute("errorMessage", "Failed to update nurse. Please verify all fields and try again.");
                 request.getRequestDispatcher("/admin/nurse_form.jsp").forward(request, response);
             }

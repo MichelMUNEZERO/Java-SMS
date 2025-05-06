@@ -58,6 +58,18 @@ public class TeacherReportsServlet extends HttpServlet {
             int teacherId = user.getUserId();
             LOGGER.info("Loading reports for teacher ID: " + teacherId);
             
+            // Get the teacher ID from the database based on user ID
+            int dbTeacherId = teacherDAO.getTeacherIdByUserId(teacherId);
+            
+            if (dbTeacherId > 0) {
+                teacherId = dbTeacherId;
+            } else {
+                // Fallback to user ID if teacher ID not found
+                LOGGER.warning("Could not find teacher ID for user ID: " + teacherId + ". Using user ID as fallback.");
+            }
+            
+            LOGGER.info("Loading reports for updated teacher ID: " + teacherId);
+            
             // Get all courses taught by this teacher for filter dropdowns
             List<Map<String, Object>> teacherCourses = teacherDAO.getCoursesByTeacherId(teacherId);
             request.setAttribute("teacherCourses", teacherCourses);

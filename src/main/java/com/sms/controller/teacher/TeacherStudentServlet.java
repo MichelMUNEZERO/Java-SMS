@@ -75,17 +75,17 @@ public class TeacherStudentServlet extends HttpServlet {
         
         try {
             if (path.equals("/teacher/student")) {
-                listStudents(request, response, user.getUserId());
+                listStudents(request, response, getTeacherId(request));
             } else if (path.equals("/teacher/student/new")) {
                 showNewStudentForm(request, response);
             } else if (path.equals("/teacher/student/view")) {
-                viewStudent(request, response, user.getUserId());
+                viewStudent(request, response, getTeacherId(request));
             } else if (path.equals("/teacher/student/enroll")) {
-                showEnrollStudentForm(request, response, user.getUserId());
+                showEnrollStudentForm(request, response, getTeacherId(request));
             } else if (path.equals("/teacher/student/edit")) {
                 showEditStudentForm(request, response);
             } else {
-                listStudents(request, response, user.getUserId());
+                listStudents(request, response, getTeacherId(request));
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error processing request", e);
@@ -114,7 +114,7 @@ public class TeacherStudentServlet extends HttpServlet {
             if (path.equals("/teacher/student/add")) {
                 addStudent(request, response);
             } else if (path.equals("/teacher/student/enroll")) {
-                enrollStudent(request, response, user.getUserId());
+                enrollStudent(request, response, getTeacherId(request));
             } else if (path.equals("/teacher/student/update")) {
                 updateStudent(request, response);
             } else {
@@ -140,7 +140,7 @@ public class TeacherStudentServlet extends HttpServlet {
     private void showNewStudentForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             // Get all courses taught by this teacher to populate the dropdown
-            List<Course> courses = courseDAO.getCoursesByTeacherId(((User)request.getSession().getAttribute("user")).getUserId());
+            List<Course> courses = courseDAO.getCoursesByTeacherId(getTeacherId(request));
             request.setAttribute("courses", courses);
             
             // Get all parents for the existing parent dropdown
@@ -578,7 +578,7 @@ public class TeacherStudentServlet extends HttpServlet {
             }
             
             // Get all courses taught by this teacher to populate the dropdown
-            List<Course> courses = courseDAO.getCoursesByTeacherId(((User)request.getSession().getAttribute("user")).getUserId());
+            List<Course> courses = courseDAO.getCoursesByTeacherId(getTeacherId(request));
             request.setAttribute("courses", courses);
             
             // Get all parents for the existing parent dropdown
@@ -657,5 +657,21 @@ public class TeacherStudentServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Error updating student: " + e.getMessage());
             showEditStudentForm(request, response);
         }
+    }
+    
+    private int getTeacherId(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute("user");
+        int userId = user.getUserId();
+        
+        // Get the teacher ID from the database based on user ID
+        int teacherId = teacherDAO.getTeacherIdByUserId(userId);
+        
+        if (teacherId <= 0) {
+            // Fallback to user ID if teacher ID not found
+            teacherId = userId;
+            LOGGER.warning("Could not find teacher ID for user ID: " + userId + ". Using user ID as fallback.");
+        }
+        
+        return teacherId;
     }
 }

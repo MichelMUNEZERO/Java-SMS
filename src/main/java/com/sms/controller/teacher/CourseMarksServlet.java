@@ -71,6 +71,17 @@ public class CourseMarksServlet extends HttpServlet {
             TeacherDAO teacherDAO = new TeacherDAO();
             MarksDAO marksDAO = new MarksDAO();
             
+            // Get the teacher ID from the database based on user ID
+            teacherId = teacherDAO.getTeacherIdByUserId(teacherId);
+            
+            if (teacherId <= 0) {
+                // Fallback to user ID if teacher ID not found
+                teacherId = user.getUserId();
+                LOGGER.warning("Could not find teacher ID for user ID: " + user.getUserId() + ". Using user ID as fallback.");
+            }
+            
+            LOGGER.info("Loading marks for teacher ID: " + teacherId + ", course ID: " + courseId);
+            
             // Verify if the course belongs to this teacher
             Map<String, Object> courseDetails = teacherDAO.getCourseDetailsById(courseId, teacherId);
             if (courseDetails == null || courseDetails.isEmpty()) {
@@ -143,6 +154,17 @@ public class CourseMarksServlet extends HttpServlet {
             // Initialize DAOs
             TeacherDAO teacherDAO = new TeacherDAO();
             MarksDAO marksDAO = new MarksDAO();
+            
+            // Get the teacher ID from the database based on user ID
+            teacherId = teacherDAO.getTeacherIdByUserId(teacherId);
+            
+            if (teacherId <= 0) {
+                // Fallback to user ID if teacher ID not found
+                teacherId = user.getUserId();
+                LOGGER.warning("Could not find teacher ID for user ID: " + user.getUserId() + ". Using user ID as fallback.");
+            }
+            
+            LOGGER.info("Updating marks for teacher ID: " + teacherId + ", course ID: " + courseId);
             
             // Verify if the course belongs to this teacher
             Map<String, Object> courseDetails = teacherDAO.getCourseDetailsById(courseId, teacherId);

@@ -6,7 +6,7 @@ prefix="c" %> <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Doctor Details - School Management System</title>
+    <title>Doctor Details | Admin Dashboard</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -17,280 +17,171 @@ prefix="c" %> <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
     <!-- Bootstrap Icons -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
     />
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Custom CSS -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-styles.css">
+
     <style>
       body {
-        background-color: #f8f9fa;
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f5f9;
       }
-
-      .sidebar {
-        background-color: #343a40;
-        min-height: 100vh;
+      .container-fluid {
+        padding: 0;
       }
-
-      .detail-container {
-        background-color: white;
-        border-radius: 10px;
+      main {
         padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f5f5f9;
       }
-
-      .detail-label {
-        font-weight: bold;
-        color: #6c757d;
-      }
-
-      .profile-header {
-        background-color: #f8f9fa;
+      .card {
         border-radius: 10px;
-        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: none;
         margin-bottom: 20px;
       }
-
-      .profile-img {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
+      .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+        padding: 15px 20px;
+        border-radius: 10px 10px 0 0 !important;
+      }
+      .card-body {
+        padding: 20px;
+      }
+      .text-secondary {
+        color: #6c757d !important;
+      }
+      .action-btn {
+        margin-right: 5px;
+      }
+      h1.h2 {
+        font-weight: 600;
+        color: #333;
+      }
+      .profile-image {
+        width: 150px;
+        height: 150px;
         object-fit: cover;
-        background-color: #e9ecef;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+      }
+      .placeholder-image {
+        width: 150px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        color: #6c757d;
+        font-size: 40px;
+      }
+      .profile-img {
+        width: 100px;
+        height: 100px;
+        background-color: #f0f0f0;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 40px;
         color: #6c757d;
+        margin-bottom: 15px;
+      }
+      .detail-label {
+        font-weight: 600;
+        color: #495057;
       }
     </style>
   </head>
   <body>
     <div class="container-fluid">
       <div class="row">
-        <!-- Sidebar -->
-        <div class="col-lg-2 col-md-3 p-0 sidebar">
-          <div class="d-flex flex-column p-3">
-            <h3 class="text-white mb-4">
-              <i class="bi bi-book"></i> School MS
-            </h3>
-            <ul class="nav flex-column mb-auto">
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/dashboard"
-                >
-                  <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/students"
-                >
-                  <i class="bi bi-mortarboard me-2"></i> Students
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/teachers"
-                >
-                  <i class="bi bi-person-workspace me-2"></i> Teachers
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/parents"
-                >
-                  <i class="bi bi-people me-2"></i> Parents
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/courses"
-                >
-                  <i class="bi bi-book me-2"></i> Courses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link active text-white"
-                  href="${pageContext.request.contextPath}/admin/doctors"
-                >
-                  <i class="bi bi-heart-pulse me-2"></i> Doctors
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/nurses"
-                >
-                  <i class="bi bi-bandaid me-2"></i> Nurses
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/announcements"
-                >
-                  <i class="bi bi-megaphone me-2"></i> Announcements
-                </a>
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/admin/settings"
-                >
-                  <i class="bi bi-gear me-2"></i> Settings
-                </a>
-              </li>
-              <li class="nav-item mt-5">
-                <a
-                  class="nav-link text-white"
-                  href="${pageContext.request.contextPath}/logout"
-                >
-                  <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
+        <!-- Include sidebar -->
+        <jsp:include page="/WEB-INF/includes/admin-sidebar.jsp" />
 
         <!-- Main Content -->
-        <div class="col-lg-10 col-md-9 p-4">
-          <!-- Top Navigation -->
-          <header
-            class="d-flex justify-content-between align-items-center mb-4"
-          >
-            <h2 class="h3">Doctor Details</h2>
-            <div class="dropdown">
-              <a
-                class="btn btn-outline-secondary dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-              >
-                <i class="bi bi-person-circle me-1"></i> Admin
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+            <h1 class="h2">Doctor Details</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <a href="${pageContext.request.contextPath}/admin/doctors" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to Doctors
               </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="${pageContext.request.contextPath}/admin/profile"
-                  >
-                    <i class="bi bi-person me-2"></i>Profile
-                  </a>
-                </li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                  <a
-                    class="dropdown-item"
-                    href="${pageContext.request.contextPath}/logout"
-                  >
-                    <i class="bi bi-box-arrow-right me-2"></i>Logout
-                  </a>
-                </li>
-              </ul>
+              <a href="${pageContext.request.contextPath}/admin/doctors/edit/${doctor.doctorId}" class="btn btn-sm btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+              </a>
             </div>
-          </header>
+          </div>
 
           <!-- Doctor Details Section -->
-          <div class="row mb-4">
-            <div class="col-md-12">
-              <div class="card detail-container">
-                <div
-                  class="card-header bg-white d-flex justify-content-between align-items-center"
-                >
-                  <h5 class="mb-0">
-                    <i class="bi bi-heart-pulse me-2"></i>
-                    Doctor Information
-                  </h5>
-                  <div>
-                    <a
-                      href="${pageContext.request.contextPath}/admin/doctors/edit/${doctor.doctorId}"
-                      class="btn btn-warning btn-sm me-2"
-                    >
-                      <i class="bi bi-pencil me-1"></i> Edit
-                    </a>
-                    <button
-                      type="button"
-                      onclick="confirmDelete('${doctor.doctorId}')"
-                      class="btn btn-danger btn-sm"
-                    >
-                      <i class="bi bi-trash me-1"></i> Delete
-                    </button>
-                  </div>
-                </div>
+          <div class="row">
+            <div class="col-lg-8">
+              <div class="card">
+                <div class="card-header">Personal Information</div>
                 <div class="card-body">
-                  <div class="row profile-header align-items-center">
-                    <div class="col-md-2 text-center">
-                      <div class="profile-img mx-auto">
-                        <i class="bi bi-person"></i>
-                      </div>
+                  <div class="row">
+                    <div class="col-md-3 mb-4 text-center">
+                      <c:choose>
+                        <c:when test="${not empty doctor.imageUrl}">
+                          <img src="${doctor.imageUrl}" alt="${doctor.firstName} ${doctor.lastName}" class="profile-image">
+                        </c:when>
+                        <c:otherwise>
+                          <div class="placeholder-image">
+                            <i class="bi bi-person"></i>
+                          </div>
+                        </c:otherwise>
+                      </c:choose>
                     </div>
-                    <div class="col-md-10">
-                      <h2 class="mb-1">
-                        Dr. ${doctor.firstName} ${doctor.lastName}
-                      </h2>
-                      <p class="text-muted mb-2">${doctor.specialization}</p>
-                      <p class="mb-0">
-                        <i class="bi bi-hospital me-2"></i>${doctor.hospital}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="row g-4">
-                    <div class="col-md-6">
-                      <h5 class="border-bottom pb-2 mb-3">
-                        Contact Information
-                      </h5>
-                      <div class="mb-3">
-                        <p class="detail-label mb-1">Email</p>
-                        <p>
-                          <i class="bi bi-envelope me-2"></i>${doctor.email}
-                        </p>
+                    <div class="col-md-9">
+                      <div class="row mb-3">
+                        <div class="col-sm-4 fw-semibold">Full Name</div>
+                        <div class="col-sm-8">${doctor.firstName} ${doctor.lastName}</div>
                       </div>
-                      <div class="mb-3">
-                        <p class="detail-label mb-1">Phone</p>
-                        <p>
-                          <i class="bi bi-telephone me-2"></i>${doctor.phone}
-                        </p>
+                      <div class="row mb-3">
+                        <div class="col-sm-4 fw-semibold">Email</div>
+                        <div class="col-sm-8">${doctor.email}</div>
                       </div>
-                    </div>
-
-                    <div class="col-md-6">
-                      <h5 class="border-bottom pb-2 mb-3">
-                        Professional Information
-                      </h5>
-                      <div class="mb-3">
-                        <p class="detail-label mb-1">Doctor ID</p>
-                        <p><i class="bi bi-hash me-2"></i>${doctor.doctorId}</p>
+                      <div class="row mb-3">
+                        <div class="col-sm-4 fw-semibold">Phone</div>
+                        <div class="col-sm-8">${doctor.phone}</div>
                       </div>
-                      <div class="mb-3">
-                        <p class="detail-label mb-1">Specialization</p>
-                        <p>
-                          <i class="bi bi-clipboard2-pulse me-2"></i
-                          >${doctor.specialization}
-                        </p>
+                      <div class="row mb-3">
+                        <div class="col-sm-4 fw-semibold">Specialization</div>
+                        <div class="col-sm-8">${doctor.specialization}</div>
                       </div>
-                      <div class="mb-3">
-                        <p class="detail-label mb-1">Hospital</p>
-                        <p>
-                          <i class="bi bi-building me-2"></i>${doctor.hospital}
-                        </p>
+                      <div class="row mb-3">
+                        <div class="col-sm-4 fw-semibold">Hospital</div>
+                        <div class="col-sm-8">${doctor.hospital}</div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="card-footer bg-white">
-                  <a
-                    href="${pageContext.request.contextPath}/admin/doctors"
-                    class="btn btn-secondary"
-                  >
-                    <i class="bi bi-arrow-left me-1"></i> Back to Doctors
+              </div>
+            </div>
+
+            <div class="col-lg-4">
+              <div class="card">
+                <div class="card-header">Actions</div>
+                <div class="card-body">
+                  <a href="${pageContext.request.contextPath}/admin/doctors/edit/${doctor.doctorId}" 
+                     class="btn btn-warning w-100 mb-2">
+                    <i class="bi bi-pencil me-2"></i> Edit Doctor
                   </a>
+                  <button onclick="confirmDelete('${doctor.doctorId}')" 
+                          class="btn btn-danger w-100">
+                    <i class="bi bi-trash me-2"></i> Delete Doctor
+                  </button>
                 </div>
               </div>
             </div>

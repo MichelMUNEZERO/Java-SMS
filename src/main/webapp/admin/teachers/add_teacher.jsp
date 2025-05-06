@@ -154,6 +154,21 @@
                                 <textarea class="form-control" id="address" name="address" rows="3">${teacher.address}</textarea>
                             </div>
                         </div>
+                        
+                        <!-- Login Credentials -->
+                        <h5 class="mt-4 mb-3 border-bottom pb-2">Login Credentials</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label required-field">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" ${empty teacher || empty teacher.id ? 'required' : ''}>
+                                <div class="form-text">${empty teacher || empty teacher.id ? 'Username for teacher to login to the system' : 'Leave blank to keep existing username'}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="password" class="form-label required-field">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" ${empty teacher || empty teacher.id ? 'required' : ''}>
+                                <div class="form-text">${empty teacher || empty teacher.id ? 'Initial password for teacher account' : 'Leave blank to keep existing password'}</div>
+                            </div>
+                        </div>
 
                         <div class="d-flex justify-content-end mt-4">
                             <a href="${pageContext.request.contextPath}/admin/teachers" class="btn btn-outline-secondary me-2">
